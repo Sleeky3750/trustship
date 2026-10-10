@@ -1,0 +1,1 @@
+components/whatsapp/WhatsAppHealthWidget.tsx(170,11): error TS2339: Property 'systemToken' does not exist on type 'WhatsAppHealth'.

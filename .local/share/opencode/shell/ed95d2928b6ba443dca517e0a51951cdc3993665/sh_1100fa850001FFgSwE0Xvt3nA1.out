@@ -1,0 +1,1 @@
+prisma.config.ts:1:import "dotenv/config";

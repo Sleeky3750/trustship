@@ -1,0 +1,3 @@
+2026-10-01 19:15:28.339 [info] Log level: Info
+2026-10-01 19:15:43.285 [warning] [GitHubBranchProtectionProvider][updateRepositoryBranchProtection] Failed to update repository branch protection: No GitHub authentication session available.
+2026-10-01 19:39:41.961 [warning] [GitHubSourceControlHistoryItemDetailsProvider][_loadAssignableUsers] Failed to load assignable user(s) for Sleeky3750/pulse: Error: No GitHub authentication session available.

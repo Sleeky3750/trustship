@@ -1,0 +1,22 @@
+rmdir: failed to remove 'app/dashboard/whatsapp': Directory not empty
+app/dashboard:
+(console)
+page.tsx
+whatsapp
+
+app/dashboard/(console):
+pulse
+settings
+whatsapp
+
+app/dashboard/(console)/pulse:
+
+app/dashboard/(console)/settings:
+team
+
+app/dashboard/(console)/settings/team:
+
+app/dashboard/(console)/whatsapp:
+
+app/dashboard/whatsapp:
+page.tsx

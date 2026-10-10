@@ -1,0 +1,44 @@
+2026-10-08 02:02:36.943 [warning] Creation of workbench contribution 'workbench.contrib.chatSetup' took 45ms.
+2026-10-08 02:02:37.070 [warning] Creation of workbench contribution 'workbench.contrib.localHistoryTimeline' took 21ms.
+2026-10-08 02:02:40.133 [info] Started local extension host with pid 1004.
+2026-10-08 02:02:40.954 [error] [vscode.mermaid-markdown-features]: Extension 'vscode.mermaid-markdown-features' CANNOT use 'legacyToolReferenceFullNames' without the 'chatParticipantPrivate' API proposal enabled
+2026-10-08 02:03:00.144 [info] [AccountPolicyGate] apply: state=inactive, reason=undefined, isRestricted=false
+2026-10-08 02:03:05.360 [info] Extension host (LocalProcess pid: 1004) is unresponsive.
+2026-10-08 02:03:07.262 [info] [AccountPolicyGate] apply: state=inactive, reason=undefined, isRestricted=false
+2026-10-08 02:03:08.321 [info] Extension host (LocalProcess pid: 1004) is responsive.
+2026-10-08 02:03:12.172 [info] Extension host (LocalProcess pid: 1004) is unresponsive.
+2026-10-08 02:03:13.524 [error] [Extension Host] (node:1004) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+2026-10-08 02:03:13.560 [info] Extension host (LocalProcess pid: 1004) is responsive.
+2026-10-08 02:03:33.140 [warning] Creation of workbench contribution 'workbench.contrib.localAgentsSessionsController' took 218ms.
+2026-10-08 02:03:34.810 [warning] Creation of workbench contribution 'workbench.contrib.chatManagementActions' took 115ms.
+2026-10-08 02:03:37.896 [info] [AgentHost:renderer] Acquiring MessagePort to agent host...
+2026-10-08 02:03:38.122 [info] [AgentHost:renderer] MessagePort acquired, creating client...
+2026-10-08 02:03:43.523 [warning] Creation of workbench contribution 'mcpDiscovery' took 206ms.
+2026-10-08 02:03:47.006 [warning] Creation of workbench contribution 'terminal.chatAgentTools' took 522ms.
+2026-10-08 02:03:47.926 [warning] Creation of workbench contribution 'workbench.contrib.onboarding' took 170ms.
+2026-10-08 02:03:50.010 [info] Settings Sync: Account status changed from uninitialized to unavailable
+2026-10-08 02:03:50.908 [warning] Creation of workbench contribution 'status.languageStatus' took 105ms.
+2026-10-08 02:03:54.279 [warning] Creation of workbench contribution 'EditTelemetryContribution' took 266ms.
+2026-10-08 02:03:57.510 [warning] Creation of workbench contribution 'browserView.chatAgentTools' took 236ms.
+2026-10-08 02:03:59.477 [info] [AgentHost:renderer] Protocol connection established; clientId=7f74ccc4-e337-4fbc-94c2-24dc714d994e
+2026-10-08 02:04:04.255 [warning] Creation of workbench contribution 'workbench.contrib.agentHostContribution' took 142ms.
+2026-10-08 02:04:06.565 [warning] Creation of workbench contribution 'workbench.contrib.configurationMigration' took 340ms.
+2026-10-08 02:04:07.197 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-08 02:04:08.731 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-08 02:04:08.851 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-08 02:04:09.028 [warning] Creation of workbench contribution 'workbench.contrib.dynamicWindowConfiguration' took 148ms.
+2026-10-08 02:04:10.601 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-08 02:04:13.448 [warning] Creation of workbench contribution 'chat.builtinTools' took 173ms.
+2026-10-08 02:04:14.092 [warning] Creation of workbench contribution 'chat.promptLanguageFeatures' took 153ms.
+2026-10-08 02:04:20.349 [info] [perf] Render performance baseline is 470ms
+2026-10-08 11:32:33.446 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-10-08 11:47:01.442 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-10-08 11:47:01.498 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-10-08 12:09:02.726 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-10-08 12:10:54.501 [info] Extension host (LocalProcess pid: 1004) is unresponsive.
+2026-10-08 12:11:02.667 [info] Extension host (LocalProcess pid: 1004) is responsive.
+2026-10-08 12:11:30.318 [info] Extension host (LocalProcess pid: 1004) is unresponsive.
+2026-10-08 12:11:36.596 [info] Extension host (LocalProcess pid: 1004) is responsive.
+2026-10-08 12:12:12.654 [info] UNRESPONSIVE extension host: received responsive event and cancelling profiling session
+2026-10-08 12:12:38.497 [info] UNRESPONSIVE extension host: starting to profile NOW

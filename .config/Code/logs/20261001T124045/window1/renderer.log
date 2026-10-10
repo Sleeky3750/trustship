@@ -1,0 +1,35 @@
+2026-10-01 12:40:58.543 [warning] Creation of workbench contribution 'workbench.contrib.chatSetup' took 25ms.
+2026-10-01 12:41:01.424 [info] Started local extension host with pid 1113.
+2026-10-01 12:41:02.981 [error] [vscode.mermaid-markdown-features]: Extension 'vscode.mermaid-markdown-features' CANNOT use 'legacyToolReferenceFullNames' without the 'chatParticipantPrivate' API proposal enabled
+2026-10-01 12:41:14.933 [info] [AccountPolicyGate] apply: state=inactive, reason=undefined, isRestricted=false
+2026-10-01 12:41:18.107 [info] Extension host (LocalProcess pid: 1113) is unresponsive.
+2026-10-01 12:41:18.518 [info] Extension host (LocalProcess pid: 1113) is responsive.
+2026-10-01 12:41:20.784 [info] [AccountPolicyGate] apply: state=inactive, reason=undefined, isRestricted=false
+2026-10-01 12:41:21.681 [error] [Extension Host] (node:1113) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+2026-10-01 12:41:24.292 [info] [AgentHost:renderer] Acquiring MessagePort to agent host...
+2026-10-01 12:41:24.395 [info] [AgentHost:renderer] MessagePort acquired, creating client...
+2026-10-01 12:41:46.168 [info] [AgentHost:renderer] Protocol connection established; clientId=4eb36585-3f48-40c0-af1f-e1a7cae27298
+2026-10-01 12:41:49.546 [warning] Creation of workbench contribution 'terminal.chatAgentTools' took 301ms.
+2026-10-01 12:41:49.952 [info] Settings Sync: Account status changed from uninitialized to unavailable
+2026-10-01 12:41:50.529 [warning] Creation of workbench contribution 'workbench.contrib.onboarding' took 137ms.
+2026-10-01 12:41:54.742 [warning] Creation of workbench contribution 'browserView.chatAgentTools' took 136ms.
+2026-10-01 12:41:56.254 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-01 12:41:58.141 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-01 12:41:58.938 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-01 12:42:01.338 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-01 12:42:02.847 [warning] Creation of workbench contribution 'workbench.contrib.dynamicWindowConfiguration' took 544ms.
+2026-10-01 12:42:08.458 [info] [perf] Render performance baseline is 846ms
+2026-10-01 12:52:58.329 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-10-01 12:52:58.370 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-10-01 12:52:58.375 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-10-01 12:52:58.396 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-10-01 13:13:05.023 [error] [text file model] handleSaveError(48) - exit - resulted in a save error: Error: Unable to write file '/home/sleeky3750/pulse-web/app/dashboard/page.tsx' (Error: File Modified Since) file:///home/sleeky3750/pulse-web/app/dashboard/page.tsx
+2026-10-01 13:39:06.263 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-10-01 13:39:06.443 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-10-01 13:39:06.461 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-10-01 13:39:06.482 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-10-01 14:13:51.195 [info] Extension host (LocalProcess pid: 1113) is unresponsive.
+2026-10-01 14:13:51.306 [info] Extension host (LocalProcess pid: 1113) is responsive.
+2026-10-01 14:13:53.538 [info] UNRESPONSIVE extension host: received responsive event and cancelling profiling session
+2026-10-01 14:13:58.561 [info] UNRESPONSIVE extension host: starting to profile NOW

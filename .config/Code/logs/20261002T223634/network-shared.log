@@ -1,0 +1,7 @@
+2026-10-03 02:57:14.840 [error] #131: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_CONNECTION_RESET
+2026-10-03 03:51:04.545 [error] #138: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-10-06 08:53:01.970 [error] #332: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_SOCKET_NOT_CONNECTED
+2026-10-06 09:05:03.092 [error] #334: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_CONNECTION_RESET
+2026-10-06 09:43:37.148 [error] #342: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_TIMED_OUT
+2026-10-06 11:12:04.864 [error] #366: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_TIMED_OUT
+2026-10-06 11:12:08.848 [error] #367: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_TIMED_OUT

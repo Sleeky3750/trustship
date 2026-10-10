@@ -1,0 +1,102 @@
+diff --git a/app/login/page.tsx b/app/login/page.tsx
+index d4601d0..9f11179 100644
+--- a/app/login/page.tsx
++++ b/app/login/page.tsx
+@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
+ import { getCurrentMember } from "@/lib/auth/business";
+ import AuthShell from "@/components/auth/AuthShell";
+ import LoginForm from "@/components/auth/LoginForm";
++import ForgotPasswordLink from "@/components/auth/ForgotPasswordLink";
+ 
+ export const metadata: Metadata = { title: "Log in" };
+ 
+@@ -24,6 +25,7 @@ export default async function LoginPage() {
+             Create an account
+           </Link>
+         </>
++        <ForgotPasswordLink />
+       }
+     >
+       <LoginForm />
+diff --git a/components/auth/LoginForm.tsx b/components/auth/LoginForm.tsx
+index ac01848..d41358f 100644
+--- a/components/auth/LoginForm.tsx
++++ b/components/auth/LoginForm.tsx
+@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react";
+ 
+ import { Field, buttonStyles, cx, inputStyles } from "@/components/console/ui";
+ import PasswordInput from "./PasswordInput";
++import { ForgotPasswordLink } from "./ForgotPasswordLink";
+ 
+ export default function LoginForm() {
+   const router = useRouter();
+@@ -76,14 +77,17 @@ export default function LoginForm() {
+         </p>
+       )}
+ 
+-      <button
+-        type="submit"
+-        disabled={loading || !email || !password}
+-        className={cx(buttonStyles.primary, "group w-full lg:min-h-11")}
+-      >
+-        {loading ? "Logging in…" : "Log in"}
+-        {!loading && <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />}
+-      </button>
++      <div className="flex flex-col items-start gap-2">
++        <ForgotPasswordLink />
++        <button
++          type="submit"
++          disabled={loading || !email || !password}
++          className={cx(buttonStyles.primary, "group w-full lg:min-h-11")}
++        >
++          {loading ? "Logging in…" : "Log in"}
++          {!loading && <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />}
++        </button>
++      </div>
+     </form>
+   );
+ }
+diff --git a/components/campaigns/BroadcastModal.tsx b/components/campaigns/BroadcastModal.tsx
+index 1be2c6f..96793e4 100644
+--- a/components/campaigns/BroadcastModal.tsx
++++ b/components/campaigns/BroadcastModal.tsx
+@@ -40,6 +40,7 @@ export default function BroadcastModal({ open, onClose }: BroadcastModalProps) {
+     <div
+       className="fixed inset-0 z-40 flex items-center justify-center p-4 motion-reduce:transition-none"
+       aria-modal="true"
++      onClick={onClose}
+     >
+       <div
+         className="relative w-full max-w-lg rounded-2xl border border-zinc-800 bg-zinc-950/90 backdrop-blur-xl transform overflow-hidden motion-safe:animate-fade-in"
+diff --git a/components/console/ConsoleNav.tsx b/components/console/ConsoleNav.tsx
+index bf0029c..a26842e 100644
+--- a/components/console/ConsoleNav.tsx
++++ b/components/console/ConsoleNav.tsx
+@@ -11,6 +11,7 @@ import PulseMark from "./PulseMark";
+ 
+ const NAV = [
+   { href: "/dashboard", label: "Overview", icon: LayoutDashboard, exact: true },
++  { href: "/dashboard/campaigns", label: "Campaigns", icon: MessageCircle, exact: false },
+   { href: "/dashboard/whatsapp", label: "AI Staff & Inbox", icon: MessageCircle, exact: false },
+   { href: "/dashboard/settings", label: "Settings", icon: Settings, exact: false },
+ ];
+diff --git a/components/console/settings/SettingsShell.tsx b/components/console/settings/SettingsShell.tsx
+index 4a52332..312a001 100644
+--- a/components/console/settings/SettingsShell.tsx
++++ b/components/console/settings/SettingsShell.tsx
+@@ -11,13 +11,14 @@ import TeamTab from "./TeamTab";
+ import AccountPanel from "./AccountPanel";
+ import IntegrationPanel from "../team/IntegrationPanel";
+ 
+-export type SettingsTab = "profile" | "ai" | "team" | "integration";
++export type SettingsTab = "profile" | "ai" | "team" | "integration" | "billing";
+ 
+ const TABS: { value: SettingsTab; label: string; description: string; icon: typeof Bot }[] = [
+   { value: "profile", label: "Profile", description: "Business details & your account", icon: Building2 },
+   { value: "ai", label: "AI Staff Behavior", description: "Persona & knowledge base", icon: Bot },
+   { value: "team", label: "Team & Roles", description: "Members and invites", icon: Users },
+   { value: "integration", label: "WhatsApp & System", description: "Meta credentials & status", icon: Plug },
++  { value: "billing", label: "Billing", description: "Subscription tier & payment methods", icon: Bot },
+ ];
+ 
+ export default function SettingsShell({

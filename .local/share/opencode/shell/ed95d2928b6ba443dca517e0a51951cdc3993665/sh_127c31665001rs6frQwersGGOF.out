@@ -1,0 +1,5 @@
+import { cx } from "./cx";
+
+/** TrustShip brand mark: emerald tile with a heartbeat line. */
+export default function TrustShipMark({ className }: { className?: string }) {
+  return (

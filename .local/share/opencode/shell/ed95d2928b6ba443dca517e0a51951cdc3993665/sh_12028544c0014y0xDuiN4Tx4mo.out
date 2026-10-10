@@ -1,0 +1,6 @@
+  const statusBg = status === "positive" ? "emerald-100" : "amber-100";
+
+  return (
+    <div className="rounded-xl border border-zinc-800/50 bg-zinc-950/80 p-5 backdrop-blur-md">
+      <p className="text-zinc-500 text-sm mb-1">{title}</p>
+      <p className="text-2xl font-bold text-zinc-100">

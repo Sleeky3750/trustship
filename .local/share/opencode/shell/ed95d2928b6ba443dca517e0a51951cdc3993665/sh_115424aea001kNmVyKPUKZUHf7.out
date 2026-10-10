@@ -1,0 +1,63 @@
+729:async function handleMediaNotice(
+730-  phoneNumberId: string,
+731-  connection: WhatsAppConnection | null,
+732-  media: IncomingMediaMessage,
+733-  profileName: string | null
+734-) {
+735-  const notice = mediaNoticeText(media.label);
+736-
+737-  logLater({
+738-    type: "WEBHOOK_RECEIVED",
+739-    businessId: connection?.businessId,
+740-    phoneNumberId,
+741-    message: `Unsupported ${media.label} message received from ${maskPhone(media.from)}`,
+742-  });
+743-
+744-  if (connection) {
+745-    try {
+746-      const { conversation } = await ensureConversation(connection, media.from, profileName);
+747-
+748-      if (media.id) {
+749-        const existing = await prisma.message.findUnique({
+750-          where: { externalId: media.id },
+751-          select: { id: true },
+752-        });
+753-        if (existing) return; // Meta redelivery
+754-      }
+755-
+756-      await prisma.message.create({
+757-        data: {
+758-          conversationId: conversation.id,
+759-          businessId: connection.businessId,
+760-          externalId: media.id,
+761-          direction: "INBOUND",
+762-          sender: "SYSTEM",
+763-          type: mediaMessageType(media.label),
+764-          text: notice,
+765-          status: "RECEIVED",
+766-          createdAt: media.timestamp,
+767-        },
+768-      });
+769-
+770-      await prisma.conversation.update({
+771-        where: { id: conversation.id },
+772-        data: { lastMessageAt: new Date() },
+773-      });
+774-      return;
+775-    } catch (error) {
+776-      console.error(
+777-        "[WhatsApp Webhook] Failed to record media notice, using fallback log:",
+778-        error instanceof Error ? error.message : error
+779-      );
+780-    }
+781-  }
+782-
+783-  // No connection (or DB failure above): keep a record in the fallback log.
+784-  await saveInboundWhatsAppMessage({
+785-    phoneNumberId,
+786-    senderPhoneNumber: media.from,
+787-    messageBody: notice,
+788-    wamid: media.id,
+789-    timestamp: media.timestamp,
+790-  });
+791-}

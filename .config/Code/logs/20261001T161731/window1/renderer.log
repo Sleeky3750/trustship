@@ -1,0 +1,64 @@
+2026-10-01 16:17:44.231 [warning] Creation of workbench contribution 'workbench.contrib.preferencesActions' took 48ms.
+2026-10-01 16:17:44.452 [warning] Creation of workbench contribution 'workbench.contrib.exploreAgentDefaultModel' took 44ms.
+2026-10-01 16:17:44.591 [warning] Creation of workbench contribution 'workbench.contrib.chatSetup' took 88ms.
+2026-10-01 16:17:44.798 [warning] Creation of workbench contribution 'workbench.contrib.configurationDefaultOverridesContribution' took 61ms.
+2026-10-01 16:17:48.571 [info] Started local extension host with pid 2883.
+2026-10-01 16:17:49.637 [error] [vscode.mermaid-markdown-features]: Extension 'vscode.mermaid-markdown-features' CANNOT use 'legacyToolReferenceFullNames' without the 'chatParticipantPrivate' API proposal enabled
+2026-10-01 16:18:11.145 [info] [AccountPolicyGate] apply: state=inactive, reason=undefined, isRestricted=false
+2026-10-01 16:18:18.851 [info] [AccountPolicyGate] apply: state=inactive, reason=undefined, isRestricted=false
+2026-10-01 16:18:24.676 [info] Extension host (LocalProcess pid: 2883) is unresponsive.
+2026-10-01 16:18:24.885 [error] [Extension Host] (node:2883) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+2026-10-01 16:18:24.912 [info] Extension host (LocalProcess pid: 2883) is responsive.
+2026-10-01 16:18:25.602 [info] [AgentHost:renderer] Acquiring MessagePort to agent host...
+2026-10-01 16:18:29.419 [info] Extension host (LocalProcess pid: 2883) is unresponsive.
+2026-10-01 16:18:31.046 [info] [AgentHost:renderer] MessagePort acquired, creating client...
+2026-10-01 16:18:40.792 [info] Extension host (LocalProcess pid: 2883) is responsive.
+2026-10-01 16:18:59.544 [info] Extension host (LocalProcess pid: 2883) is unresponsive.
+2026-10-01 16:19:00.177 [info] Extension host (LocalProcess pid: 2883) is responsive.
+2026-10-01 16:19:16.570 [info] [AgentHost:renderer] Protocol connection established; clientId=a4546634-efb2-4def-9c56-91a442374035
+2026-10-01 16:19:27.833 [warning] Creation of workbench contribution 'mcpDiscovery' took 153ms.
+2026-10-01 16:19:39.040 [warning] Creation of workbench contribution 'workbench.contrib.sash' took 3902ms.
+2026-10-01 16:19:41.995 [warning] Creation of workbench contribution 'terminal.chatAgentTools' took 347ms.
+2026-10-01 16:19:42.717 [info] Settings Sync: Account status changed from uninitialized to unavailable
+2026-10-01 16:19:44.794 [warning] Creation of workbench contribution 'workbench.contrib.onboarding' took 176ms.
+2026-10-01 16:19:47.255 [warning] Creation of workbench contribution 'status.languageStatus' took 216ms.
+2026-10-01 16:19:51.034 [warning] Creation of workbench contribution 'EditTelemetryContribution' took 278ms.
+2026-10-01 16:19:51.411 [warning] Creation of workbench contribution 'workbench.contrib.issueReporterOpenState' took 124ms.
+2026-10-01 16:19:52.553 [warning] Creation of workbench contribution 'browserView.chatAgentTools' took 336ms.
+2026-10-01 16:20:04.068 [warning] Creation of workbench contribution 'chat.nativeBuiltinTools' took 216ms.
+2026-10-01 16:20:10.396 [warning] Creation of workbench contribution 'workbench.contrib.agentHostContribution' took 474ms.
+2026-10-01 16:20:18.597 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-01 16:20:24.724 [info] Extension host (LocalProcess pid: 2883) is unresponsive.
+2026-10-01 16:20:25.519 [info] Extension host (LocalProcess pid: 2883) is responsive.
+2026-10-01 16:20:25.558 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-01 16:20:26.756 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-01 16:20:27.065 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-01 16:20:27.493 [warning] Creation of workbench contribution 'workbench.contrib.configurationMigration' took 401ms.
+2026-10-01 16:20:30.705 [warning] Creation of workbench contribution 'workbench.contrib.dynamicWindowConfiguration' took 241ms.
+2026-10-01 16:20:39.969 [warning] Creation of workbench contribution 'chat.builtinTools' took 328ms.
+2026-10-01 16:20:41.335 [warning] Creation of workbench contribution 'workbench.contrib.chat.clientToolSets' took 132ms.
+2026-10-01 16:20:52.165 [warning] Creation of workbench contribution 'workbench.contrib.chatAgentRecommendation' took 516ms.
+2026-10-01 16:21:12.082 [warning] Creation of workbench contribution 'chat.promptLanguageFeatures' took 158ms.
+2026-10-01 16:21:18.703 [info] Extension host (LocalProcess pid: 2883) is unresponsive.
+2026-10-01 16:21:18.805 [info] Extension host (LocalProcess pid: 2883) is responsive.
+2026-10-01 16:21:27.622 [warning] Creation of workbench contribution 'workbench.contrib.testing.chatAgentTool' took 160ms.
+2026-10-01 16:21:30.503 [warning] Creation of workbench contribution 'vs.contrib.inlineCompletionLanguageStatusBarContribution' took 120ms.
+2026-10-01 16:21:31.940 [info] [perf] Render performance baseline is 692ms
+2026-10-01 16:22:20.642 [info] Extension host (LocalProcess pid: 2883) is unresponsive.
+2026-10-01 16:22:21.093 [info] Extension host (LocalProcess pid: 2883) is responsive.
+2026-10-01 16:22:23.510 [info] UNRESPONSIVE extension host: received responsive event and cancelling profiling session
+2026-10-01 16:22:28.329 [info] UNRESPONSIVE extension host: starting to profile NOW
+2026-10-01 16:22:30.245 [warning] UNRESPONSIVE extension host: 'vscode.typescript-language-features' took 35.058318493271855% of 29.727ms, saved PROFILE here: 'file:///tmp/exthost-3d5348.cpuprofile'
+2026-10-01 16:23:43.220 [info] Extension host (LocalProcess pid: 2883) is unresponsive.
+2026-10-01 16:23:52.742 [info] Extension host (LocalProcess pid: 2883) is responsive.
+2026-10-01 16:23:53.102 [info] UNRESPONSIVE extension host: received responsive event and cancelling profiling session
+2026-10-01 16:23:58.118 [info] UNRESPONSIVE extension host: starting to profile NOW
+2026-10-01 16:25:46.024 [info] Extension host (LocalProcess pid: 2883) is unresponsive.
+2026-10-01 16:25:47.950 [info] Extension host (LocalProcess pid: 2883) is responsive.
+2026-10-01 16:25:47.967 [info] UNRESPONSIVE extension host: received responsive event and cancelling profiling session
+2026-10-01 16:25:50.012 [info] UNRESPONSIVE extension host: starting to profile NOW
+2026-10-01 16:30:25.262 [info] Extension host (LocalProcess pid: 2883) is unresponsive.
+2026-10-01 16:30:32.814 [info] Extension host (LocalProcess pid: 2883) is responsive.
+2026-10-01 16:30:32.847 [info] UNRESPONSIVE extension host: received responsive event and cancelling profiling session
+2026-10-01 16:30:44.916 [info] UNRESPONSIVE extension host: starting to profile NOW

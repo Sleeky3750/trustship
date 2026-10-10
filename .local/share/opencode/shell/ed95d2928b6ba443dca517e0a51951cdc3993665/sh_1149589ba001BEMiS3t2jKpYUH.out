@@ -1,0 +1,74 @@
+lib/ai/core/execute.ts:3:import { completeWithGroq } from "./client";
+lib/ai/core/execute.ts:4:import { AiModelOutputError } from "./errors";
+lib/ai/core/client.ts:3:import { AiProviderError } from "./errors";
+lib/ai/schemas/responses.ts:3:import { aiActionProposalSchema } from "./actions";
+lib/ai/context/loadBusinessContext.ts:5:import { AiAuthorizationError } from "../core/errors";
+lib/ai/context/loadBusinessContext.ts:6:import type { AiScope } from "../schemas/requests";
+lib/ai/context/references.ts:1:import type { AiBusinessContext } from "./loadBusinessContext";
+lib/ai/services/shared.ts:3:import { executeAi } from "../core/execute";
+lib/ai/services/shared.ts:4:import { contextForModel } from "../context/references";
+lib/ai/services/shared.ts:5:import { loadBusinessContext } from "../context/loadBusinessContext";
+lib/ai/services/shared.ts:6:import type { AiScope } from "../schemas/requests";
+lib/ai/services/shared.ts:7:import { aiResponseSchema, type AiResponse } from "../schemas/responses";
+lib/ai/services/assistant.ts:3:import type { AiScope } from "../schemas/requests";
+lib/ai/services/assistant.ts:4:import { runAiService } from "./shared";
+lib/ai/services/insights.ts:3:import type { AiScope } from "../schemas/requests";
+lib/ai/services/insights.ts:4:import { runAiService } from "./shared";
+lib/ai/services/priorities.ts:3:import type { AiScope } from "../schemas/requests";
+lib/ai/services/priorities.ts:4:import { runAiService } from "./shared";
+lib/ai/services/progress.ts:3:import type { AiScope } from "../schemas/requests";
+lib/ai/services/progress.ts:4:import { runAiService } from "./shared";
+lib/ai/services/planning.ts:3:import type { AiScope } from "../schemas/requests";
+lib/ai/services/planning.ts:4:import { runAiService } from "./shared";
+lib/ai/tools/ownership.ts:8:} from "../core/errors";
+lib/ai/tools/ownership.ts:9:import { parseEntityReference } from "../schemas/actions";
+lib/ai/tools/actions.ts:9:} from "../core/errors";
+lib/ai/tools/actions.ts:10:import type { ConfirmedAiAction } from "../schemas/actions";
+lib/ai/tools/actions.ts:15:} from "./ownership";
+---
+app/api/ai/route.ts
+app/api/ai/actions/route.ts
+app/api/webhooks/whatsapp/route.ts
+app/dashboard/page.tsx
+app/workspace/[id]/page.tsx
+app/project/[id]/page.tsx
+app/settings/page.tsx
+components/CreateWorkspaceForm.tsx
+components/CreateProjectForm.tsx
+components/CreateTaskForm.tsx
+components/TaskStatus.tsx
+components/kanban/KanbanColumn.tsx
+components/kanban/TaskCard.tsx
+components/kanban/KanbanBoard.tsx
+components/project/ProjectOverview.tsx
+components/project/ProjectWorkspace.tsx
+components/TaskActivity.tsx
+components/LogoutButton.tsx
+components/DeleteTaskButton.tsx
+components/EditTaskModal.tsx
+components/TaskActions.tsx
+components/ai/AiActionConfirmation.tsx
+components/ai/PulseAiPanel.tsx
+components/SettingsForm.tsx
+lib/whatsapp/messages.ts
+models.ts
+export type TaskStatus =
+  | "TODO"
+  | "IN_PROGRESS"
+  | "DONE";
+
+export type TaskPriority =
+  | "LOW"
+  | "MEDIUM"
+  | "HIGH";
+
+export interface Task {
+  id: string;
+  title: string;
+  description: string | null;
+
+  status: TaskStatus;
+  priority: TaskPriority;
+
+  dueDate: Date | null;
+

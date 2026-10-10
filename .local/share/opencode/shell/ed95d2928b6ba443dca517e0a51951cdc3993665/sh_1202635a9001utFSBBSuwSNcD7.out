@@ -1,0 +1,17 @@
+app/dashboard/catalog/page.tsx(332,15): error TS2657: JSX expressions must have one parent element.
+app/dashboard/catalog/page.tsx(407,113): error TS1003: Identifier expected.
+app/dashboard/catalog/page.tsx(407,145): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+app/dashboard/catalog/page.tsx(407,147): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+app/dashboard/catalog/page.tsx(409,23): error TS17002: Expected corresponding JSX closing tag for 'td'.
+app/dashboard/catalog/page.tsx(410,20): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+app/dashboard/catalog/page.tsx(411,19): error TS17002: Expected corresponding JSX closing tag for 'tr'.
+app/dashboard/catalog/page.tsx(428,15): error TS1005: ')' expected.
+app/dashboard/catalog/page.tsx(428,17): error TS17002: Expected corresponding JSX closing tag for 'tbody'.
+app/dashboard/catalog/page.tsx(430,11): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+app/dashboard/catalog/page.tsx(430,13): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+app/dashboard/catalog/page.tsx(431,11): error TS17002: Expected corresponding JSX closing tag for 'table'.
+app/dashboard/catalog/page.tsx(432,9): error TS17002: Expected corresponding JSX closing tag for 'div'.
+app/dashboard/catalog/page.tsx(433,5): error TS1005: ')' expected.
+app/dashboard/catalog/page.tsx(434,3): error TS1109: Expression expected.
+components/catalog/CSVImportModal.tsx(263,14): error TS17008: JSX element 'tr' has no corresponding closing tag.
+components/catalog/CSVImportModal.tsx(297,3): error TS1128: Declaration or statement expected.

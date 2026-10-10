@@ -1,0 +1,266 @@
+2026-08-17 21:02:36.736 [warning] Creation of workbench contribution 'workbench.contrib.chatSetup' took 27ms.
+2026-08-17 21:02:40.133 [info] Started local extension host with pid 2594.
+2026-08-17 21:02:40.553 [error] [vscode.mermaid-markdown-features]: Extension 'vscode.mermaid-markdown-features' CANNOT use 'legacyToolReferenceFullNames' without the 'chatParticipantPrivate' API proposal enabled
+2026-08-17 21:02:56.240 [info] [AccountPolicyGate] apply: state=inactive, reason=undefined, isRestricted=false
+2026-08-17 21:03:02.419 [info] [AccountPolicyGate] apply: state=inactive, reason=undefined, isRestricted=false
+2026-08-17 21:03:07.307 [error] [Extension Host] (node:2594) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+2026-08-17 21:03:47.823 [info] [AgentHost:renderer] Acquiring MessagePort to agent host...
+2026-08-17 21:03:47.896 [info] [AgentHost:renderer] MessagePort acquired, creating client...
+2026-08-17 21:03:54.507 [warning] Creation of workbench contribution 'terminal.chatAgentTools' took 115ms.
+2026-08-17 21:03:57.304 [info] [AgentHost:renderer] Protocol connection established; clientId=eaa365c0-c3cd-45bc-8fec-fe674d514e52
+2026-08-17 21:03:57.444 [info] Settings Sync: Account status changed from uninitialized to unavailable
+2026-08-17 21:04:18.148 [warning] Creation of workbench contribution 'browserView.chatAgentTools' took 130ms.
+2026-08-17 21:04:20.286 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-08-17 21:04:20.511 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-08-17 21:04:20.536 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-08-17 21:04:20.546 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-08-17 21:04:49.306 [info] [perf] Render performance baseline is 417ms
+2026-08-18 20:49:04.339 [error] Error: Fetch timeout: 20000ms
+    at _in (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5370:52203)
+    at async fCt.logAndRequest (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1026:11061)
+    at async w7e.doFetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3195)
+    at async w7e.fetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3103)
+2026-08-18 21:07:28.414 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-18 21:13:12.644 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-18 21:18:56.876 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-18 21:24:41.471 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-18 21:30:25.734 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-18 21:36:09.980 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-18 21:41:54.205 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-18 21:47:38.464 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-18 21:49:04.320 [error] Error: Fetch timeout: 20000ms
+    at _in (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5370:52203)
+    at async fCt.logAndRequest (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1026:11061)
+    at async w7e.doFetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3195)
+    at async w7e.fetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3103)
+2026-08-18 21:53:22.674 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-19 05:31:07.785 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-19 19:25:00.005 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-19 19:30:44.202 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-19 19:36:28.429 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-19 19:42:12.629 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-19 19:47:56.836 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-19 19:53:41.054 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-19 19:59:25.333 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-19 20:05:09.519 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-19 20:09:13.326 [error] Error: Fetch timeout: 20000ms
+    at _in (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5370:52203)
+    at async fCt.logAndRequest (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1026:11061)
+    at async w7e.doFetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3195)
+    at async w7e.fetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3103)
+2026-08-19 20:10:53.730 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-19 21:10:09.887 [error] Error: Fetch timeout: 20000ms
+    at _in (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5370:52203)
+    at async fCt.logAndRequest (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1026:11061)
+    at async w7e.doFetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3195)
+    at async w7e.fetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3103)
+2026-08-19 22:11:59.617 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-19 22:17:43.794 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-20 12:22:07.861 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-20 12:27:52.034 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-20 12:33:36.235 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-20 21:31:07.517 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-21 14:36:49.788 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-21 15:40:44.312 [error] Error: Fetch timeout: 20000ms
+    at _in (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5370:52203)
+    at async fCt.logAndRequest (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1026:11061)
+    at async w7e.doFetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3195)
+    at async w7e.fetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3103)
+2026-08-21 15:42:34.704 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-21 15:48:18.913 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-21 15:54:03.115 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-21 15:59:47.312 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-21 17:11:47.074 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-21 17:17:31.269 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-21 17:48:04.806 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-21 17:53:49.012 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-21 20:23:16.924 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-08-21 20:23:16.994 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-08-21 20:23:16.996 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-08-21 20:23:17.002 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-08-21 20:23:17.014 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-08-21 20:23:17.018 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-08-21 20:23:17.023 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-08-21 20:23:17.025 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-08-21 20:23:17.028 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-08-21 20:23:17.034 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-08-21 20:23:17.035 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-08-21 21:10:43.609 [error] Error: Fetch timeout: 20000ms
+    at _in (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5370:52203)
+    at async fCt.logAndRequest (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1026:11061)
+    at async w7e.doFetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3195)
+    at async w7e.fetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3103)
+2026-08-22 21:20:40.355 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 05:26:34.897 [error] Error: Fetch timeout: 20000ms
+    at _in (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5370:52203)
+    at async fCt.logAndRequest (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1026:11061)
+    at async w7e.doFetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3195)
+    at async w7e.fetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3103)
+2026-08-23 12:57:52.513 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 13:03:36.762 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 13:09:20.978 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 13:15:05.243 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 13:20:49.434 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 13:26:33.677 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 13:32:17.899 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 13:38:02.116 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 13:43:46.302 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 13:44:12.937 [error] Error: Fetch timeout: 20000ms
+    at _in (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5370:52203)
+    at async fCt.logAndRequest (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1026:11061)
+    at async w7e.doFetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3195)
+    at async w7e.fetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3103)
+2026-08-23 13:49:30.500 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 14:13:38.275 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 16:50:19.580 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 16:56:03.801 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 17:01:48.073 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 17:07:32.282 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 17:13:16.472 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 17:39:27.863 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 17:45:12.070 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 18:52:51.686 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 18:58:37.875 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 19:04:28.062 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 19:07:43.741 [error] Error: Fetch timeout: 20000ms
+    at _in (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5370:52203)
+    at async fCt.logAndRequest (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1026:11061)
+    at async w7e.doFetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3195)
+    at async w7e.fetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3103)
+2026-08-23 19:10:16.955 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 19:16:06.518 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 19:21:55.979 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 19:27:48.324 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 19:33:33.471 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 19:40:52.992 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 19:47:11.599 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-23 19:53:47.563 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-24 20:45:10.697 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-26 21:06:28.127 [error] Error: Fetch timeout: 20000ms
+    at _in (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5370:52203)
+    at async fCt.logAndRequest (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1026:11061)
+    at async w7e.doFetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3195)
+    at async w7e.fetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3103)
+2026-08-26 22:26:23.808 [info] Extension host (LocalProcess pid: 2594) is unresponsive.
+2026-08-26 22:26:32.604 [info] Extension host (LocalProcess pid: 2594) is responsive.
+2026-08-27 02:03:16.280 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-27 02:09:03.310 [error] Error: Fetch timeout: 20000ms
+    at _in (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5370:52203)
+    at async fCt.logAndRequest (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1026:11061)
+    at async w7e.doFetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3195)
+    at async w7e.fetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3103)
+2026-08-27 02:09:42.665 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-27 14:38:04.090 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-27 22:20:40.578 [info] Extension host (LocalProcess pid: 2594) is unresponsive.
+2026-08-27 22:21:11.172 [info] Extension host (LocalProcess pid: 2594) is responsive.
+2026-08-27 22:21:12.271 [info] UNRESPONSIVE extension host: received responsive event and cancelling profiling session
+2026-08-27 22:21:28.781 [info] Extension host (LocalProcess pid: 2594) is unresponsive.
+2026-08-27 22:21:36.705 [info] Extension host (LocalProcess pid: 2594) is responsive.
+2026-08-27 22:21:48.628 [info] UNRESPONSIVE extension host: received responsive event and cancelling profiling session
+2026-08-27 22:22:58.580 [info] UNRESPONSIVE extension host: starting to profile NOW
+2026-08-27 22:23:09.870 [info] Extension host (LocalProcess pid: 2594) is unresponsive.
+2026-08-27 22:23:14.674 [info] Extension host (LocalProcess pid: 2594) is responsive.
+2026-08-27 22:23:14.839 [info] UNRESPONSIVE extension host: received responsive event and cancelling profiling session
+2026-08-27 22:23:45.037 [info] Extension host (LocalProcess pid: 2594) is unresponsive.
+2026-08-27 22:23:45.157 [info] Extension host (LocalProcess pid: 2594) is responsive.
+2026-08-27 22:23:45.163 [info] UNRESPONSIVE extension host: received responsive event and cancelling profiling session
+2026-08-27 22:24:08.741 [info] Extension host (LocalProcess pid: 2594) is unresponsive.
+2026-08-27 22:24:09.025 [info] Extension host (LocalProcess pid: 2594) is responsive.
+2026-08-27 22:24:09.028 [info] UNRESPONSIVE extension host: received responsive event and cancelling profiling session
+2026-08-27 22:24:13.206 [info] UNRESPONSIVE extension host: starting to profile NOW
+2026-08-27 22:30:08.131 [error] Canceled: Canceled
+    at pw (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:411:1612)
+    at _in (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5370:52173)
+    at async fCt.logAndRequest (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1026:11061)
+    at async w7e.doFetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3195)
+    at async w7e.fetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3103)
+2026-08-27 22:39:37.183 [info] Extension host (LocalProcess pid: 2594) is unresponsive.
+2026-08-27 22:39:38.542 [info] Extension host (LocalProcess pid: 2594) is responsive.
+2026-08-27 22:39:38.544 [info] UNRESPONSIVE extension host: received responsive event and cancelling profiling session
+2026-08-27 22:40:13.894 [info] UNRESPONSIVE extension host: starting to profile NOW
+2026-08-27 22:41:00.322 [info] Extension host (LocalProcess pid: 2594) is unresponsive.
+2026-08-27 22:41:00.476 [info] Extension host (LocalProcess pid: 2594) is responsive.
+2026-08-27 22:41:00.482 [info] UNRESPONSIVE extension host: received responsive event and cancelling profiling session
+2026-08-27 22:41:29.206 [info] UNRESPONSIVE extension host: starting to profile NOW
+2026-08-27 23:30:40.231 [error] Error: Fetch timeout: 20000ms
+    at _in (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5370:52203)
+    at async fCt.logAndRequest (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1026:11061)
+    at async w7e.doFetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3195)
+    at async w7e.fetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3103)
+2026-08-27 23:54:37.968 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-08-27 23:54:48.215 [info] Extension host (LocalProcess pid: 2594) is unresponsive.
+2026-08-27 23:54:49.584 [info] Extension host (LocalProcess pid: 2594) is responsive.
+2026-08-27 23:54:49.623 [info] UNRESPONSIVE extension host: received responsive event and cancelling profiling session
+2026-08-27 23:55:54.984 [info] UNRESPONSIVE extension host: starting to profile NOW
+2026-08-27 23:56:48.314 [info] Extension host (LocalProcess pid: 2594) is unresponsive.
+2026-08-27 23:58:22.646 [info] Extension host (LocalProcess pid: 2594) is responsive.
+2026-08-27 23:58:28.882 [info] UNRESPONSIVE extension host: received responsive event and cancelling profiling session
+2026-08-28 00:00:44.498 [info] Extension host (LocalProcess pid: 2594) is unresponsive.
+2026-08-28 00:01:40.905 [info] Extension host (LocalProcess pid: 2594) is responsive.
+2026-08-28 00:02:00.934 [info] UNRESPONSIVE extension host: received responsive event and cancelling profiling session
+2026-08-28 00:02:47.244 [info] UNRESPONSIVE extension host: starting to profile NOW
+2026-08-28 02:45:11.932 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-28 02:50:45.053 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-28 03:01:13.582 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-08-28 03:02:41.355 [info] Extension host (LocalProcess pid: 2594) is unresponsive.
+2026-08-28 03:02:41.585 [info] Extension host (LocalProcess pid: 2594) is responsive.
+2026-08-28 03:02:41.593 [info] UNRESPONSIVE extension host: received responsive event and cancelling profiling session
+2026-08-28 03:03:26.659 [info] UNRESPONSIVE extension host: starting to profile NOW
+2026-08-28 05:45:13.197 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-28 07:48:35.828 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-08-28 08:05:21.534 [info] Extension host (LocalProcess pid: 2594) is unresponsive.
+2026-08-28 08:05:27.269 [info] Extension host (LocalProcess pid: 2594) is responsive.
+2026-08-28 08:05:30.475 [info] UNRESPONSIVE extension host: received responsive event and cancelling profiling session
+2026-08-28 08:11:47.428 [info] UNRESPONSIVE extension host: starting to profile NOW
+2026-08-28 08:37:45.209 [info] Extension host (LocalProcess pid: 2594) is unresponsive.
+2026-08-28 08:40:32.767 [info] Extension host (LocalProcess pid: 2594) is responsive.
+2026-08-28 08:40:45.716 [info] UNRESPONSIVE extension host: received responsive event and cancelling profiling session
+2026-08-28 08:41:35.239 [error] Error while getting the latest version for the extension github.copilot-chat from https://marketplace.visualstudio.com/_apis/public/gallery/vscode/{publisher}/{name}/latest. Trying the fallback https://www.vscode-unpkg.net/_gallery/{publisher}/{name}/latest Failed
+2026-08-28 08:41:35.944 [info] UNRESPONSIVE extension host: starting to profile NOW
+2026-08-28 08:45:59.368 [error] TypeError: Failed to fetch
+    at _in (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5370:51993)
+    at vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5370:53289
+    at fCt.logAndRequest (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1026:11067)
+    at fCt.request (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5370:53269)
+    at w7e.doFetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3221)
+    at w7e.fetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3114)
+    at vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3005
+    at vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:434:80883
+2026-08-28 08:47:12.724 [error] Error while getting the latest version for the extension github.copilot-chat. TypeError: Failed to fetch
+2026-08-28 08:56:53.610 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-28 09:03:47.100 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-28 09:21:20.454 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-28 09:38:30.096 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-28 10:27:10.507 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-08-28 10:28:46.769 [info] Extension host (LocalProcess pid: 2594) is unresponsive.
+2026-08-28 10:28:47.167 [info] Extension host (LocalProcess pid: 2594) is responsive.
+2026-08-28 10:28:47.181 [info] UNRESPONSIVE extension host: received responsive event and cancelling profiling session
+2026-08-28 10:29:24.782 [info] UNRESPONSIVE extension host: starting to profile NOW
+2026-08-28 11:24:22.510 [error] Error: Fetch timeout: 20000ms
+    at _in (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5370:52203)
+    at async fCt.logAndRequest (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1026:11061)
+    at async w7e.doFetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3195)
+    at async w7e.fetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3103)
+2026-08-28 11:26:20.462 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-28 11:48:08.360 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-28 17:46:03.156 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-28 17:47:14.776 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-08-28 17:48:26.787 [info] Extension host (LocalProcess pid: 2594) is unresponsive.
+2026-08-28 17:48:28.046 [info] Extension host (LocalProcess pid: 2594) is responsive.
+2026-08-28 17:48:28.394 [info] UNRESPONSIVE extension host: received responsive event and cancelling profiling session
+2026-08-28 17:48:34.991 [info] UNRESPONSIVE extension host: starting to profile NOW
+2026-08-28 17:49:10.618 [info] Extension host (LocalProcess pid: 2594) is unresponsive.
+2026-08-28 17:49:10.802 [info] Extension host (LocalProcess pid: 2594) is responsive.
+2026-08-28 17:49:10.808 [info] UNRESPONSIVE extension host: received responsive event and cancelling profiling session
+2026-08-28 17:49:18.066 [info] UNRESPONSIVE extension host: starting to profile NOW
+2026-08-28 17:51:59.646 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-08-28 17:54:23.885 [error] Canceled: Canceled: Cancelled: Canceled: Canceled
+    at qlt.getLatestRawGalleryExtension (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:2040:53485)
+    at async qlt.getLatestRawGalleryExtensionWithFallback (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:2040:51989)
+    at async qlt.getLatestGalleryExtension (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:2040:40444)
+    at async vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:2040:39532
+    at async Promise.all (index 0)
+    at async qlt.getExtensionsUsingResourceApi (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:2040:39486)
+    at async qlt.getExtensions (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:2040:37948)
+    at async hX.checkForUpdates (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:3821:35607)

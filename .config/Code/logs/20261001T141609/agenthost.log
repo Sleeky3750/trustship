@@ -1,0 +1,14 @@
+2026-10-01 14:17:58.950 [info] Agent Host process started successfully
+2026-10-01 14:17:59.112 [error] CodeExpectedError: ENOPRO: No file system provider found for resource 'vscode-userdata:/home/sleeky3750/.config/Code/User'
+    at rs.withProvider (file:///usr/share/code/resources/app/out/vs/platform/agentHost/node/agentHostMain.js:866:36782)
+    at async rs.doWatch (file:///usr/share/code/resources/app/out/vs/platform/agentHost/node/agentHostMain.js:866:49601)
+    at async file:///usr/share/code/resources/app/out/vs/platform/agentHost/node/agentHostMain.js:866:49291
+2026-10-01 14:17:59.113 [error] CodeExpectedError: ENOPRO: No file system provider found for resource 'vscode-userdata:/home/sleeky3750/.config/Code/User/settings.json'
+    at rs.withProvider (file:///usr/share/code/resources/app/out/vs/platform/agentHost/node/agentHostMain.js:866:36782)
+    at async rs.doWatch (file:///usr/share/code/resources/app/out/vs/platform/agentHost/node/agentHostMain.js:866:49601)
+    at async file:///usr/share/code/resources/app/out/vs/platform/agentHost/node/agentHostMain.js:866:49291
+2026-10-01 14:17:59.940 [info] AgentService initialized
+2026-10-01 14:18:00.387 [info] Registering agent provider: copilotcli
+2026-10-01 14:18:00.398 [info] Registering agent provider: claude
+2026-10-01 14:18:02.852 [info] [WebSocketProtocol] Server listening on socket /tmp/vscode-ah-04127e93a76f/VbJIGZG9e5zYONTlNvxhFw.sock
+2026-10-01 14:18:03.482 [info] [CommandAutoApprover] Tree-sitter initialized successfully

@@ -1,0 +1,15 @@
+├ ƒ /api/tasks/edit
+├ ƒ /api/tasks/update
+├ ƒ /api/webhooks/whatsapp
+├ ƒ /api/workspaces
+├ ƒ /dashboard
+├ ○ /login
+├ ƒ /project/[id]
+├ ƒ /settings
+├ ○ /signup
+└ ƒ /workspace/[id]
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

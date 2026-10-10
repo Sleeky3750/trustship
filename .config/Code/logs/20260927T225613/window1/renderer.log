@@ -1,0 +1,37 @@
+2026-09-27 22:56:23.886 [warning] Creation of workbench contribution 'workbench.contrib.chatSetup' took 22ms.
+2026-09-27 22:56:26.063 [info] Started local extension host with pid 632.
+2026-09-27 22:56:26.340 [error] [vscode.mermaid-markdown-features]: Extension 'vscode.mermaid-markdown-features' CANNOT use 'legacyToolReferenceFullNames' without the 'chatParticipantPrivate' API proposal enabled
+2026-09-27 22:56:37.745 [info] [AccountPolicyGate] apply: state=inactive, reason=undefined, isRestricted=false
+2026-09-27 22:56:44.493 [warning] Creation of workbench contribution 'workbench.contrib.settingsEditorTitleBarActions' took 119ms.
+2026-09-27 22:56:45.304 [info] [AccountPolicyGate] apply: state=inactive, reason=undefined, isRestricted=false
+2026-09-27 22:56:49.256 [info] Extension host (LocalProcess pid: 632) is unresponsive.
+2026-09-27 22:56:49.451 [error] [Extension Host] (node:632) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+2026-09-27 22:56:49.579 [info] Extension host (LocalProcess pid: 632) is responsive.
+2026-09-27 22:57:03.478 [info] Extension host (LocalProcess pid: 632) is unresponsive.
+2026-09-27 22:57:03.705 [info] Extension host (LocalProcess pid: 632) is responsive.
+2026-09-27 22:57:29.045 [warning] Creation of workbench contribution 'mcpDiscovery' took 122ms.
+2026-09-27 22:57:37.428 [info] [AgentHost:renderer] Acquiring MessagePort to agent host...
+2026-09-27 22:57:37.507 [info] [AgentHost:renderer] MessagePort acquired, creating client...
+2026-09-27 22:57:47.290 [warning] Creation of workbench contribution 'terminal.chatAgentTools' took 192ms.
+2026-09-27 22:57:49.059 [error] [AgentHost:renderer] Protocol connection failed Channel name 'agentHostProtocol' timed out after 1000ms
+2026-09-27 22:57:49.889 [info] Settings Sync: Account status changed from uninitialized to unavailable
+2026-09-27 22:57:54.151 [warning] Creation of workbench contribution 'workbench.contrib.onboarding' took 218ms.
+2026-09-27 22:58:02.558 [warning] Creation of workbench contribution 'EditTelemetryContribution' took 146ms.
+2026-09-27 22:58:05.913 [warning] Creation of workbench contribution 'browserView.chatAgentTools' took 490ms.
+2026-09-27 22:58:14.064 [warning] Creation of workbench contribution 'workbench.contrib.configurationMigration' took 161ms.
+2026-09-27 22:58:22.405 [info] [perf] Render performance baseline is 300ms
+2026-09-28 06:48:48.634 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-09-28 14:24:25.803 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-09-28 14:30:10.003 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-09-28 19:36:47.599 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-09-28 19:42:31.788 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-09-28 19:48:15.990 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-09-28 19:54:00.178 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-09-29 02:01:23.194 [error] Error: Fetch timeout: 20000ms
+    at _in (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5370:52203)
+    at async fCt.logAndRequest (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1026:11061)
+    at async w7e.doFetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3195)
+    at async w7e.fetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3103)
+2026-09-29 08:48:25.532 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-09-29 12:19:24.718 [warning] [LM] Failed to request chat control data Failed to fetch

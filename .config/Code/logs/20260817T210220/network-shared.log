@@ -1,0 +1,176 @@
+2026-08-18 20:02:33.086 [error] #43: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NETWORK_CHANGED
+2026-08-18 20:03:20.074 [error] #44: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-18 20:03:26.010 [error] #45: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-18 20:14:11.077 [error] #47: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-18 20:19:55.281 [error] #48: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-18 20:25:39.499 [error] #49: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-18 20:31:23.702 [error] #50: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-18 20:37:07.898 [error] #51: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-18 20:42:52.097 [error] #52: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-18 20:48:15.482 [error] #53: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-18 20:48:36.282 [error] #54: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-18 20:51:14.863 [error] #55: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_CONNECTION_TIMED_OUT
+2026-08-18 20:54:20.551 [error] #56: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-18 21:00:05.276 [error] #57: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-18 21:05:49.485 [error] #58: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-18 21:11:33.688 [error] #59: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-18 21:17:17.901 [error] #60: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-18 21:23:02.124 [error] #61: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-18 21:28:46.376 [error] #62: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-18 21:34:30.614 [error] #63: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-18 21:40:14.821 [error] #64: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-18 21:45:59.089 [error] #65: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-18 21:48:20.911 [error] #66: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-18 21:51:19.352 [error] #67: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_CONNECTION_TIMED_OUT
+2026-08-18 21:51:43.335 [error] #68: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-19 05:29:28.438 [error] #69: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-19 07:22:12.775 [error] #70: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-19 19:29:04.016 [error] #71: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-19 19:34:48.335 [error] #72: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-19 19:40:32.515 [error] #73: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-19 19:46:16.719 [error] #74: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-19 19:52:00.924 [error] #75: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-19 19:57:45.125 [error] #76: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-19 20:03:29.326 [error] #77: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-19 20:08:10.395 [error] #78: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-19 20:08:58.083 [error] #79: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-19 20:09:13.502 [error] #80: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-19 20:36:02.465 [error] #85: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-19 21:06:51.845 [error] #104: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-19 21:09:17.501 [error] #105: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-19 21:10:04.239 [error] #106: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-19 21:12:36.054 [error] #107: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-19 22:11:59.598 [error] #108: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-19 22:17:43.778 [error] #109: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-20 12:22:07.831 [error] #110: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-20 12:27:52.031 [error] #111: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-20 12:33:36.229 [error] #112: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-20 21:23:54.183 [error] #125: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-20 21:29:51.764 [error] #126: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-20 21:31:14.812 [error] #127: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-20 21:47:00.728 [error] #130: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-20 21:52:44.931 [error] #131: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-21 14:54:09.071 [error] #136: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-21 14:59:53.271 [error] #137: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-21 15:05:37.465 [error] #138: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-21 15:11:21.662 [error] #139: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-21 15:17:05.858 [error] #140: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-21 15:22:50.057 [error] #141: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-21 15:28:34.251 [error] #142: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-21 15:34:18.499 [error] #143: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-21 15:39:51.724 [error] #144: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-21 15:40:02.703 [error] #145: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-21 15:40:38.577 [error] #146: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-21 15:45:46.900 [error] #147: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-21 15:51:31.101 [error] #148: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-21 15:57:15.292 [error] #149: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-21 16:02:59.490 [error] #150: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-21 17:14:59.248 [error] #151: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-21 17:44:53.999 [error] #152: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NETWORK_CHANGED
+2026-08-21 17:50:38.194 [error] #153: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-21 19:54:35.011 [error] #154: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-21 21:05:33.326 [error] #170: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-21 21:09:51.227 [error] #171: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-21 21:09:51.230 [error] #172: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-21 21:10:38.155 [error] #173: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-21 21:10:38.157 [error] #174: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-21 21:11:17.486 [error] #175: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-21 21:11:34.419 [error] #176: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-21 21:12:21.828 [error] #177: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-21 21:17:01.716 [error] #178: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-22 21:19:24.408 [error] #194: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NETWORK_CHANGED
+2026-08-22 21:21:21.579 [error] #195: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NETWORK_CHANGED
+2026-08-22 21:21:37.263 [error] #196: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NETWORK_CHANGED
+2026-08-22 21:36:18.258 [error] #198: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NETWORK_CHANGED
+2026-08-22 23:07:34.327 [error] #218: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 04:55:15.606 [error] #222: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-23 04:55:40.112 [error] #223: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 04:56:03.186 [error] #224: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-23 05:01:24.333 [error] #225: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 05:07:08.529 [error] #226: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 05:12:52.723 [error] #227: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 05:18:36.929 [error] #228: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 05:24:21.126 [error] #229: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 05:25:46.875 [error] #230: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-23 05:26:34.098 [error] #231: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-23 05:30:05.326 [error] #232: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 05:35:49.522 [error] #233: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 12:59:11.769 [error] #234: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 13:04:55.959 [error] #235: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 13:10:40.159 [error] #236: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 13:16:24.351 [error] #237: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 13:22:08.570 [error] #238: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 13:27:52.777 [error] #239: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 13:33:36.976 [error] #240: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 13:39:21.173 [error] #241: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 13:43:29.911 [error] #242: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-23 13:44:16.558 [error] #243: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-23 13:45:05.376 [error] #244: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 13:50:49.572 [error] #245: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 14:14:57.336 [error] #246: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 16:51:38.632 [error] #247: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 16:57:22.860 [error] #248: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 17:03:07.093 [error] #249: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 17:08:51.286 [error] #250: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 17:35:02.681 [error] #251: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 17:40:46.879 [error] #252: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 17:46:31.081 [error] #253: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 17:58:15.882 [error] #256: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_CONNECTION_RESET
+2026-08-23 18:17:39.753 [error] #257: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 18:23:25.155 [error] #258: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 18:29:09.423 [error] #259: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 18:34:55.018 [error] #260: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 18:40:41.050 [error] #261: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 18:46:26.786 [error] #262: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 18:52:12.164 [error] #263: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 18:57:58.529 [error] #264: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 19:03:45.966 [error] #265: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 19:07:09.638 [error] #266: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-23 19:08:03.586 [error] #267: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-23 19:09:33.296 [error] #268: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 19:15:20.731 [error] #269: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 19:21:09.866 [error] #270: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 19:27:02.232 [error] #271: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 19:32:48.990 [error] #272: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 19:40:07.322 [error] #273: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-23 19:46:21.288 [error] #274: https://main.vscode-cdn.net/extensions/marketplace.json - error GET Request timeout after 60000ms
+2026-08-23 19:52:22.676 [error] #275: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-24 20:42:14.421 [error] #276: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_SOCKET_NOT_CONNECTED
+2026-08-26 18:19:43.500 [error] #277: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-26 18:27:50.390 [error] #278: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-26 18:27:50.401 [error] #279: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-26 21:06:50.043 [error] #280: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-26 22:01:41.627 [error] #292: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-26 22:11:27.177 [error] #293: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NETWORK_CHANGED
+2026-08-27 00:14:05.296 [error] #304: https://main.vscode-cdn.net/extensions/marketplace.json - error GET Request timeout after 60000ms
+2026-08-27 02:03:52.241 [error] #305: https://main.vscode-cdn.net/extensions/marketplace.json - error GET Request timeout after 60000ms
+2026-08-27 02:09:29.350 [error] #306: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-27 02:09:52.263 [error] #307: https://main.vscode-cdn.net/extensions/marketplace.json - error GET Request timeout after 60000ms
+2026-08-27 02:10:53.320 [error] #308: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-27 14:37:43.809 [error] #309: https://main.vscode-cdn.net/extensions/marketplace.json - error GET Request timeout after 60000ms
+2026-08-27 22:46:51.867 [error] #323: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_SOCKET_NOT_CONNECTED
+2026-08-27 22:58:21.089 [error] #325: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_CONNECTION_RESET
+2026-08-27 23:22:10.226 [error] #328: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_SOCKET_NOT_CONNECTED
+2026-08-28 00:03:09.802 [error] #335: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_CONNECTION_RESET
+2026-08-28 02:44:42.761 [error] #336: https://main.vscode-cdn.net/extensions/marketplace.json - error GET Request timeout after 60000ms
+2026-08-28 05:44:57.553 [error] #340: https://main.vscode-cdn.net/extensions/marketplace.json - error GET Request timeout after 60000ms
+2026-08-28 07:40:07.559 [error] #341: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_SOCKET_NOT_CONNECTED
+2026-08-28 07:58:54.337 [error] #344: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_CONNECTION_RESET
+2026-08-28 08:16:59.684 [error] #346: https://main.vscode-cdn.net/extensions/marketplace.json - error GET Request timeout after 60000ms
+2026-08-28 08:26:17.800 [error] #347: https://main.vscode-cdn.net/extensions/marketplace.json - error GET Request timeout after 60000ms
+2026-08-28 08:41:01.082 [error] #350: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_TIMED_OUT
+2026-08-28 08:50:32.209 [error] #351: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_CONNECTION_RESET
+2026-08-28 08:51:15.050 [error] #352: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_CONNECTION_RESET
+2026-08-28 08:51:25.355 [error] #353: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_NAME_NOT_RESOLVED
+2026-08-28 08:51:26.189 [error] #354: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_TIMED_OUT
+2026-08-28 08:51:57.787 [error] #355: https://mobile.events.data.microsoft.com/OneCollector/1.0?cors=true&content-type=application/x-json-stream - error POST net::ERR_TIMED_OUT
+2026-08-28 09:03:54.294 [error] #359: https://main.vscode-cdn.net/extensions/marketplace.json - error GET Request timeout after 60000ms
+2026-08-28 09:13:12.001 [error] #360: https://main.vscode-cdn.net/extensions/marketplace.json - error GET Request timeout after 60000ms
+2026-08-28 09:24:52.499 [error] #361: https://main.vscode-cdn.net/extensions/marketplace.json - error GET Request timeout after 60000ms
+2026-08-28 09:44:59.911 [error] #362: https://main.vscode-cdn.net/extensions/marketplace.json - error GET Request timeout after 60000ms
+2026-08-28 10:05:39.295 [error] #366: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_NAME_NOT_RESOLVED
+2026-08-28 11:26:02.237 [error] #375: https://main.vscode-cdn.net/extensions/marketplace.json - error GET Request timeout after 60000ms
+2026-08-28 11:47:24.043 [error] #376: https://main.vscode-cdn.net/extensions/marketplace.json - error GET Request timeout after 60000ms
+2026-08-28 17:45:52.280 [error] #377: https://main.vscode-cdn.net/extensions/marketplace.json - error GET Request timeout after 60000ms
+2026-08-28 18:05:53.059 [error] #384: https://main.vscode-cdn.net/extensions/marketplace.json - error GET Request timeout after 60000ms
+2026-08-28 18:24:01.121 [error] #385: https://main.vscode-cdn.net/extensions/marketplace.json - error GET Request timeout after 60000ms

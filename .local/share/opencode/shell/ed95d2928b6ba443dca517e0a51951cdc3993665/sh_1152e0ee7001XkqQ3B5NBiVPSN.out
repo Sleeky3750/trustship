@@ -1,0 +1,13 @@
+  }
+
+  const senderLabel =
+    message.sender === "AI"
+      ? "Pulse AI"
+      : message.sender === "AGENT"
+        ? "Agent"
+        : message.sender === "SYSTEM"
+          ? "System"
+          : null;
+
+  return (
+    <li

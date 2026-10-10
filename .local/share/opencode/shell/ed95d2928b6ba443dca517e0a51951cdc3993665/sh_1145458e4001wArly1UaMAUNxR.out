@@ -1,0 +1,9 @@
+ 04:07:14 up  1:37,  0 users,  load average: 3.84, 3.24, 2.21
+USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+sleeky3+    3367  100  0.1   9836  4260 ?        R    04:07   0:00 ps aux --sort=-%cpu
+root          93 69.1  0.6  51356 19620 ?        Ss   02:29  67:17 /usr/lib/systemd/systemd-journald
+sleeky3+     463 23.7  7.9 11242392 228476 pts/0 Sl+  02:31  22:40 opencode
+sleeky3+     471 17.0 11.1 11601428 320704 ?     Rsl  02:31  16:13 /usr/lib/node_modules/@opencode/cli/bin/opencode.exe serve --service
+root        3236  1.1  0.0      0     0 ?        I    04:01   0:03 [kworker/0:1-virtio_vsock]
+root        3183  1.0  0.0      0     0 ?        I    03:58   0:05 [kworker/1:1-virtio_vsock]
+sleeky3+     435  0.9  0.3  18176 10856 ?        Ss   02:30   0:56 /opt/google/cros-containers/bin/../lib/ld-linux-x86-64.so.2 --argv0 /opt/google/cros-containers/bin/vshd --library-path /opt/google/cros-containers/bin/../lib --inhibit-rpath  /opt/google/cros-containers/bin/vshd.elf --inherit_env --forward_to_host_port=1685255649

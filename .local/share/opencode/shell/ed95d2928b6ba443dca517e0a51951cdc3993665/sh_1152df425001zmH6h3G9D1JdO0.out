@@ -1,0 +1,9 @@
+components/whatsapp/inbox/MessageBubble.tsx(43,11): error TS2367: This comparison appears to be unintentional because the types '"CUSTOMER"' and '"SYSTEM"' have no overlap.
+TSC EXIT 2
+
+> pulse-web@0.1.0 lint
+> eslint
+
+LINT EXIT 0
+Type error: This comparison appears to be unintentional because the types '"CUSTOMER"' and '"SYSTEM"' have no overlap.
+BUILD EXIT 1

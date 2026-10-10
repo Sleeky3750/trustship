@@ -1,0 +1,3 @@
+381:      totalMessages: inbound + outbound,
+382:      inboundMessages: inbound,
+383:      outboundMessages: outbound,

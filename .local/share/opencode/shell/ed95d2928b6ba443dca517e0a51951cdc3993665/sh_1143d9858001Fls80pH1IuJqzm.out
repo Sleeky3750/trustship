@@ -1,0 +1,104 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getCurrentBusiness } from "@/lib/auth/business";
+
+export async function PATCH(request: Request) {
+  try {
+    const business = await getCurrentBusiness();
+
+    if (!business) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized." },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+
+    const businessName =
+      typeof body.businessName === "string"
+        ? body.businessName.trim()
+        : "";
+
+    const email =
+      typeof body.email === "string"
+        ? body.email.trim().toLowerCase()
+        : "";
+
+    const phone =
+      typeof body.phone === "string"
+        ? body.phone.trim()
+        : "";
+
+    const businessType =
+      typeof body.businessType === "string"
+        ? body.businessType.trim()
+        : "";
+
+    if (!businessName || !email) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Business name and email are required.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const emailOwner = await prisma.business.findFirst({
+      where: {
+        email,
+        NOT: {
+          id: business.id,
+        },
+      },
+    });
+
+    if (emailOwner) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "That email is already in use.",
+        },
+        { status: 409 }
+      );
+    }
+
+    const updatedBusiness = await prisma.business.update({
+      where: {
+        id: business.id,
+      },
+      data: {
+        businessName,
+        email,
+        phone: phone || null,
+        businessType: businessType || null,
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+app/api/signup/route.ts
+app/api/login/route.ts
+app/api/workspaces/route.ts
+app/api/projects/route.ts
+app/api/tasks/update/route.ts
+app/api/tasks/delete/route.ts
+app/api/tasks/edit/route.ts
+app/api/tasks/[id]/activities/route.ts
+app/api/tasks/route.ts
+app/api/ai/route.ts
+app/api/ai/actions/route.ts
+app/api/business/route.ts
+app/api/conversations/[id]/toggle-takeover/route.ts
+app/api/whatsapp/conversations/route.ts
+app/api/whatsapp/messages/route.ts
+app/api/whatsapp/send/route.ts
+app/api/whatsapp/health/route.ts
+app/dashboard/page.tsx
+app/dashboard/whatsapp/page.tsx
+app/workspace/[id]/page.tsx
+app/project/[id]/page.tsx
+app/settings/page.tsx
+lib/auth/business.ts
+lib/ai/tools/actions.ts

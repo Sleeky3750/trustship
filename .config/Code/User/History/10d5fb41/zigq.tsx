@@ -1,0 +1,255 @@
+"use client";
+import { Eye, EyeOff } from "lucide-react";
+import { businessTypes } from "../components/BusinessTypes";
+import { useState, useRef, useEffect } from "react";
+import Logo from "../components/Logo";
+export default function Signup() { 
+  const dropdownRef = useRef<HTMLDivElement>(null);
+ useEffect(() => {
+  function handleClickOutside(event: MouseEvent) {
+    if (
+      dropdownRef.current &&
+      !dropdownRef.current.contains(event.target as Node)
+    ) {
+      setShowBusinessList(false);
+    }
+  }
+
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => {
+  document.removeEventListener("mousedown", handleClickOutside);
+};
+}, []);
+
+
+const [showPassword, setShowPassword] =useState(false);
+const [showConfirmPassword, setShowConfirmPassword] =useState(false);
+const [isTypingBusiness, setIsTypingBusiness] = useState(false);
+ const [showBusinessList, setShowBusinessList] = useState(false);
+  const [businessType, setbusinessType] = useState("") ;
+  const [password, setPassword] = useState("") ;
+  const [confirmPassword, setConfirmPassword] = useState("") ;
+  const [businessName, setBusinessName] = useState("");
+  const [tel, setTel] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState(""); 
+  const [successMessage, setSuccessMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const passwordsMatch = password === confirmPassword;
+  const passwordStrength =
+  password.length < 8
+    ? "Weak"
+    : password.length < 12
+    ? "Medium"
+    : "Strong";
+const emailValid = email.includes("@") && email.includes(".");
+const formIsValid =
+  businessName.trim() &&
+  emailValid &&
+  businessType &&
+  password &&
+  confirmPassword &&
+  passwordsMatch;
+  return ( 
+    <main className="min-h-screen flex items-center justify-center bg-zinc-50">
+      <div className="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-8 shadow-lg">
+        <div className="flex justify-center transition-transform duration-300 hover:scale-105">
+          <Logo />
+          </div>
+
+        <h1 className="mt-6 text-3xl font-bold text-black">
+          Register Your Business
+        </h1>
+
+        <p className="mt-2 text-zinc-500">
+          Let's create your Pulse workspace.
+        </p>
+{successMessage && (
+  <div className="mb-4 rounded-xl border border-green-200 bg-green-50 p-4 text-green-700">
+    {successMessage}
+  </div>
+)}
+        <form
+  className="mt-8 space-y-5"
+  onSubmit={async (e) => {
+    e.preventDefault();
+
+setLoading(true);
+
+const response = await fetch("/api/signup", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    businessName,
+    email,
+    phone: tel,
+    businessType,
+    password,
+  }),
+});
+
+const data = await response.json();
+
+setLoading(false);
+
+console.log(data);
+  }}
+>
+          <input
+  type="text"
+  placeholder="Business Name"
+  value={businessName}
+  onChange={(e) => setBusinessName(e.target.value)}
+  className="w-full rounded-lg border border-zinc-300 px-4 py-3 outline-none focus:border-black focus:ring-2 focus:ring-black/10 transition"
+/>
+
+          <input
+  type="email"
+  placeholder="Email Address"
+  value={email}
+  onChange={(e) => setEmail(e.target.value)}
+  className="w-full rounded-lg border border-zinc-300 px-4 py-3 outline-none focus:border-black focus:ring-2 focus:ring-black/10 transition"
+/>
+{email && !emailValid && (
+  <p className="mt-2 text-sm text-red-500">
+    Please enter a valid email address.
+  </p>
+)}
+
+          <input
+            type="tel"
+            placeholder="WhatsApp Number"
+            value={tel}
+            onChange={(e) => setTel(e.target.value)}
+className="w-full rounded-lg border border-zinc-300 px-4 py-3 outline-none focus:border-black focus:ring-2 focus:ring-black/10 transition"
+          />
+
+          <input
+          type="text"
+          placeholder="Business Type"
+          value={businessType}
+          onChange={(e) => {
+            setbusinessType(e.target.value);setIsTypingBusiness(true);}}
+        onFocus={() => {
+  setShowBusinessList(true);
+}}
+        className="w-full rounded-lg border border-zinc-300 px-4 py-3 outline-none focus:border-black focus:ring-2 focus:ring-black/10 transition"
+          />
+         {showBusinessList && (
+          <div
+  ref={dropdownRef}
+  className="mt-2 max-h-60 overflow-y-auto rounded-xl border border-zinc-300 bg-white shadow-lg"
+>
+           {businessTypes
+  .filter((type) => {
+  if (!isTypingBusiness) return true;
+
+  return type
+    .toLowerCase()
+    .includes(businessType.toLowerCase());
+})
+  .map((type) => (
+    <div
+  key={type}
+  onClick={() => {
+  setbusinessType(type);
+  setShowBusinessList(false);
+  setIsTypingBusiness(false);
+}}
+className="cursor-pointer border-b border-zinc-100 px-4 py-3 transition-colors hover:bg-black hover:text-white"
+>
+  {type}
+</div>
+  ))}
+          </div>
+         )}
+<div className="relative">
+  <input
+  type={showPassword ? "text" : "password"}
+  placeholder="Password"
+  value={password}
+  onChange={(e) => setPassword(e.target.value)}
+  className="w-full rounded-lg border border-zinc-300 px-4 py-3 pr-12 outline-none focus:border-black focus:ring-2 focus:ring-black/10 transition"
+/> 
+{password && (
+  <p
+    className={`mt-2 text-sm ${
+      passwordStrength === "Weak"
+        ? "text-red-500"
+        : passwordStrength === "Medium"
+        ? "text-yellow-500"
+        : "text-green-500"
+    }`}
+  >
+    Password Strength: {passwordStrength}
+  </p>
+)}<button
+  type="button"
+  onClick={() => setShowPassword(!showPassword)}
+  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-black"
+>
+  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+</button>
+</div>
+
+<div className="relative">
+<input
+type={showConfirmPassword ? "text" : "password"}
+placeholder="Confirm Password"
+value={confirmPassword}
+onChange={(e) => setConfirmPassword(e.target.value)}
+className="w-full rounded-lg border border-zinc-300 px-4 py-3 pr-12 outline-none focus:border-black focus:ring-2 focus:ring-black/10 transition"
+/> 
+
+
+<button 
+  type="button"
+  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-black"
+>
+  {showConfirmPassword ? (
+  <EyeOff size={20} />
+) : (
+  <Eye size={20} />
+)}
+</button>
+</div>
+
+{confirmPassword && !passwordsMatch && (
+  <p className="mt-2 text-sm text-red-500">
+    Passwords do not match.
+  </p>
+)}
+
+
+
+<button
+  type="submit"
+  disabled={!formIsValid || loading}
+  className={`w-full rounded-lg py-3 font-semibold text-white transition-all duration-300 ${
+    !formIsValid || loading
+      ? "cursor-not-allowed bg-zinc-400"
+      : "bg-black hover:scale-[1.02] hover:bg-zinc-800 active:scale-[0.98]"
+  }`}
+> {loading ? (
+  <div className="flex items-center justify-center gap-2">
+    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+    Creating Workspace...
+  </div>
+) : (
+  "Create Workspace"
+)}
+
+</button>
+{message && (
+  <p className="mt-4 text-center text-green-600 font-medium">
+    {message}
+  </p>
+)}
+        </form>
+      </div>
+    </main>
+  );
+ }

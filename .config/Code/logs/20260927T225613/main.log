@@ -1,0 +1,14 @@
+2026-09-27 22:56:14.859 [info] StorageMainService: creating application shared storage
+2026-09-27 22:56:17.151 [info] [shared storage] Creating shared storage database at '/home/sleeky3750/.vscode-shared/sharedStorage/state.vscdb' (wasCreated: false)
+2026-09-27 22:56:17.158 [info] [shared storage] Initializing fallback application storage (path: /home/sleeky3750/.config/Code/User/globalStorage/state.vscdb)
+2026-09-27 22:56:18.320 [info] [shared storage] Fallback application storage initialized with 99 items
+2026-09-27 22:56:18.534 [info] update#setState idle
+2026-09-27 22:56:48.568 [info] update#setState checking for updates
+2026-09-27 22:56:49.017 [info] update#setState available for download
+2026-09-27 22:57:37.482 [info] AgentHostProcessManager: agent host started
+2026-09-27 22:57:49.017 [error] [AgentHost:stderr] Unknown channel: agentHostProtocol
+
+2026-09-27 22:57:49.022 [error] [AgentHost:stderr] Unknown channel: agentHostProtocol
+
+2026-09-27 22:57:49.053 [error] [AgentHost:stderr] Unknown channel: agentHostProtocol
+

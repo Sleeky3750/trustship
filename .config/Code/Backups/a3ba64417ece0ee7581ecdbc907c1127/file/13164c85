@@ -1,0 +1,270 @@
+file:///home/sleeky3750/pulse-web/lib/ai/projectPlanner.ts {"mtime":1786436692626,"ctime":1786429250372,"size":4426,"etag":"3gg8pk0ms4io","orphaned":false,"typeId":""}
+import { askGroq } from "@/lib/ai/groq";
+
+export type ProjectTask = {
+  title: string;
+  description: string;
+  priority: "LOW" | "MEDIUM" | "HIGH";
+};
+
+export type ProjectPlan = {
+  name: string;
+  description: string;
+  tasks: ProjectTask[];
+};
+
+function validateProjectPlan(
+  value: unknown
+): ProjectPlan {
+  if (!value || typeof value !== "object") {
+    throw new Error(
+      "AI returned an invalid project plan."
+    );
+  }
+
+  const plan = value as Record<string, unknown>;
+
+  if (
+    typeof plan.name !== "string" ||
+    !plan.name.trim()
+  ) {
+    throw new Error(
+      "AI returned an invalid project name."
+    );
+  }
+
+  if (
+    typeof plan.description !== "string" ||
+    !plan.description.trim()
+  ) {
+    throw new Error(
+      "AI returned an invalid project description."
+    );
+  }
+
+  if (!Array.isArray(plan.tasks)) {
+    throw new Error(
+      "AI returned an invalid task list."
+    );
+  }
+
+  const tasks: ProjectTask[] =
+    plan.tasks.map((task) => {
+      if (
+        !task ||
+        typeof task !== "object"
+      ) {
+        throw new Error(
+          "AI returned an invalid task."
+        );
+      }
+
+      const item =
+        task as Record<string, unknown>;
+
+      const priority =
+        item.priority;
+
+      if (
+        typeof item.title !== "string" ||
+        !item.title.trim()
+      ) {
+        throw new Error(
+          "AI returned a task without a title."
+        );
+      }
+
+      if (
+        typeof item.description !==
+          "string" ||
+        !item.description.trim()
+      ) {
+        throw new Error(
+          "AI returned a task without a description."
+        );
+      }
+
+      if (
+        priority !== "LOW" &&
+        priority !== "MEDIUM" &&
+        priority !== "HIGH"
+      ) {
+        throw new Error(
+          "AI returned an invalid task priority."
+        );
+      }
+
+      return {
+        title: item.title.trim(),
+        description:
+          item.description.trim(),
+        priority,
+      };
+    });
+
+  if (
+    tasks.length < 1 ||
+    tasks.length > 15
+  ) {
+    throw new Error(
+      "AI returned an invalid number of tasks."
+    );
+  }
+
+  return {
+    name: plan.name.trim(),
+    description:
+      plan.description.trim(),
+    tasks,
+  };
+}
+
+async function askForProjectPlan(
+  prompt: string
+): Promise<ProjectPlan> {
+  const raw = await askGroq(prompt);
+
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error(
+      "AI returned invalid project plan JSON."
+    );
+  }
+
+  return validateProjectPlan(
+    parsed
+  );
+}
+
+export async function generateProjectPlan(
+  projectIdea: string
+): Promise<ProjectPlan> {
+  const prompt = `
+You are Pulse AI, an intelligent business
+project planning assistant.
+
+Create a practical project plan for:
+
+"${projectIdea}"
+
+The plan must help a real business owner
+turn the idea into concrete work.
+
+Return ONLY valid JSON.
+
+Use exactly:
+
+{
+  "name": "Project name",
+  "description": "Short project description",
+  "tasks": [
+    {
+      "title": "Task title",
+      "description": "What needs to be done",
+      "priority": "MEDIUM"
+    }
+  ]
+}
+
+Rules:
+
+- Generate 5 to 10 useful tasks.
+- Tasks must be actionable.
+- Tasks should represent meaningful work.
+- Avoid vague tasks such as "Work on marketing".
+- Make each task specific.
+- Order tasks logically.
+- Use HIGH only when the task is genuinely important.
+- Use only LOW, MEDIUM, or HIGH.
+- Do not include markdown.
+- Do not include explanations outside JSON.
+`;
+
+  return askForProjectPlan(
+    prompt
+  );
+}
+
+export async function refineProjectPlan({
+  currentPlan,
+  instruction,
+}: {
+  currentPlan: ProjectPlan;
+  instruction: string;
+}): Promise<ProjectPlan> {
+  const prompt = `
+You are Pulse AI, an intelligent business
+project planning assistant.
+
+The user already has the following project plan:
+
+CURRENT PLAN:
+${JSON.stringify(
+  currentPlan,
+  null,
+  2
+)}
+
+The user now wants this change:
+
+"${instruction}"
+
+Your job is to intelligently improve the
+existing plan according to the user's request.
+
+IMPORTANT:
+
+- Understand natural language.
+- Preserve useful existing work unless the
+  user's instruction clearly asks you to remove it.
+- If the user asks to focus the plan on something,
+  reorganize the tasks around that goal.
+- If the user asks to make the plan simpler,
+  remove unnecessary tasks.
+- If the user asks to make it more detailed,
+  add useful actionable tasks.
+- If the user asks to prioritize something,
+  adjust task priorities appropriately.
+- If the user asks to improve task wording,
+  rewrite unclear tasks into specific actions.
+- If the user asks to add something, integrate it
+  logically into the existing plan.
+- Do not blindly replace the entire plan.
+- Do not invent unrelated business requirements.
+- Do not create duplicate tasks.
+- Keep the plan practical.
+- Keep the task order logical.
+
+Return ONLY valid JSON.
+
+Use exactly:
+
+{
+  "name": "Project name",
+  "description": "Short project description",
+  "tasks": [
+    {
+      "title": "Task title",
+      "description": "What needs to be done",
+      "priority": "MEDIUM"
+    }
+  ]
+}
+
+Rules:
+
+- Return between 1 and 15 tasks.
+- Every task needs a clear title.
+- Every task needs a useful description.
+- Use only LOW, MEDIUM, or HIGH.
+- Do not include markdown.
+- Do not include explanations outside JSON.
+`;
+
+  return askForProjectPlan(
+    prompt
+  );
+}

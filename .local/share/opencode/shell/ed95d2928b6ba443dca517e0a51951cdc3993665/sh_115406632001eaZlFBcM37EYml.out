@@ -1,0 +1,12 @@
+Loaded Prisma config from prisma.config.ts.
+
+Prisma config detected, skipping environment variable loading.
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "neondb", schema "public" at "ep-muddy-glitter-ax5hhasv-pooler.c-4.us-east-2.aws.neon.tech"
+
+12 migrations found in prisma/migrations
+Following migration have not yet been applied:
+20261007160000_user_password_changed_at
+
+To apply migrations in development run prisma migrate dev.
+To apply migrations in production run prisma migrate deploy.

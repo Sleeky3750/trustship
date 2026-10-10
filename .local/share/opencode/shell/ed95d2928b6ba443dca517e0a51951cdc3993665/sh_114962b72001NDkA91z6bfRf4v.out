@@ -1,0 +1,37 @@
+-- AlterTable
+ALTER TABLE "Business" ADD COLUMN     "aiPersona" TEXT,
+ADD COLUMN     "logoDataUrl" TEXT,
+ADD COLUMN     "timezone" TEXT NOT NULL DEFAULT 'UTC';
+
+-- CreateTable
+CREATE TABLE "KnowledgeEntry" (
+    "id" TEXT NOT NULL,
+    "businessId" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "KnowledgeEntry_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "RateLimitBucket" (
+    "key" TEXT NOT NULL,
+    "count" INTEGER NOT NULL,
+    "windowStart" TIMESTAMP(3) NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "RateLimitBucket_pkey" PRIMARY KEY ("key")
+);
+
+-- CreateIndex
+CREATE INDEX "KnowledgeEntry_businessId_idx" ON "KnowledgeEntry"("businessId");
+
+-- CreateIndex
+CREATE INDEX "RateLimitBucket_expiresAt_idx" ON "RateLimitBucket"("expiresAt");
+
+-- AddForeignKey
+ALTER TABLE "KnowledgeEntry" ADD CONSTRAINT "KnowledgeEntry_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+✔ Generated Prisma Client (v6.19.3) to ./node_modules/@prisma/client in 9.73s

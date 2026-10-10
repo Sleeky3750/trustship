@@ -1,0 +1,50 @@
+"use client";
+
+import { useState, useCallback } from "react";
+import { X } from "lucide-react";
+
+import { cn, buttonStyles } from "@/components/console/ui";
+
+import { CrmTag, tagLabels } from "@/lib/constants/crmTags";
+
+export interface BroadcastModalProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+export default function BroadcastModal({ open, onClose }: BroadcastModalProps) {
+  const [targetTags, setTargetTags] = useState<string[]>([]);
+  const [messageText, setMessageText] = useState("");
+  const [scheduled, setScheduled] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleDispatch = useCallback(async () => {
+    setIsSubmitting(true);
+    try {
+      // TODO: Call /api/campaigns/send with { businessId, targetTags, messageText, scheduled }
+      console.log("Dispatching broadcast:", {
+        targetTags,
+        message: messageText,
+        scheduled,
+      });
+      // For now, just close the modal
+      setIsSubmitting(false);
+      onClose();
+    } catch (error) {
+      console.error("Broadcast dispatch failed:", error);
+      setIsSubmitting(false);
+    }
+  }, [targetTags, messageText, scheduled, onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-40 flex items-center justify-center p-4 motion-reduce:transition-none"
+      aria-modal="true"
+    >
+      <div
+        className="relative w-full max-w-lg rounded-2xl border border-zinc-800 bg-zinc-950/90 backdrop-blur-xl transform overflow-hidden motion-safe:animate-fade-in"
+        style={{ transform: open ? "scale(1)" : "scale(0.95)", opacity: open ? 1 : 0 }}
+      >
+        <div className="flex items-center justify-between border-b border-zinc-800/50 px-6 py-4">
+          <h2 className="text-xl font-semibold text-zinc-100">
+            New Broadcast

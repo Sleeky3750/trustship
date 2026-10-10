@@ -1,0 +1,50 @@
+2026-09-27 22:56:59.120 [info] [main] Log level: Info
+2026-09-27 22:56:59.126 [info] [main] Validating found git in: "git"
+2026-09-27 22:56:59.126 [info] [main] Using git "2.47.3" from "git"
+2026-09-27 22:56:59.126 [info] [Model][doInitialScan] Initial repository scan started
+2026-09-27 22:56:59.126 [info] > git rev-parse --show-toplevel [2545ms]
+2026-09-27 22:56:59.361 [info] > git rev-parse --git-dir --git-common-dir --show-superproject-working-tree [147ms]
+2026-09-27 22:57:00.079 [info] [Model][openRepository] Opened repository (path): /home/sleeky3750/pulse-web
+2026-09-27 22:57:00.079 [info] [Model][openRepository] Opened repository (real path): /home/sleeky3750/pulse-web
+2026-09-27 22:57:00.079 [info] [Model][openRepository] Opened repository (kind): repository
+2026-09-27 22:57:01.740 [info] > git config --get commit.template [1107ms]
+2026-09-27 22:57:01.768 [info] > git config --get --local core.virtualfilesystem [1546ms]
+2026-09-27 22:57:01.768 [warning] [Git][config] git config failed: Failed to execute git
+2026-09-27 22:57:02.405 [info] > git rev-parse --show-toplevel [1256ms]
+2026-09-27 22:57:02.584 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [194ms]
+2026-09-27 22:57:02.606 [info] > git rev-parse --show-toplevel [38ms]
+2026-09-27 22:57:03.303 [info] > git status -z -uall [280ms]
+2026-09-27 22:57:03.447 [info] > git rev-parse --show-toplevel [616ms]
+2026-09-27 22:57:03.689 [info] > git for-each-ref --sort -committerdate --format %(refname)%00%(objectname)%00%(*objectname) [407ms]
+2026-09-27 22:57:06.516 [info] > git check-ignore -v -z --stdin [192ms]
+2026-09-27 22:57:06.600 [info] > git config --get commit.template [525ms]
+2026-09-27 22:57:06.611 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [2166ms]
+2026-09-27 22:57:06.767 [info] > git rev-parse --show-toplevel [3108ms]
+2026-09-27 22:57:07.456 [info] > git config --get --local branch.master.vscode-merge-base [689ms]
+2026-09-27 22:57:07.481 [warning] [Git][config] git config failed: Failed to execute git
+2026-09-27 22:57:07.763 [info] > git rev-parse --show-toplevel [775ms]
+2026-09-27 22:57:07.806 [info] > git for-each-ref --format=%(refname)%00%(upstream:short)%00%(objectname)%00%(upstream:track)%00%(upstream:remotename)%00%(upstream:remoteref) refs/heads/master refs/remotes/master [359ms]
+2026-09-27 22:57:07.815 [info] > git reflog master --grep-reflog=branch: Created from *. [55ms]
+2026-09-27 22:57:08.304 [info] > git rev-parse --show-toplevel [506ms]
+2026-09-27 22:57:08.752 [info] > git check-ignore -v -z --stdin [633ms]
+2026-09-27 22:57:08.770 [info] > git status -z -uall [261ms]
+2026-09-27 22:57:08.770 [info] > git symbolic-ref --short refs/remotes/origin/HEAD [792ms]
+2026-09-27 22:57:08.771 [info] fatal: ref refs/remotes/origin/HEAD is not a symbolic ref
+2026-09-27 22:57:08.771 [warning] [Repository][getDefaultBranch] Failed to get default branch details: Failed to execute git.
+2026-09-27 22:57:09.146 [info] > git for-each-ref --sort -committerdate --format %(refname)%00%(objectname)%00%(*objectname) [465ms]
+2026-09-27 22:57:10.030 [info] > git rev-parse --show-toplevel [979ms]
+2026-09-27 22:57:10.036 [info] > git merge-base refs/heads/master refs/remotes/origin/master [1074ms]
+2026-09-27 22:57:10.804 [info] > git merge-base refs/heads/master refs/remotes/origin/master [1491ms]
+2026-09-27 22:57:12.424 [info] > git diff --raw --numstat --diff-filter=ADMR -z --find-renames=50% 9e1cf657f58c1b43c7b60ca1e9bf746b9cfe92c8...refs/remotes/origin/master -- [1388ms]
+2026-09-27 22:57:12.475 [info] > git rev-parse --show-toplevel [1827ms]
+2026-09-27 22:57:12.476 [info] > git diff --raw --numstat --diff-filter=ADMR -z --find-renames=50% 9e1cf657f58c1b43c7b60ca1e9bf746b9cfe92c8...refs/remotes/origin/master -- [2311ms]
+2026-09-27 22:57:12.759 [info] > git rev-parse --show-toplevel [150ms]
+2026-09-27 22:57:13.353 [info] > git rev-parse --show-toplevel [188ms]
+2026-09-27 22:57:15.145 [info] > git rev-parse --show-toplevel [1022ms]
+2026-09-27 22:57:15.308 [info] > git rev-parse --show-toplevel [86ms]
+2026-09-27 22:57:15.332 [info] [Model][doInitialScan] Initial repository scan completed - repositories (1), closed repositories (0), parent repositories (0), unsafe repositories (0)
+2026-09-27 22:57:15.587 [info] > git show --textconv :prisma/schema.prisma [128ms]
+2026-09-27 22:57:15.601 [info] > git ls-files --stage -- prisma/schema.prisma [61ms]
+2026-09-27 22:57:15.739 [info] > git cat-file -s 028d4dfbd7bad4b9aac57f91e3676b9b50ab296d [24ms]
+2026-09-27 22:57:19.192 [info] > git check-ignore -v -z --stdin [429ms]
+2026-09-27 22:57:21.390 [info] > git blame --root --incremental 9e1cf657f58c1b43c7b60ca1e9bf746b9cfe92c8 -- prisma/schema.prisma [1207ms]

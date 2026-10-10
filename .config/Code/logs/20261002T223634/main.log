@@ -1,0 +1,74 @@
+2026-10-02 22:36:34.989 [info] StorageMainService: creating application shared storage
+2026-10-02 22:36:36.084 [info] [shared storage] Creating shared storage database at '/home/sleeky3750/.vscode-shared/sharedStorage/state.vscdb' (wasCreated: false)
+2026-10-02 22:36:36.099 [info] [shared storage] Initializing fallback application storage (path: /home/sleeky3750/.config/Code/User/globalStorage/state.vscdb)
+2026-10-02 22:36:37.170 [info] [shared storage] Fallback application storage initialized with 99 items
+2026-10-02 22:36:37.187 [info] update#setState idle
+2026-10-02 22:37:07.203 [info] update#setState checking for updates
+2026-10-02 22:37:07.760 [info] update#setState available for download
+2026-10-02 22:37:44.329 [info] AgentHostProcessManager: agent host started
+2026-10-02 22:38:05.851 [error] [AgentHost:stderr] (node:786) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+
+2026-10-06 11:07:37.765 [error] CodeWindow: detected unresponsive
+2026-10-06 11:08:17.149 [error] CodeWindow: detected unresponsive
+2026-10-06 11:08:26.152 [error] CodeWindow: recovered from unresponsive
+2026-10-06 11:08:27.106 [error] CodeWindow unresponsive samples:
+<1> 
+    at yr.setScrollPosition (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:513:45793)
+    at EA._reveal (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1406:1340)
+    at EA.reveal (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1406:990)
+    at n (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1406:26128)
+    at Al.update (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1406:26206)
+    at h0e.handleOpenedEditors (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1514:12272)
+    at h0e.openEditor (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1514:12112)
+    at Jy.doShowEditor (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1514:32338)
+    at Jy.doOpenEditor (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1514:31769)
+    at Jy.openEditor (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1514:30606)
+    at _be.openEditor (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:2001:45502)
+    at async tEe.value (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:2732:41070)
+<1> 
+    at Map.get (<anonymous>)
+    at aW (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:508:54853)
+    at s.removeCSSRules (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1982:27)
+    at Object.dispose (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1982:934)
+    at ue.dispose (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:431:2837)
+    at Xe (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:431:747)
+    at s.clear (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:431:1634)
+    at s.dispose (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:431:1544)
+    at Est.dispose (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:431:2429)
+    at Est.dispose (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:947:3151)
+    at Est.dispose (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1143:35849)
+    at Xe (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:431:939)
+    at fc.disposeWidget (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1143:28463)
+    at Object.dispose (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1143:28291)
+    at Xe (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:431:747)
+    at s.clear (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:431:1634)
+    at s.dispose (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:431:1544)
+    at eY.disposeTemplate (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:2732:18730)
+    at pxi.disposeTemplate (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:946:43933)
+    at ENt.disposeTemplate (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:946:19295)
+    at s.disposeTemplate (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:945:17867)
+    at fhi._fn (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:945:38244)
+    at fhi.dispose (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:431:1319)
+    at Xe (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:431:747)
+    at s.clear (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:431:1634)
+    at qCi.renderState (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:945:36961)
+    at qCi.setState (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:945:36820)
+    at INt.update (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:945:32279)
+    at tEe.value (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:945:31258)
+    at D._deliver (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:433:3268)
+    at D._deliverQueue (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:433:3357)
+    at D.fire (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:433:3692)
+    at tEe.value (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:513:36771)
+    at D._deliver (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:433:3268)
+    at D.fire (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:433:3587)
+    at PR._setState (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:442:22983)
+    at PR.setScrollPositionNow (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:442:21376)
+    at mW._onMouseWheel (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:513:43069)
+    at HTMLDivElement.o (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:513:41551)
+Total Samples: 2
+For full overview of the unresponsive period, capture cpu profile via https://aka.ms/vscode-tracing-cpu-profile
+2026-10-06 11:12:04.889 [info] Extension host with pid 628 exited with code: 0, signal: unknown.
+2026-10-06 11:12:10.215 [warning] [storage main] detected slow close() operation: Time: 43006ms, DB size: 155648b, Large Keys: memento/workbench.editors.files.textFileEditor:36110, memento/workbench.parts.editor:23562, history.entries:10731, __$__targetStorageMarker:2418, chat.ChatSessionStore.index:2209
+2026-10-06 11:12:10.220 [warning] [storage main] detected slow close() operation: Time: 43091ms, DB size: 208896b, Large Keys: iconThemeData:96818, colorThemeData:26923, extensionsEnablement/malicious:9490, workbench.activity.placeholderViewlets:6340, memento/experiment.service.memento:6329
+2026-10-06 11:12:10.238 [warning] [storage main] detected slow close() operation: Time: 43101ms, DB size: 12288b, Large Keys: history.recentlyOpenedPathsList:1447, content.trust.model.key:189, __$__targetStorageMarker:65, __$__isNewStorageMarker:5

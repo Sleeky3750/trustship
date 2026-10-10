@@ -1,0 +1,2 @@
+components/auth/LoginForm.tsx:9:import ForgotPasswordLink from "./ForgotPasswordLink";
+app/login/page.tsx:8:import ForgotPasswordLink from "@/components/auth/ForgotPasswordLink";

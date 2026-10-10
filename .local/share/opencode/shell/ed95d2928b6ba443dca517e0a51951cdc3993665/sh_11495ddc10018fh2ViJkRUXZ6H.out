@@ -1,0 +1,8 @@
+types unused
+9:export class AiError extends Error {
+21:export class AiAuthenticationError extends AiError {
+27:export class AiValidationError extends AiError {
+33:export class AiAuthorizationError extends AiError {
+39:export class AiProviderError extends AiError {
+45:export class AiModelOutputError extends AiError {
+51:export class AiActionError extends AiError {

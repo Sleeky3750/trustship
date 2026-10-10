@@ -1,0 +1,12 @@
+ app/api/campaigns/send/route.ts                  |  50 ++++++----
+ app/api/webhooks/whatsapp/route.ts               |   4 +-
+ components/campaigns/BroadcastModal.tsx          |  72 +++++++-------
+ components/console/campaigns/CampaignsHeader.tsx |  31 +++---
+ components/console/campaigns/CampaignsTable.tsx  | 118 ++++++++++++-----------
+ components/console/ui.tsx                        |   2 +
+ components/whatsapp/inbox/CustomerDrawer.tsx     |  15 ++-
+ lib/ai/services/whatsappSupport.ts               |  14 ++-
+ lib/auth/permissions.ts                          |   6 +-
+ lib/whatsapp/inbox.ts                            |   7 ++
+ lib/whatsapp/types.ts                            |   3 +
+ 11 files changed, 182 insertions(+), 140 deletions(-)

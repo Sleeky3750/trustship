@@ -1,0 +1,11 @@
+01-app
+02-pages
+03-architecture
+04-community
+index.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-adapters/09-output-types.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/02-typescript.md
+node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/proxyClientMaxBodySize.md
+node_modules/next/dist/docs/01-app/03-api-reference/07-edge.md
+node_modules/next/dist/docs/01-app/03-api-reference/04-functions/userAgent.md
+"version": "16.2.12"

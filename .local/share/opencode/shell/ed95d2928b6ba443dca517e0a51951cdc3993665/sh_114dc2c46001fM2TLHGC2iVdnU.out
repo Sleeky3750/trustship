@@ -1,0 +1,3 @@
+215:            connection?.tokenLast4 ? (
+217:                Current token ends in <span className="font-mono text-zinc-300">…{connection.tokenLast4}</span>
+231:            placeholder={connection?.tokenLast4 ? `•••• •••• ${connection.tokenLast4}` : "EAAG…"}

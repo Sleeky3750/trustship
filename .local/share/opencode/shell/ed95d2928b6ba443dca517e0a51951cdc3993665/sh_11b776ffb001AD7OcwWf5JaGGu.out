@@ -1,0 +1,11 @@
+
+      {/* New Broadcast modal */}
+      <button
+          type="button"
+          onClick={() => setShowNewBroadcast(true)}
+          className="hidden"
+        />
+      <BroadcastModal open={showNewBroadcast} onClose={() => setShowNewBroadcast(false)} />
+    </div>
+  );
+}

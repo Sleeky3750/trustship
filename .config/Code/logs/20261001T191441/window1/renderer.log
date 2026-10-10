@@ -1,0 +1,62 @@
+2026-10-01 19:14:47.640 [warning] Creation of workbench contribution 'workbench.contrib.preferencesActions' took 21ms.
+2026-10-01 19:14:47.893 [warning] Creation of workbench contribution 'workbench.contrib.chatSetup' took 31ms.
+2026-10-01 19:14:50.552 [info] Started local extension host with pid 4012.
+2026-10-01 19:14:50.985 [error] [vscode.mermaid-markdown-features]: Extension 'vscode.mermaid-markdown-features' CANNOT use 'legacyToolReferenceFullNames' without the 'chatParticipantPrivate' API proposal enabled
+2026-10-01 19:15:07.043 [info] [AccountPolicyGate] apply: state=inactive, reason=undefined, isRestricted=false
+2026-10-01 19:15:09.433 [info] Extension host (LocalProcess pid: 4012) is unresponsive.
+2026-10-01 19:15:10.278 [info] Extension host (LocalProcess pid: 4012) is responsive.
+2026-10-01 19:15:13.454 [info] [AccountPolicyGate] apply: state=inactive, reason=undefined, isRestricted=false
+2026-10-01 19:15:13.901 [error] [Extension Host] (node:4012) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+2026-10-01 19:15:15.141 [warning] Creation of workbench contribution 'workbench.contrib.settingsEditorTitleBarActions' took 167ms.
+2026-10-01 19:15:19.903 [info] Extension host (LocalProcess pid: 4012) is unresponsive.
+2026-10-01 19:15:19.991 [info] Extension host (LocalProcess pid: 4012) is responsive.
+2026-10-01 19:15:26.845 [info] Extension host (LocalProcess pid: 4012) is unresponsive.
+2026-10-01 19:15:27.443 [info] Extension host (LocalProcess pid: 4012) is responsive.
+2026-10-01 19:15:38.915 [info] Extension host (LocalProcess pid: 4012) is unresponsive.
+2026-10-01 19:15:39.012 [info] Extension host (LocalProcess pid: 4012) is responsive.
+2026-10-01 19:15:53.625 [info] [AgentHost:renderer] Acquiring MessagePort to agent host...
+2026-10-01 19:15:53.852 [info] [AgentHost:renderer] MessagePort acquired, creating client...
+2026-10-01 19:15:58.803 [warning] Creation of workbench contribution 'inlineChat.enabler' took 119ms.
+2026-10-01 19:16:01.690 [warning] Creation of workbench contribution 'mcpDiscovery' took 119ms.
+2026-10-01 19:16:04.910 [warning] Creation of workbench contribution 'terminal.chatAgentTools' took 493ms.
+2026-10-01 19:16:09.040 [info] Settings Sync: Account status changed from uninitialized to unavailable
+2026-10-01 19:16:12.660 [error] [AgentHost:renderer] Protocol connection failed Channel name 'agentHostProtocol' timed out after 1000ms
+2026-10-01 19:16:16.429 [warning] Creation of workbench contribution 'workbench.contrib.onboarding' took 173ms.
+2026-10-01 19:16:23.011 [warning] Creation of workbench contribution 'EditTelemetryContribution' took 112ms.
+2026-10-01 19:16:27.478 [warning] Creation of workbench contribution 'browserView.chatAgentTools' took 253ms.
+2026-10-01 19:16:45.883 [warning] Creation of workbench contribution 'workbench.contrib.configurationMigration' took 152ms.
+2026-10-01 19:16:49.073 [warning] Creation of workbench contribution 'workbench.contrib.dynamicWindowConfiguration' took 109ms.
+2026-10-01 19:17:03.661 [info] [perf] Render performance baseline is 648ms
+2026-10-01 19:22:40.045 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-10-01 19:39:53.021 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-10-01 22:43:22.080 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-10-02 00:41:27.889 [error] Canceled: Canceled
+    at pw (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:411:1612)
+    at _in (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5370:52173)
+    at async fCt.logAndRequest (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1026:11061)
+    at async w7e.doFetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3195)
+    at async w7e.fetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3103)
+2026-10-02 05:14:46.788 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-10-02 11:00:52.353 [error] Error: Fetch timeout: 20000ms
+    at _in (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5370:52203)
+    at async fCt.logAndRequest (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1026:11061)
+    at async w7e.doFetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3195)
+    at async w7e.fetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3103)
+2026-10-02 11:35:24.787 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-10-02 11:41:08.980 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-10-02 11:46:53.184 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-10-02 11:52:37.393 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-10-02 11:58:21.596 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-10-02 12:00:52.352 [error] Error: Fetch timeout: 20000ms
+    at _in (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5370:52203)
+    at async fCt.logAndRequest (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1026:11061)
+    at async w7e.doFetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3195)
+    at async w7e.fetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3103)
+2026-10-02 12:04:05.800 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-10-02 12:09:50.001 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-10-02 12:15:34.199 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-10-02 12:21:18.402 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-10-02 13:40:32.958 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-10-02 14:27:09.058 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-10-02 14:38:38.180 [warning] [LM] Failed to request chat control data Failed to fetch

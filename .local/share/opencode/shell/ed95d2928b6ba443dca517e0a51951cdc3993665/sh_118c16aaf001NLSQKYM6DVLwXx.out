@@ -1,0 +1,11 @@
+            <th className="text-right px-3 py-3">Sent</th>
+            <th className="text-right px-3 py-3">Total</th>
+            <th className="px-3 py-3"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {searchFiltered.map((campaign) => {
+            const statusBadges: React.React[] = [];
+            if (campaign.status === "DRAFT") {
+              statusBadges.push(
+                <Badge key="draft" tone="neutral" className="text-xs">

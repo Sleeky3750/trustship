@@ -1,0 +1,39 @@
+2026-10-08 14:27:05.943 [warning] Creation of workbench contribution 'workbench.contrib.preferencesActions' took 40ms.
+2026-10-08 14:27:06.125 [warning] Creation of workbench contribution 'workbench.contrib.remoteStatusIndicator' took 24ms.
+2026-10-08 14:27:06.309 [warning] Creation of workbench contribution 'workbench.contrib.chatSetup' took 48ms.
+2026-10-08 14:27:06.509 [warning] Creation of workbench contribution 'workbench.contrib.configurationDefaultOverridesContribution' took 36ms.
+2026-10-08 14:27:13.720 [info] Started local extension host with pid 4682.
+2026-10-08 14:27:16.792 [error] [vscode.mermaid-markdown-features]: Extension 'vscode.mermaid-markdown-features' CANNOT use 'legacyToolReferenceFullNames' without the 'chatParticipantPrivate' API proposal enabled
+2026-10-08 14:27:33.436 [info] [AccountPolicyGate] apply: state=inactive, reason=undefined, isRestricted=false
+2026-10-08 14:27:40.284 [info] [AccountPolicyGate] apply: state=inactive, reason=undefined, isRestricted=false
+2026-10-08 14:28:01.528 [info] Extension host (LocalProcess pid: 4682) is unresponsive.
+2026-10-08 14:28:05.578 [info] Extension host (LocalProcess pid: 4682) is responsive.
+2026-10-08 14:28:10.853 [error] [Extension Host] (node:4682) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+2026-10-08 14:28:53.709 [info] [AgentHost:renderer] Acquiring MessagePort to agent host...
+2026-10-08 14:28:54.000 [info] [AgentHost:renderer] MessagePort acquired, creating client...
+2026-10-08 14:29:04.170 [warning] Creation of workbench contribution 'mcpDiscovery' took 244ms.
+2026-10-08 14:29:08.485 [warning] Creation of workbench contribution 'workbench.mcp.servers.views.contribution' took 107ms.
+2026-10-08 14:29:13.572 [warning] Creation of workbench contribution 'terminal.chatAgentTools' took 486ms.
+2026-10-08 14:29:14.913 [info] Settings Sync: Account status changed from uninitialized to unavailable
+2026-10-08 14:29:23.675 [warning] Creation of workbench contribution 'workbench.contrib.onboarding' took 303ms.
+2026-10-08 14:29:24.270 [error] [AgentHost:renderer] Protocol connection failed Channel name 'agentHostProtocol' timed out after 1000ms
+2026-10-08 14:29:32.721 [warning] Creation of workbench contribution 'EditTelemetryContribution' took 132ms.
+2026-10-08 14:29:47.603 [info] Extension host (LocalProcess pid: 4682) is unresponsive.
+2026-10-08 14:29:48.517 [info] Extension host (LocalProcess pid: 4682) is responsive.
+2026-10-08 14:29:59.559 [info] Extension host (LocalProcess pid: 4682) is unresponsive.
+2026-10-08 14:29:59.990 [info] Extension host (LocalProcess pid: 4682) is responsive.
+2026-10-08 14:30:05.333 [warning] Creation of workbench contribution 'browserView.chatAgentTools' took 293ms.
+2026-10-08 14:30:12.466 [warning] Creation of workbench contribution 'workbench.contrib.chat.agentSessionSettingsEditor' took 169ms.
+2026-10-08 14:30:14.390 [warning] Creation of workbench contribution 'chat.nativeBuiltinTools' took 577ms.
+2026-10-08 14:30:16.739 [warning] Creation of workbench contribution 'workbench.contrib.agentHostContribution' took 143ms.
+2026-10-08 14:30:22.760 [warning] Creation of workbench contribution 'workbench.contrib.configurationMigration' took 628ms.
+2026-10-08 14:30:24.026 [warning] Creation of workbench contribution 'workbench.contrib.dynamicWindowConfiguration' took 199ms.
+2026-10-08 14:30:26.871 [warning] Creation of workbench contribution 'chat.builtinTools' took 571ms.
+2026-10-08 14:30:28.645 [warning] Creation of workbench contribution 'workbench.contrib.chat.clientToolSets' took 104ms.
+2026-10-08 14:30:29.251 [warning] Creation of workbench contribution 'chat.userToolSets' took 163ms.
+2026-10-08 14:30:30.543 [warning] Creation of workbench contribution 'chat.promptLanguageFeatures' took 167ms.
+2026-10-08 14:30:33.746 [warning] Creation of workbench contribution 'vs.contrib.inlineCompletionLanguageStatusBarContribution' took 108ms.
+2026-10-08 14:30:33.955 [warning] Creation of workbench contribution 'workbench.contrib.dropOrPasteIntoSchema' took 106ms.
+2026-10-08 14:30:38.019 [info] [perf] Render performance baseline is -1ms
+2026-10-08 20:55:50.787 [warning] [LM] Failed to request chat control data Failed to fetch

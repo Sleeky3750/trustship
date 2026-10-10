@@ -1,0 +1,41 @@
+                  "flex min-h-11 shrink-0 items-center gap-3 rounded-xl border px-3 py-2 text-left transition-all duration-300 ease-in-out active:scale-[0.98]",
+                  active
+                    ? "border-emerald-500/30 bg-emerald-500/[0.07] text-zinc-50 shadow-[0_0_24px_-10px_rgba(16,185,129,0.6)]"
+                    : "border-transparent text-zinc-400 hover:bg-zinc-900 hover:text-zinc-100"
+                )}
+              >
+                <Icon className={cx("h-4 w-4 shrink-0", active && "text-emerald-400")} />
+                <span className="min-w-0">
+                  <span className="flex items-center gap-1.5 whitespace-nowrap text-sm font-medium">
+                    {item.label}
+                    {locked && <Lock className="h-3 w-3 text-zinc-600" />}
+                  </span>
+                  <span className="hidden text-xs text-zinc-500 lg:block">{item.description}</span>
+                </span>
+              </button>
+            );
+          })}
+        </nav>
+
+        <div key={tab} role="tabpanel" className="min-w-0 motion-safe:animate-fade-up">
+          {tab === "profile" && (
+            <div className="space-y-6">
+              <ProfileTab canEdit={permissions.editProfile} />
+              <AccountPanel initialName={account.name} email={account.email} />
+            </div>
+          )}
+          {tab === "ai" && <AiTab canEdit={permissions.editAi} />}
+          {tab === "team" && <TeamTab currentRole={currentRole} canManage={permissions.manageTeam} />}
+          {tab === "integration" &&
+            (permissions.manageIntegration ? (
+              <IntegrationPanel />
+            ) : (
+              <div className="flex flex-col items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/60 px-6 py-16 text-center">
+                <Lock className="h-8 w-8 text-zinc-600" />
+                <p className="font-medium text-zinc-200">Owners and admins only</p>
+                <p className="max-w-sm text-sm text-zinc-500">
+                  Meta API tokens, webhook configuration and fallback settings can
+                  only be viewed and changed by owners and admins.
+                </p>
+              </div>
+            ))}

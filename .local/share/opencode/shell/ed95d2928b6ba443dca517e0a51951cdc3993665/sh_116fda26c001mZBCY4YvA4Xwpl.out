@@ -1,0 +1,16 @@
+    phone,
+    conversationId: conversation?.id ?? null,
+    mode: conversation?.mode ?? null,
+    status: conversation?.status ?? null,
+    assignedTo: toMemberSummary(conversation?.assignedMember ?? null),
+    customer: {
+      name: customer?.name ?? null,
+      profileName: customer?.profileName ?? null,
+      firstSeenAt: firstSeenCandidates.length
+        ? new Date(Math.min(...firstSeenCandidates)).toISOString()
+        : null,
+      totalMessages: inbound + outbound,
+      inboundMessages: inbound,
+      outboundMessages: outbound,
+      conversationCount,
+    },

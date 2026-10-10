@@ -1,0 +1,2 @@
+2026-10-01 16:36:10.081 [error] #35: https://main.vscode-cdn.net/extensions/marketplace.json - error GET net::ERR_SOCKET_NOT_CONNECTED
+2026-10-01 16:50:17.487 [error] #36: https://main.vscode-cdn.net/extensions/marketplace.json - error GET Request timeout after 60000ms

@@ -1,0 +1,10 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Badge } from "@/components/console/ui";
+import { useDebounce } from "@/lib/utils";
+import { prisma } from "@/lib/prisma";
+import { CrmTag, tagLabels } from "@/lib/constants/crmTags";
+
+export interface CampaignsTableProps {
+  businessId: string;

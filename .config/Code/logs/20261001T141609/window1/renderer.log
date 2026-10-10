@@ -1,0 +1,52 @@
+2026-10-01 14:16:17.899 [warning] Creation of workbench contribution 'workbench.contrib.chatSetup' took 39ms.
+2026-10-01 14:16:21.005 [info] Started local extension host with pid 2507.
+2026-10-01 14:16:23.072 [error] [vscode.mermaid-markdown-features]: Extension 'vscode.mermaid-markdown-features' CANNOT use 'legacyToolReferenceFullNames' without the 'chatParticipantPrivate' API proposal enabled
+2026-10-01 14:16:33.546 [info] [AccountPolicyGate] apply: state=inactive, reason=undefined, isRestricted=false
+2026-10-01 14:16:38.982 [info] [AccountPolicyGate] apply: state=inactive, reason=undefined, isRestricted=false
+2026-10-01 14:16:42.668 [error] [Extension Host] (node:2507) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+2026-10-01 14:16:50.339 [warning] Creation of workbench contribution 'workbench.contrib.agentStatus.rendering' took 209ms.
+2026-10-01 14:16:55.243 [info] Extension host (LocalProcess pid: 2507) is unresponsive.
+2026-10-01 14:16:57.136 [info] Extension host (LocalProcess pid: 2507) is responsive.
+2026-10-01 14:17:03.555 [warning] Creation of workbench contribution 'workbench.contrib.chatTeardown' took 1259ms.
+2026-10-01 14:17:13.515 [warning] Creation of workbench contribution 'workbench.contrib.chatForegroundSessionCount' took 133ms.
+2026-10-01 14:17:13.625 [info] Extension host (LocalProcess pid: 2507) is unresponsive.
+2026-10-01 14:17:13.663 [info] Extension host (LocalProcess pid: 2507) is responsive.
+2026-10-01 14:17:18.835 [warning] Creation of workbench contribution 'workbench.contrib.toolReferenceNames' took 231ms.
+2026-10-01 14:17:21.370 [info] Extension host (LocalProcess pid: 2507) is unresponsive.
+2026-10-01 14:17:24.984 [info] Extension host (LocalProcess pid: 2507) is responsive.
+2026-10-01 14:17:25.341 [warning] Creation of workbench contribution 'chat.edits.editorOverlay' took 306ms.
+2026-10-01 14:17:29.362 [info] Extension host (LocalProcess pid: 2507) is unresponsive.
+2026-10-01 14:17:29.381 [info] Extension host (LocalProcess pid: 2507) is responsive.
+2026-10-01 14:17:39.565 [warning] Creation of workbench contribution 'inlineChat.escapeTool' took 179ms.
+2026-10-01 14:17:41.947 [warning] Creation of workbench contribution 'mcpDiscovery' took 134ms.
+2026-10-01 14:17:44.627 [info] [AgentHost:renderer] Acquiring MessagePort to agent host...
+2026-10-01 14:17:45.634 [info] [AgentHost:renderer] MessagePort acquired, creating client...
+2026-10-01 14:17:56.824 [warning] Creation of workbench contribution 'terminal.chatAgentTools' took 238ms.
+2026-10-01 14:17:58.947 [info] Settings Sync: Account status changed from uninitialized to unavailable
+2026-10-01 14:18:02.283 [error] [AgentHost:renderer] Protocol connection failed Channel name 'agentHostProtocol' timed out after 1000ms
+2026-10-01 14:18:08.319 [warning] Creation of workbench contribution 'workbench.contrib.onboarding' took 692ms.
+2026-10-01 14:18:17.901 [warning] Creation of workbench contribution 'EditTelemetryContribution' took 250ms.
+2026-10-01 14:18:35.004 [warning] Creation of workbench contribution 'browserView.chatAgentTools' took 326ms.
+2026-10-01 14:18:39.403 [warning] Creation of workbench contribution 'workbench.contrib.chat.agentHostSettingsEditor' took 198ms.
+2026-10-01 14:19:03.962 [warning] Creation of workbench contribution 'chat.nativeBuiltinTools' took 788ms.
+2026-10-01 14:19:16.837 [warning] Creation of workbench contribution 'workbench.contrib.agentHostContribution' took 261ms.
+2026-10-01 14:19:23.479 [info] Extension host (LocalProcess pid: 2507) is unresponsive.
+2026-10-01 14:19:38.014 [info] Extension host (LocalProcess pid: 2507) is responsive.
+2026-10-01 14:19:50.545 [warning] Creation of workbench contribution 'workbench.contrib.chat.copilotConfigSlashSubmitHandler' took 441ms.
+2026-10-01 14:20:13.820 [info] Extension host (LocalProcess pid: 2507) is unresponsive.
+2026-10-01 14:20:17.753 [info] Extension host (LocalProcess pid: 2507) is responsive.
+2026-10-01 16:14:51.621 [warning] Creation of workbench contribution 'chat.builtinTools' took 164ms.
+2026-10-01 16:14:53.461 [warning] Creation of workbench contribution 'chat.promptLanguageFeatures' took 101ms.
+2026-10-01 16:15:02.162 [warning] Creation of workbench contribution 'mcpLanguageFeatures' took 266ms.
+2026-10-01 16:15:05.811 [warning] Creation of workbench contribution 'mcpAddContext' took 347ms.
+2026-10-01 16:15:09.779 [warning] Creation of workbench contribution 'workbench.contrib.testing.chatAgentTool' took 298ms.
+2026-10-01 16:15:21.053 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-10-01 16:15:47.332 [info] Extension host (LocalProcess pid: 2507) is unresponsive.
+2026-10-01 16:15:47.447 [info] Extension host (LocalProcess pid: 2507) is responsive.
+2026-10-01 16:16:18.964 [warning] Creation of workbench contribution 'vs.contrib.inlineCompletionLanguageStatusBarContribution' took 821ms.
+2026-10-01 16:16:23.879 [warning] Creation of workbench contribution 'vs.contrib.InlineCompletionSchemaContribution' took 851ms.
+2026-10-01 16:16:36.478 [warning] Creation of workbench contribution 'workbench.contrib.dropOrPasteIntoSchema' took 227ms.
+2026-10-01 16:16:49.109 [info] [perf] Render performance baseline is 264ms
+2026-10-01 16:16:50.193 [warning] Creation of workbench contribution 'workbench.contrib.emergencyAlert' took 193ms.
+2026-10-01 16:17:10.305 [warning] [lifecycle] onWillShutdown is taking a long time, pending operations: join.closeStorage

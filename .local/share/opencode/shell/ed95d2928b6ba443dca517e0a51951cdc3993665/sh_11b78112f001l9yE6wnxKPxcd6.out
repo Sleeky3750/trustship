@@ -1,0 +1,51 @@
+            New Broadcast
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-1 rounded-lg hover:bg-zinc-900 transition-colors"
+            aria-label="Close modal"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-4">
+          {/* Target Audience Selector */}
+          <div>
+            <p className="text-sm text-zinc-400">Target Audience</p>
+            <select
+              onChange={(e) => {
+                const values = e.target.value.split(",");
+                setTargetTags(values.filter((v) => v.trim()).map((v) => v.trim()));
+              }}
+              className="rounded-xl border border-zinc-700 bg-zinc-950/50 text-sm w-full"
+            >
+              <option value="HOT_LEAD">Hot lead</option>
+              <option value="PRICING_INQUIRY">Pricing inquiry</option>
+              <option value="PAYMENT_PENDING">Payment pending</option>
+              <option value="SUPPORT_NEEDED">Support needed</option>
+              <option value="NEW_CUSTOMER">New customer</option>
+              <option value="RETURNING_CUSTOMER">Returning customer</option>
+              <option value="URGENT">Urgent</option>
+            </select>
+            {targetTags.length > 0 && (
+              <p className="text-xs text-zinc-500 mt-1">
+                {targetTags.length} selected
+              </p>
+            )}
+          </div>
+
+          {/* Message Composer */}
+          <div>
+            <p className="text-sm text-zinc-400">Message</p>
+            <input
+              placeholder="Enter your message (use {{name}}, {{phone}} variables)"
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              className="rounded-xl border border-zinc-700 bg-zinc-950/50 py-2 px-3 text-sm text-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60 resize-none min-h-[120px]"
+            />
+          </div>
+
+          {/* Schedule / Dispatch Actions */}
+          <div className="flex gap-3">
+            <label

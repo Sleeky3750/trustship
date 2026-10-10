@@ -1,0 +1,16 @@
+ app/login/page.tsx                            |  2 ++
+ components/auth/LoginForm.tsx                 | 20 ++++++++++++--------
+ components/campaigns/BroadcastModal.tsx       |  1 +
+ components/console/ConsoleNav.tsx             |  1 +
+ components/console/settings/SettingsShell.tsx |  5 ++++-
+ 5 files changed, 20 insertions(+), 9 deletions(-)
+---
+ M app/login/page.tsx
+ M components/auth/LoginForm.tsx
+ M components/campaigns/BroadcastModal.tsx
+ M components/console/ConsoleNav.tsx
+ M components/console/settings/SettingsShell.tsx
+?? app/api/auth/
+?? app/api/billing/
+?? components/auth/ForgotPasswordLink.tsx
+?? components/console/settings/BillingTab.tsx

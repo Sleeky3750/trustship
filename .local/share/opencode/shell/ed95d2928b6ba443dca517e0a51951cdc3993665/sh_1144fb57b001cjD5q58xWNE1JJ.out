@@ -1,0 +1,6 @@
+.next/types/validator.ts(62,39): error TS2307: Cannot find module '../../app/dashboard/whatsapp/page.js' or its corresponding type declarations.
+components/whatsapp/WhatsAppHealthWidget.tsx(170,11): error TS2339: Property 'systemToken' does not exist on type 'WhatsAppHealth'.
+
+real	3m6.842s
+user	3m9.576s
+sys	0m15.193s

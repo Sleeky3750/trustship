@@ -1,0 +1,11 @@
+  user: { select: { name: true } },
+} satisfies Prisma.TeamMemberSelect;
+
+function toMemberSummary(
+  member: { id: string; email: string; user: { name: string | null } | null } | null
+): MemberSummary | null {
+  return member
+    ? { id: member.id, email: member.email, name: member.user?.name ?? null }
+    : null;
+}
+

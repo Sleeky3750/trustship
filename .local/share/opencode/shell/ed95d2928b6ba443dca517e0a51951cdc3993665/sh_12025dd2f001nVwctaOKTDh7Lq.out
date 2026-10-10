@@ -1,0 +1,6 @@
+            const isEditing = editing?.id === product.id;
+            return (
+              <tr
+                key={product.id}
+                className={`hover:bg-zinc-900/30 transition-colors ${isEditing ? "bg-zinc-900/50" : ""}`}
+              >

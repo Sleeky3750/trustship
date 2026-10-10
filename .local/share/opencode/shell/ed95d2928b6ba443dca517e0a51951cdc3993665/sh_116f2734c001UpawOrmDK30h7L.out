@@ -1,0 +1,12 @@
+export interface WhatsAppCustomerMetadata {
+  name: string | null;
+  profileName: string | null;
+  firstSeenAt: string | null;
+  totalMessages: number;
+  inboundMessages: number;
+  outboundMessages: number;
+  conversationCount: number;
+}
+
+export interface WhatsAppThreadDetail {
+  phone: string;

@@ -1,0 +1,4 @@
+/** Joins truthy class names. Plain module so server components can use it. */
+export function cx(...classes: (string | false | null | undefined)[]) {
+  return classes.filter(Boolean).join(" ");
+}

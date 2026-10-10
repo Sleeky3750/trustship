@@ -1,0 +1,16 @@
+              errorMessage: sendResult.success ? null : "Unknown send error",
+              sentAt: new Date(),
+            },
+          });
+
+          results.push({
+            customerId: cust.id,
+            externalId: sendResult.externalId ?? null,
+            status: sendResult.success ? "SENT" : "FAILED",
+            error: sendResult.success ? null : "Unknown send error",
+          });
+
+          // Rate limit: wait between batches
+          if (i + BATCH_SIZE < customers.length) {
+            await new Promise((r) => setTimeout(r, BATCH_DELAY_MS));
+          }

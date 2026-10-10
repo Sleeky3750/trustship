@@ -1,0 +1,2 @@
+8:import BroadcastModal from "@/components/campaigns/BroadcastModal";
+77:      <BroadcastModal open={showNewBroadcast} onClose={() => setShowNewBroadcast(false)} />

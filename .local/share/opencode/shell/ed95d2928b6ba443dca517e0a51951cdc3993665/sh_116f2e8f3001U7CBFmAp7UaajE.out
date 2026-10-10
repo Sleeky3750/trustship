@@ -1,0 +1,30 @@
+"use client";
+
+import type { ReactNode } from "react";
+
+import type { WhatsAppThreadDetail } from "@/lib/whatsapp/types";
+import { Avatar, Badge, Modal } from "@/components/console/ui";
+import { formatMessageTime, formatPhone } from "../format";
+import { cn } from "@/lib/utils";
+
+import { CrmTag, tagLabels } from "@/lib/constants/crmTags";
+
+export default function CustomerDrawer({
+  open,
+  onClose,
+  detail,
+}: {
+  open: boolean;
+  onClose: () => void;
+  detail: WhatsAppThreadDetail | null;
+}) {
+  const customer = detail?.customer;
+  const name = customer?.name ?? customer?.profileName ?? null;
+
+  // Compute tag badges
+  const tagBadges = (customer?.tags || []).map((tag: string) => {
+    const label = tagLabels[tag as keyof typeof tagLabels] || tag;
+    const classes = "inline-flex items-center gap-1 rounded-full border border-zinc-800/50 bg-zinc-950/30 px-2 py-0.5 text-xs";
+    return <span key={tag} className={cn(classes, "transition-colors hover:bg-zinc-900")}>
+      {label}
+    </span>;

@@ -1,0 +1,2 @@
+15:  | "account:self" // manage your own name & password
+31:  "account:self": ALL,

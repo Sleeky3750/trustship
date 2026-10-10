@@ -1,0 +1,15 @@
+2026-10-01 22:43:22.069 [error] #27: https://main.vscode-cdn.net/extensions/chat.json - error GET Failed to fetch
+2026-10-02 00:41:27.866 [error] #43: https://main.vscode-cdn.net/core/stable.json - error GET Canceled
+2026-10-02 05:14:46.784 [error] #49: https://main.vscode-cdn.net/extensions/chat.json - error GET Failed to fetch
+2026-10-02 11:00:52.350 [error] #56: https://main.vscode-cdn.net/core/stable.json - error GET Fetch timeout: 20000ms
+2026-10-02 11:35:24.786 [error] #63: https://main.vscode-cdn.net/extensions/chat.json - error GET Failed to fetch
+2026-10-02 11:41:08.979 [error] #64: https://main.vscode-cdn.net/extensions/chat.json - error GET Failed to fetch
+2026-10-02 11:46:53.183 [error] #65: https://main.vscode-cdn.net/extensions/chat.json - error GET Failed to fetch
+2026-10-02 11:52:37.391 [error] #66: https://main.vscode-cdn.net/extensions/chat.json - error GET Failed to fetch
+2026-10-02 11:58:21.594 [error] #67: https://main.vscode-cdn.net/extensions/chat.json - error GET Failed to fetch
+2026-10-02 12:00:52.350 [error] #68: https://main.vscode-cdn.net/core/stable.json - error GET Fetch timeout: 20000ms
+2026-10-02 12:04:05.797 [error] #69: https://main.vscode-cdn.net/extensions/chat.json - error GET Failed to fetch
+2026-10-02 12:09:49.998 [error] #70: https://main.vscode-cdn.net/extensions/chat.json - error GET Failed to fetch
+2026-10-02 12:15:34.198 [error] #71: https://main.vscode-cdn.net/extensions/chat.json - error GET Failed to fetch
+2026-10-02 12:21:18.401 [error] #72: https://main.vscode-cdn.net/extensions/chat.json - error GET Failed to fetch
+2026-10-02 14:38:38.171 [error] #86: https://main.vscode-cdn.net/extensions/chat.json - error GET Failed to fetch

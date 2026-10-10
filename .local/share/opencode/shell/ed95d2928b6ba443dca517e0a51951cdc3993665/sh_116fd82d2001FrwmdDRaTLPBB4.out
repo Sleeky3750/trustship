@@ -1,0 +1,5 @@
+102:        customer: {
+240:    where: { businessId, customer: { waId: phone } },
+258:  const messageScope = { businessId, conversation: { customer: { waId: phone } } };
+305:      where: { businessId, customer: { waId: phone } },
+375:    customer: {

@@ -1,0 +1,53 @@
+import { NextRequest, NextResponse } from "next/server"
+
+// GET - Meta verification for WhatsApp Business API
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  const mode = searchParams.get("mode")
+  const token = searchParams.get("token")
+  const challenge = searchParams.get("challenge")
+
+  // Verify the verification token
+  if (mode === "subscribe" && token === process.env.HUB_VERIFY_TOKEN) {
+    return NextResponse.json({ challenge }, { status: 200 })
+  }
+
+  return NextResponse.json({ error: "Verification failed" }, { status: 403 })
+}
+
+// POST - WhatsApp message handling
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { entry } = body
+
+    // Process WhatsApp webhook entries
+    if (entry) {
+      for (const entryItem of entry) {
+        if (entryItem.changes) {
+          for (const change of entryItem.changes) {
+            const value = change.value
+            // Process messages, status updates, etc.
+            if (value.messages) {
+              // Handle incoming messages
+              const { messages, contacts } = value
+              // TODO: Process message and respond appropriately
+            }
+            if (value.status) {
+              // Handle message status updates
+              // TODO: Update message delivery status
+            }
+          }
+        }
+      }
+    }
+
+    return NextResponse.json({ received: true }, { status: 200 })
+  } catch (error) {
+    console.error("WhatsApp webhook error:", error)
+    return NextResponse.json(
+      { error: "WhatsApp webhook processing failed" },
+      { status: 500 }
+    )
+  }
+}

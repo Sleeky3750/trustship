@@ -1,0 +1,97 @@
+2026-10-02 22:36:39.812 [warning] Creation of workbench contribution 'workbench.contrib.chatSetup' took 26ms.
+2026-10-02 22:36:42.190 [info] Started local extension host with pid 628.
+2026-10-02 22:36:43.297 [error] [vscode.mermaid-markdown-features]: Extension 'vscode.mermaid-markdown-features' CANNOT use 'legacyToolReferenceFullNames' without the 'chatParticipantPrivate' API proposal enabled
+2026-10-02 22:36:53.193 [info] [AccountPolicyGate] apply: state=inactive, reason=undefined, isRestricted=false
+2026-10-02 22:36:59.982 [info] [AccountPolicyGate] apply: state=inactive, reason=undefined, isRestricted=false
+2026-10-02 22:37:00.220 [error] [Extension Host] (node:628) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+2026-10-02 22:37:14.610 [info] Extension host (LocalProcess pid: 628) is unresponsive.
+2026-10-02 22:37:15.062 [info] Extension host (LocalProcess pid: 628) is responsive.
+2026-10-02 22:37:36.091 [info] Extension host (LocalProcess pid: 628) is unresponsive.
+2026-10-02 22:37:36.117 [info] Extension host (LocalProcess pid: 628) is responsive.
+2026-10-02 22:37:44.204 [info] [AgentHost:renderer] Acquiring MessagePort to agent host...
+2026-10-02 22:37:44.408 [info] [AgentHost:renderer] MessagePort acquired, creating client...
+2026-10-02 22:37:51.214 [warning] Creation of workbench contribution 'terminal.chatAgentTools' took 347ms.
+2026-10-02 22:37:52.382 [info] Settings Sync: Account status changed from uninitialized to unavailable
+2026-10-02 22:37:53.113 [warning] Creation of workbench contribution 'workbench.contrib.onboarding' took 277ms.
+2026-10-02 22:37:58.541 [warning] Creation of workbench contribution 'EditTelemetryContribution' took 101ms.
+2026-10-02 22:37:59.988 [warning] Creation of workbench contribution 'browserView.chatAgentTools' took 292ms.
+2026-10-02 22:38:05.095 [info] [AgentHost:renderer] Protocol connection established; clientId=75b5ec43-9004-4f84-ba65-3f20cbaf2e3c
+2026-10-02 22:38:08.055 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-02 22:38:08.289 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-02 22:38:08.370 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-02 22:38:08.379 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-02 22:38:08.425 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-02 22:38:08.435 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-02 22:38:08.443 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-02 22:38:08.450 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-02 22:38:08.462 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-02 22:38:08.477 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-02 22:38:09.482 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-02 22:38:10.533 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-02 22:38:10.540 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-02 22:38:10.549 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-02 22:38:10.583 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-02 22:38:10.592 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-02 22:38:10.596 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-02 22:38:10.606 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-02 22:38:10.845 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-02 22:38:10.919 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-02 22:38:11.620 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-02 22:38:11.629 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-02 22:38:11.645 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-02 22:38:11.659 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-02 22:38:11.684 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-02 22:38:11.689 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-02 22:38:11.700 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-02 22:38:11.706 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-02 22:38:12.236 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-02 22:38:12.261 [info] [AgentHost] No token resolved for resource: https://api.github.com
+2026-10-02 22:38:14.163 [warning] Creation of workbench contribution 'workbench.contrib.configurationMigration' took 436ms.
+2026-10-02 22:38:15.207 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-02 22:38:15.221 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-02 22:38:15.242 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-02 22:38:15.243 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-02 22:38:15.252 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-02 22:38:15.253 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-02 22:38:15.272 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-02 22:38:15.277 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-02 22:38:15.286 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-02 22:38:15.289 [info] [AgentHost] No token resolved for resource: https://api.github.com/repos
+2026-10-02 22:38:16.766 [warning] Creation of workbench contribution 'workbench.contrib.dynamicWindowConfiguration' took 252ms.
+2026-10-02 22:38:21.246 [warning] Creation of workbench contribution 'chat.builtinTools' took 414ms.
+2026-10-02 22:38:21.829 [warning] Creation of workbench contribution 'chat.userToolSets' took 125ms.
+2026-10-02 22:38:25.904 [warning] Creation of workbench contribution 'workbench.contrib.agentsVoiceConnectedKey' took 120ms.
+2026-10-02 22:38:30.011 [warning] Creation of workbench contribution 'vs.contrib.inlineCompletionLanguageStatusBarContribution' took 108ms.
+2026-10-02 22:38:30.416 [warning] Creation of workbench contribution 'vs.contrib.InlineCompletionSchemaContribution' took 276ms.
+2026-10-02 22:38:30.668 [warning] Creation of workbench contribution 'workbench.contrib.dropOrPasteInto' took 101ms.
+2026-10-02 22:38:30.927 [warning] Creation of workbench contribution 'workbench.contrib.dropOrPasteIntoSchema' took 216ms.
+2026-10-02 22:38:35.811 [info] [perf] Render performance baseline is -1ms
+2026-10-02 22:54:30.818 [warning] [File Watcher (node.js)] Watcher shutdown because watched path got deleted
+2026-10-03 02:47:03.954 [error] [text file model] handleSaveError(4) - exit - resulted in a save error: Error: Unable to write file '/home/sleeky3750/pulse-web/app/api/workspaces/route.ts' (Error: File Modified Since) file:///home/sleeky3750/pulse-web/app/api/workspaces/route.ts
+2026-10-03 03:51:08.325 [warning] [LM] Failed to request chat control data Failed to fetch
+2026-10-04 21:25:25.190 [info] Extension host (LocalProcess pid: 628) is unresponsive.
+2026-10-04 21:25:25.347 [info] Extension host (LocalProcess pid: 628) is responsive.
+2026-10-06 09:43:21.335 [error] Error: Fetch timeout: 20000ms
+    at _in (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5370:52203)
+    at async fCt.logAndRequest (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:1026:11061)
+    at async w7e.doFetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3195)
+    at async w7e.fetchAlerts (vscode-file://vscode-app/usr/share/code/resources/app/out/vs/workbench/workbench.desktop.main.js:5862:3103)
+2026-10-06 09:59:32.090 [info] Extension host (LocalProcess pid: 628) is unresponsive.
+2026-10-06 09:59:46.773 [info] Extension host (LocalProcess pid: 628) is responsive.
+2026-10-06 10:01:19.537 [info] Extension host (LocalProcess pid: 628) is unresponsive.
+2026-10-06 10:01:20.162 [info] Extension host (LocalProcess pid: 628) is responsive.
+2026-10-06 10:06:50.912 [info] Extension host (LocalProcess pid: 628) is unresponsive.
+2026-10-06 10:06:52.546 [info] Extension host (LocalProcess pid: 628) is responsive.
+2026-10-06 10:13:15.025 [info] Extension host (LocalProcess pid: 628) is unresponsive.
+2026-10-06 10:14:28.071 [info] Extension host (LocalProcess pid: 628) is responsive.
+2026-10-06 10:24:47.979 [info] Extension host (LocalProcess pid: 628) is unresponsive.
+2026-10-06 10:24:48.146 [info] Extension host (LocalProcess pid: 628) is responsive.
+2026-10-06 10:26:40.490 [info] Extension host (LocalProcess pid: 628) is unresponsive.
+2026-10-06 10:26:52.318 [info] Extension host (LocalProcess pid: 628) is responsive.
+2026-10-06 10:28:08.177 [info] Extension host (LocalProcess pid: 628) is unresponsive.
+2026-10-06 10:28:23.686 [info] Extension host (LocalProcess pid: 628) is responsive.
+2026-10-06 10:48:06.316 [info] Extension host (LocalProcess pid: 628) is unresponsive.
+2026-10-06 10:48:07.096 [info] Extension host (LocalProcess pid: 628) is responsive.
+2026-10-06 11:06:48.290 [info] Extension host (LocalProcess pid: 628) is unresponsive.
+2026-10-06 11:10:19.282 [info] Extension host (LocalProcess pid: 628) is responsive.

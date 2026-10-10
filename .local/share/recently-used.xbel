@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xbel version="1.0"
+      xmlns:bookmark="http://www.freedesktop.org/standards/desktop-bookmarks"
+      xmlns:mime="http://www.freedesktop.org/standards/shared-mime-info"
+>
+  <bookmark href="file:///home/sleeky3750/pulse-web/app/page.tsx" added="2026-08-01T12:55:04.210972Z" modified="2026-08-01T12:55:04.362558Z" visited="2026-08-01T12:55:04.210973Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="application/octet-stream"/>
+        <bookmark:applications>
+          <bookmark:application name="xdg-desktop-portal-gtk" exec="&apos;xdg-desktop-portal-gtk %u&apos;" modified="2026-08-01T12:55:04.210976Z" count="1"/>
+          <bookmark:application name="code" exec="&apos;gio open %u&apos;" modified="2026-08-01T12:55:04.362546Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+</xbel>

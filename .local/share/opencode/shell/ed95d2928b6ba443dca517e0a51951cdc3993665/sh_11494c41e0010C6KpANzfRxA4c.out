@@ -1,0 +1,67 @@
+   42 app/page.tsx
+   83 app/login/page.tsx
+  298 app/signup/page.tsx
+   23 app/not-found.tsx
+   61 app/settings/page.tsx
+  130 components/SettingsForm.tsx
+  637 total
+lib/ai:
+context
+core
+schemas
+services
+tools
+
+lib/ai/context:
+loadBusinessContext.ts
+references.ts
+
+lib/ai/core:
+client.ts
+errors.ts
+execute.ts
+
+lib/ai/schemas:
+actions.ts
+requests.ts
+responses.ts
+
+lib/ai/services:
+assistant.ts
+insights.ts
+planning.ts
+priorities.ts
+progress.ts
+shared.ts
+whatsappSupport.ts
+
+lib/ai/tools:
+actions.ts
+ownership.ts
+app/api/ai:
+actions
+route.ts
+
+app/api/ai/actions:
+route.ts
+app/api/workspaces/route.ts
+app/api/projects/route.ts
+app/api/tasks/delete/route.ts
+app/api/tasks/[id]/activities/route.ts
+app/api/tasks/route.ts
+app/dashboard/page.tsx
+app/workspace/[id]/page.tsx
+app/project/[id]/page.tsx
+lib/ai/context/loadBusinessContext.ts
+lib/ai/tools/ownership.ts
+lib/ai/tools/actions.ts
+ls: cannot access 'proxy.ts': No such file or directory
+ls: cannot access 'middleware.ts': No such file or directory
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+  reactCompiler: true,
+};
+
+export default nextConfig;

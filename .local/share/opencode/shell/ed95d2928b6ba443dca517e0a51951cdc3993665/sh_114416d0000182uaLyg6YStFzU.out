@@ -1,0 +1,2 @@
+lib/whatsapp/inbox.ts(5,10): error TS2724: '"./token"' has no exported member named 'getSystemTokenStatus'. Did you mean 'getAccessTokenStatus'?
+lib/whatsapp/token.ts(5,15): error TS2305: Module '"./types"' has no exported member 'TokenSource'.
