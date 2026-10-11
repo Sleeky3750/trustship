@@ -1,2 +1,0 @@
-44:export interface WhatsAppCustomerMetadata {
-60:  customer: WhatsAppCustomerMetadata;

@@ -1,2 +1,0 @@
-3:import { AlertCircle, Bot, Check, CheckCheck, Clock, Paperclip, RotateCw } from "lucide-react";
-28:          <Paperclip className="h-3.5 w-3.5 shrink-0" />

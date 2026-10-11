@@ -1,3 +1,0 @@
-✔ Generated Prisma Client (v6.19.3) to ./node_modules/@prisma/client in 1.22s
- prisma/schema.prisma | 38 ++++++++++++++++++++++++++++++++++----
- 1 file changed, 34 insertions(+), 4 deletions(-)

@@ -1,2 +1,0 @@
-components/console/campaigns/CampaignsTable.tsx(106,11): error TS2322: Type 'string | null' is not assignable to type 'string | number | readonly string[] | undefined'.
-  Type 'null' is not assignable to type 'string | number | readonly string[] | undefined'.

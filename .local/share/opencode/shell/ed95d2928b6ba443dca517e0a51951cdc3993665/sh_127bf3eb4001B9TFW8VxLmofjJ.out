@@ -1,6 +1,0 @@
-278:        sender: true,
-318:    sender: message.sender === "TRUSTSHIP" ? "AI" : message.sender,
-341:      sender:
-610:        sender: "AGENT",
-647:      sender: "AGENT",
-816:        sender: "TRUSTSHIP",

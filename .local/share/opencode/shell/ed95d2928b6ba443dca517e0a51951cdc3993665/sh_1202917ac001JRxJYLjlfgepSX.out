@@ -1,8 +1,0 @@
-  };
-
-  return (
-    <div className="overflow-x-auto rounded-xl border border-zinc-800/50 bg-zinc-950/80 backdrop-blur-md">
-      <table className="w-full min-w-max">
-        <thead>
-          <tr className="border-b border-zinc-800/80 bg-zinc-900/50 text-zinc-400 text-sm">
-            <th className="py-4 text-left">Image</th>

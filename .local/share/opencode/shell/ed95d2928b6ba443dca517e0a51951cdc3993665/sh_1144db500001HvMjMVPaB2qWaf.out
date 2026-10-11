@@ -1,4 +1,0 @@
-3:    "target": "ES2017",
-4:    "lib": ["dom", "dom.iterable", "esnext"],
-5-    "allowJs": true,
-6-    "skipLibCheck": true,

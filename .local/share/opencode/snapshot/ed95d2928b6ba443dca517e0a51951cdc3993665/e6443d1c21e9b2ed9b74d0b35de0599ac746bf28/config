@@ -1,9 +1,0 @@
-[core]
-	repositoryformatversion = 0
-	filemode = true
-	bare = false
-	logallrefupdates = true
-	worktree = /home/sleeky3750/pulse-web
-
-[include]
-	path = opencode.gitconfig

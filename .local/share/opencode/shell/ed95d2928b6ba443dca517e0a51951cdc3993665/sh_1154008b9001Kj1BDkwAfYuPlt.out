@@ -1,8 +1,0 @@
-Loaded Prisma config from prisma.config.ts.
-
-Prisma config detected, skipping environment variable loading.
-Prisma schema loaded from prisma/schema.prisma
-Datasource "db": PostgreSQL database "neondb", schema "public" at "ep-muddy-glitter-ax5hhasv-pooler.c-4.us-east-2.aws.neon.tech"
-Error: P1001: Can't reach database server at `ep-muddy-glitter-ax5hhasv-pooler.c-4.us-east-2.aws.neon.tech:5432`
-
-Please make sure your database server is running at `ep-muddy-glitter-ax5hhasv-pooler.c-4.us-east-2.aws.neon.tech:5432`.

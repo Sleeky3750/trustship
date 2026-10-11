@@ -1,4 +1,0 @@
--- AlterTable
-ALTER TABLE "User" ADD COLUMN     "passwordChangedAt" TIMESTAMP(3);
-
-✔ Generated Prisma Client (v6.19.3) to ./node_modules/@prisma/client in 1.57s

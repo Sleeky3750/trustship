@@ -1,2 +1,0 @@
-23:  const [showNewBroadcast, setShowNewBroadcast] = useState(false);
-77:      <BroadcastModal open={showNewBroadcast} onClose={() => setShowNewBroadcast(false)} />

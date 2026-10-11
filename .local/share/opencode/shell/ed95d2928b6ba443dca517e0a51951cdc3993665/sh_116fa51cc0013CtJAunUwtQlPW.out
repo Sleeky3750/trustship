@@ -1,2 +1,0 @@
-lib/whatsapp/types.ts:44:export interface WhatsAppCustomerMetadata {
-lib/whatsapp/types.ts:63:  customer: WhatsAppCustomerMetadata;

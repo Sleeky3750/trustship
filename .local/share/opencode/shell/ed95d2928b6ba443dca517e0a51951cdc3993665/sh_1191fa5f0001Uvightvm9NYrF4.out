@@ -1,4 +1,0 @@
-26:  const [filterTag, setFilterTag] = useState<string | null>(null);
-79:    if (!filterTag) return true;
-80:    return campaign.targetTags.includes(filterTag);
-106:          value={filterTag}

@@ -1,5 +1,0 @@
-8:export const metadata: Metadata = { title: "AI Staff & Inbox" };
-AcceptInviteForm.tsx
-IntegrationPanel.tsx
-InviteModal.tsx
-MemberRoster.tsx

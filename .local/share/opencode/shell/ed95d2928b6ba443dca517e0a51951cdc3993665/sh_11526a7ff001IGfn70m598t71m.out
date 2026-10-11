@@ -1,7 +1,0 @@
-29:  issuedAt: number;
-44:  // Legacy format: businessId.issuedAt.signature
-45:  // Current format: userId.businessId.issuedAt.signature
-49:  const issuedAt = parts[parts.length - 2];
-53:  if (!businessId || !issuedAt || !signature || userId === "") {
-57:  const timestamp = Number(issuedAt);
-84:  return { userId, businessId, issuedAt: timestamp };

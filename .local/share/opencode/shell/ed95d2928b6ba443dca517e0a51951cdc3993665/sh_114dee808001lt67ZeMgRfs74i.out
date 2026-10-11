@@ -1,4 +1,0 @@
-70:  const panelRef = useRef<HTMLElement>(null);
-72:  useVisualViewportFit(panelRef, selectedPhone !== null);
-344:        ref={panelRef}
-347:          "fixed inset-x-0 top-0 z-40 h-dvh flex flex-col bg-zinc-950 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
