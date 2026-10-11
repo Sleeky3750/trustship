@@ -6,13 +6,13 @@ import axios from "axios"
 // GET - Meta verification for WhatsApp Business API
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
-  const mode = searchParams.get("mode")
-  const token = searchParams.get("token")
-  const challenge = searchParams.get("challenge")
+  const mode = searchParams.get("hub.mode")
+  const token = searchParams.get("hub.verify_token")
+  const challenge = searchParams.get("hub.challenge")
 
   // Verify the verification token
-  if (mode === "subscribe" && token === process.env.HUB_VERIFY_TOKEN) {
-    return NextResponse.json({ challenge }, { status: 200 })
+  if (mode === "subscribe" && token === process.env.WHATSAPP_VERIFY_TOKEN) {
+    return new NextResponse(challenge, { status: 200 })
   }
 
   return NextResponse.json({ error: "Verification failed" }, { status: 403 })
