@@ -47,8 +47,8 @@ model User {
   role        Role     @default(BUYER)
   createdAt   DateTime @default(now())
 
-  transactionsEscrowed   EscrowTransaction[]  // Transactions where user is buyer
-  transactionsInvolving   EscrowTransaction[]  // Transactions where user is seller
+  transactionsEscrowed   EscrowTransaction[]  @relation("BuyerTransactions")
+  transactionsInvolving   EscrowTransaction[] @relation("SellerTransactions")
 }
 
 model EscrowTransaction {
@@ -82,6 +82,12 @@ model EscrowTransaction {
   buyerPhone       String
   sellerPhone      String
 
+  buyerId          String
+  buyer            User    @relation("BuyerTransactions", fields: [buyerId], references: [id])
+
+  sellerId         String
+  seller           User    @relation("SellerTransactions", fields: [sellerId], references: [id])
+  
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
