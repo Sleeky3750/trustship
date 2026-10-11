@@ -40,9 +40,8 @@ export async function POST(request: NextRequest) {
         transaction.buyerPhone,
         `🚚 Your item has been dispatched!\n\n` +
           `Transaction Reference: ${transaction.transactionRef}\n` +
-          `Total Paid: ₦${transaction.totalEscrow}\n` +
-          ${courierInfo} +
-          `\nYou can track your waybill status. The courier will deliver your item shortly.`
+`Total Paid: ₦${transaction.totalEscrow}\n` +
+`${courierInfo}\nYou can track your waybill status. The courier will deliver your item shortly.`
       )
     }
 
