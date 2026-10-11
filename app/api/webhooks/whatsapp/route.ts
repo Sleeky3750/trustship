@@ -31,16 +31,14 @@ export async function POST(request: NextRequest) {
           for (const change of entryItem.changes) {
             const value = change.value
 
-            // Handle incoming messages
-            if (value.messages) {
-              const { messages, contacts } = value
-
-              for (const message of messages) {
+            // Safely handle incoming messages (ignores status updates like delivered/read)
+            if (value && value.messages && Array.isArray(value.messages)) {
+              for (const message of value.messages) {
                 const { from, text, interactive } = message
 
                 if (text) {
                   // Handle text messages (e.g., 4-digit PIN verification)
-                  await handleTextMessage(from, text.text)
+                  await handleTextMessage(from, text.body || text.text)
                 }
 
                 if (interactive) {
