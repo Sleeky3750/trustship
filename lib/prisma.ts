@@ -1,13 +1,11 @@
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient } from "@prisma/client";
 
-// Prevent multiple PrismaClient instances in serverless environments
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
-}
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
-export const prisma = globalForPrisma.prisma || new PrismaClient()
+export const prisma =
+  globalForPrisma.prisma ||
+  new PrismaClient({
+    log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+  });
 
-// In development, connect to the database on first access
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma
-}
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;

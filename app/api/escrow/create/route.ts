@@ -1,133 +1,97 @@
-import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import axios from "crypto"
-import { sendWhatsAppMessage, sendInteractiveButtons } from "@/lib/whatsapp"
+import { NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+import crypto from "crypto";
 
-// POST - Escrow contract creation logic
-export async function POST(request: NextRequest) {
+const prisma = new PrismaClient();
+
+export async function POST(req: Request) {
   try {
-    const body = await request.json()
+    const body = await req.json();
     const {
       itemAmount,
-      waybillAmount,
+      waybillAmount = 0,
+      waybillPayer = "BUYER", // "BUYER" or "SELLER"
       buyerPhone,
       sellerPhone,
-      currency,
-    } = body
+      buyerEmail,
+      sellerEmail,
+      buyerName,
+      sellerName,
+    } = body;
 
-    // Validate required fields
-    if (!itemAmount || !waybillAmount || !buyerPhone || !sellerPhone) {
+    // 1. Validate required fields
+    if (!itemAmount || !buyerPhone || !sellerPhone) {
       return NextResponse.json(
-        {
-          error:
-            "Missing required fields: itemAmount, waybillAmount, buyerPhone, sellerPhone",
-        },
+        { error: "Missing required fields: itemAmount, buyerPhone, and sellerPhone are mandatory." },
         { status: 400 }
-      )
+      );
     }
 
-    // Calculate escrow amounts
-    const currencyCode = currency || "NGN"
-    const totalEscrow = parseFloat(itemAmount) + parseFloat(waybillAmount)
-    const platformFee = (parseFloat(itemAmount) * 0.02).toFixed(2) // 2% platform transaction fee
+    // 2. Calculate fees & totals
+    const parsedItemAmount = Number(itemAmount);
+    const parsedWaybillAmount = Number(waybillAmount);
+    
+    // Example: 1.5% platform fee or flat rate logic
+    const platformFee = Math.round(parsedItemAmount * 0.015); 
+    const totalEscrow = parsedItemAmount + (waybillPayer === "BUYER" ? parsedWaybillAmount : 0);
 
-    // Generate a 4-digit release PIN using crypto random
-    const releasePin = Math.floor(1000 + Math.random() * 8999)
-      .toString()
-      .padStart(4, "0")
+    // 3. Generate a secure 4-digit release PIN for the buyer
+    const releasePin = Math.floor(1000 + Math.random() * 9000).toString();
+    const transactionRef = `TS-${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
 
-    // Create escrow transaction with status PENDING_AGREEMENT
+    // 4. Upsert or find Buyer and Seller in database
+    const buyer = await prisma.user.upsert({
+      where: { phone: buyerPhone },
+      update: { name: buyerName || "Buyer" },
+      create: { phone: buyerPhone, email: buyerEmail, name: buyerName || "Buyer", role: "BUYER" },
+    });
+
+    const seller = await prisma.user.upsert({
+      where: { phone: sellerPhone },
+      update: { name: sellerName || "Seller" },
+      create: { phone: sellerPhone, email: sellerEmail, name: sellerName || "Seller", role: "SELLER" },
+    });
+
+    // 5. Create the Escrow Transaction record
     const transaction = await prisma.escrowTransaction.create({
       data: {
-        transactionRef: `TRX-${Date.now()}-${Math.random()
-          .toString(36)
-          .substr(2, 8)
-          .toUpperCase()}`,
-        currency: currencyCode,
-        countryCode: "NG",
-        paymentProvider: "PAYSTACK",
-        itemAmount: parseFloat(itemAmount),
-        waybillAmount: parseFloat(waybillAmount),
+        transactionRef,
+        itemAmount: parsedItemAmount,
+        waybillAmount: parsedWaybillAmount,
         totalEscrow,
-        platformFee: parseFloat(platformFee),
-        waybillPayer: "BUYER",
+        platformFee,
+        waybillPayer,
         dispatchStatus: "PENDING",
-        status: "PENDING_AGREEMENT",
-        releasePin: releasePin,
+        status: "PENDING", // Starts pending until payment is confirmed
+        releasePin,
+        termsAcceptedByBuyer: true,
         buyerPhone,
         sellerPhone,
-        termsAcceptedByBuyer: false,
+        buyerId: buyer.id,
+        sellerId: seller.id,
       },
-    })
+    });
 
-    // Initialize Paystack transaction
-    try {
-      const paystackResponse = await axios.post(
-        "https://api.paystack.co/transaction/initialize",
-        {
-          amount: Math.round(totalEscrow * 100), // Paystack uses kobo
-          email: `buyer${transaction.id}@trustship.io`,
-          callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/callback`,
-          metadata: {
-            transactionRef: transaction.transactionRef,
-            buyerPhone,
-            sellerPhone,
-          },
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-            "Content-Type": "application/json",
-          },
-        }
-      )
-
-      const { data, authorization_url } = paystackResponse.data
-
-      // Send WhatsApp message to buyer with payment link and terms
-      await sendWhatsAppMessage(
-        buyerPhone,
-        `📋 Escrow Contract Created\n\n` +
-          `Transaction Reference: ${transaction.transactionRef}\n` +
-          `Total Escrow: ₦${totalEscrow}\n` +
-          `Platform Fee: ₦${platformFee} (2%)\n` +
-          `Release PIN: ${releasePin}\n\n` +
-          `Please accept the terms to proceed with the payment.`
-      )
-
-      // Send interactive buttons for terms acceptance
-      await sendInteractiveButtons(
-        buyerPhone,
-        "Welcome to TrustShip Escrow!\n\n" +
-          `Transaction: ${transaction.transactionRef}\n` +
-          `Total: ₦${totalEscrow}\n\n` +
-          "Please accept the terms to continue.",
-        [
-          { id: "accept_terms", title: "Accept Terms" },
-        ]
-      )
-    } catch (paystackError) {
-      console.error("Paystack initialization error:", paystackError)
-      // Continue without Paystack init - transaction created locally
-    }
+    console.log(`📦 Created new Escrow Transaction: ${transactionRef} with PIN ${releasePin}`);
 
     return NextResponse.json(
       {
         success: true,
+        message: "Escrow transaction created successfully",
         data: {
-          transaction,
-          authorization_url:
-            (paystackResponse as any)?.data?.authorization_url,
+          transactionRef: transaction.transactionRef,
+          totalEscrow: transaction.totalEscrow,
+          releasePin: transaction.releasePin, // (Note: In production, send this via SMS/WhatsApp to buyer, don't expose in response)
+          status: transaction.status,
         },
-        releasePin,
       },
       { status: 201 }
-    )
-  } catch (error) {
-    console.error("Escrow creation error:", error)
+    );
+  } catch (error: any) {
+    console.error("Failed to create escrow transaction:", error);
     return NextResponse.json(
-      { error: "Failed to create escrow transaction" },
+      { error: error.message || "Internal server error during escrow creation" },
       { status: 500 }
-    )
+    );
   }
 }

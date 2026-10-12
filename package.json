@@ -12,6 +12,7 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@prisma/client": "^5.22.0",
     "axios": "^1.7.7",
     "next": "^16.4.0",
     "paystack-sdk": "^4.1.0",
