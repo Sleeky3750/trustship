@@ -54,11 +54,10 @@ export default function EscrowTrackingPage() {
       setTransaction(data.transaction);
     } catch (err: any) {
       setError(err.message);
-    } font-medium {
+    } finally {
       setLoading(false);
     }
   };
-
   const handleInitiateDispute = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!transaction) return;
