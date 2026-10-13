@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
 interface Transaction {
@@ -15,7 +15,7 @@ interface Transaction {
   createdAt: string;
 }
 
-export default function DashboardPage() {
+function DashboardContent() {
   const searchParams = useSearchParams();
   const highlightRef = searchParams.get("ref");
 
@@ -24,7 +24,6 @@ export default function DashboardPage() {
 
   useEffect(() => {
     // In a real implementation, fetch user transactions from a backend API route
-    // For demonstration, you can wire this up to an API returning prisma.escrowTransaction.findMany()
     setLoading(false);
   }, []);
 
@@ -71,5 +70,13 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-500 font-medium">Loading TrustShip dashboard...</div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }
