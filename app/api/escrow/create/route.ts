@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
-
-const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   try {
@@ -31,28 +29,36 @@ export async function POST(req: Request) {
     const parsedItemAmount = Number(itemAmount);
     const parsedWaybillAmount = Number(waybillAmount);
     
-    // Example: 1.5% platform fee or flat rate logic
+    // 1.5% platform fee calculation
     const platformFee = Math.round(parsedItemAmount * 0.015); 
     const totalEscrow = parsedItemAmount + (waybillPayer === "BUYER" ? parsedWaybillAmount : 0);
 
-    // 3. Generate a secure 4-digit release PIN for the buyer
+    // 3. Generate a secure 4-digit release PIN for the buyer & transaction reference
     const releasePin = Math.floor(1000 + Math.random() * 9000).toString();
     const transactionRef = `TS-${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
 
-    // 4. Upsert or find Buyer and Seller in database
+    // 4. Upsert Buyer and Seller in database (using phone as unique identifier)
     const buyer = await prisma.user.upsert({
       where: { phone: buyerPhone },
       update: { name: buyerName || "Buyer" },
-      create: { phone: buyerPhone, email: buyerEmail, name: buyerName || "Buyer", role: "BUYER" },
+      create: { 
+        phone: buyerPhone, 
+        name: buyerName || "Buyer", 
+        role: "BUYER" 
+      },
     });
 
     const seller = await prisma.user.upsert({
       where: { phone: sellerPhone },
       update: { name: sellerName || "Seller" },
-      create: { phone: sellerPhone, email: sellerEmail, name: sellerName || "Seller", role: "SELLER" },
+      create: { 
+        phone: sellerPhone, 
+        name: sellerName || "Seller", 
+        role: "SELLER" 
+      },
     });
 
-    // 5. Create the Escrow Transaction record
+    // 5. Create the Escrow Transaction record (fixed status to PENDING_DEPOSIT)
     const transaction = await prisma.escrowTransaction.create({
       data: {
         transactionRef,
@@ -61,8 +67,8 @@ export async function POST(req: Request) {
         totalEscrow,
         platformFee,
         waybillPayer,
-        dispatchStatus: "PENDING",
-        status: "PENDING", // Starts pending until payment is confirmed
+        dispatchStatus: "NOT_DISPATCHED",
+        status: "PENDING_DEPOSIT", // Correct Enum matching your Prisma schema
         releasePin,
         termsAcceptedByBuyer: true,
         buyerPhone,
@@ -81,7 +87,7 @@ export async function POST(req: Request) {
         data: {
           transactionRef: transaction.transactionRef,
           totalEscrow: transaction.totalEscrow,
-          releasePin: transaction.releasePin, // (Note: In production, send this via SMS/WhatsApp to buyer, don't expose in response)
+          releasePin: transaction.releasePin, 
           status: transaction.status,
         },
       },
