@@ -3,10 +3,10 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { ref: string } }
+  { params }: { params: Promise<{ ref: string }> }
 ) {
   try {
-    const { ref } = params;
+    const { ref } = await params;
 
     const transaction = await prisma.escrowTransaction.findUnique({
       where: { transactionRef: ref },

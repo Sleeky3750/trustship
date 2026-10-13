@@ -8,11 +8,9 @@ export async function POST(req: Request) {
     const {
       itemAmount,
       waybillAmount = 0,
-      waybillPayer = "BUYER", // "BUYER" or "SELLER"
+      waybillPayer = "BUYER",
       buyerPhone,
       sellerPhone,
-      buyerEmail,
-      sellerEmail,
       buyerName,
       sellerName,
     } = body;
@@ -29,22 +27,24 @@ export async function POST(req: Request) {
     const parsedItemAmount = Number(itemAmount);
     const parsedWaybillAmount = Number(waybillAmount);
     
-    // 1.5% platform fee calculation
     const platformFee = Math.round(parsedItemAmount * 0.015); 
     const totalEscrow = parsedItemAmount + (waybillPayer === "BUYER" ? parsedWaybillAmount : 0);
 
-    // 3. Generate a secure 4-digit release PIN for the buyer & transaction reference
+    // 3. Generate release PIN & transaction reference
     const releasePin = Math.floor(1000 + Math.random() * 9000).toString();
     const transactionRef = `TS-${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
 
-    // 4. Upsert Buyer and Seller in database (using phone as unique identifier)
+    // 4. Upsert Buyer and Seller in database
     const buyer = await prisma.user.upsert({
       where: { phone: buyerPhone },
       update: { name: buyerName || "Buyer" },
       create: { 
         phone: buyerPhone, 
         name: buyerName || "Buyer", 
-        role: "BUYER" 
+        role: "BUYER",
+        bankCode: "",
+        accountNumber: "",
+        bankName: "",
       },
     });
 
@@ -54,11 +54,14 @@ export async function POST(req: Request) {
       create: { 
         phone: sellerPhone, 
         name: sellerName || "Seller", 
-        role: "SELLER" 
+        role: "SELLER",
+        bankCode: "",
+        accountNumber: "",
+        bankName: "",
       },
     });
 
-    // 5. Create the Escrow Transaction record (fixed status to PENDING_DEPOSIT)
+    // 5. Create the Escrow Transaction record
     const transaction = await prisma.escrowTransaction.create({
       data: {
         transactionRef,
@@ -68,7 +71,7 @@ export async function POST(req: Request) {
         platformFee,
         waybillPayer,
         dispatchStatus: "NOT_DISPATCHED",
-        status: "PENDING_DEPOSIT", // Correct Enum matching your Prisma schema
+        status: "PENDING_DEPOSIT",
         releasePin,
         termsAcceptedByBuyer: true,
         buyerPhone,
@@ -77,8 +80,6 @@ export async function POST(req: Request) {
         sellerId: seller.id,
       },
     });
-
-    console.log(`📦 Created new Escrow Transaction: ${transactionRef} with PIN ${releasePin}`);
 
     return NextResponse.json(
       {
