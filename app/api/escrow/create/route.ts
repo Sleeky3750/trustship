@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     const transactionRef = `TS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
     const releasePin = Math.floor(1000 + Math.random() * 9000).toString();
 
-    // Create escrow matching exact Prisma schema fields
+    // Create escrow including the required dispatchStatus field
     const escrow = await (prisma.escrowTransaction as any).create({
       data: {
         transactionRef,
@@ -36,6 +36,7 @@ export async function POST(req: Request) {
         sellerPhone,
         releasePin,
         status: "PENDING_DEPOSIT",
+        dispatchStatus: "PENDING", // Satisfies the required schema field
       },
     });
 
