@@ -5,7 +5,6 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const {
-      currency = "NGN",
       itemAmount,
       waybillAmount,
       waybillPayer,
@@ -24,13 +23,13 @@ export async function POST(req: Request) {
     const transactionRef = `TS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
     const releasePin = Math.floor(1000 + Math.random() * 9000).toString();
 
-    const escrow = await prisma.escrowTransaction.create({
+    // Create escrow matching exact Prisma schema fields
+    const escrow = await (prisma.escrowTransaction as any).create({
       data: {
         transactionRef,
-        currency,
         itemAmount: itemNum,
         waybillAmount: waybillNum,
-        waybillPayer,
+        waybillPayer: waybillPayer || "BUYER",
         platformFee,
         totalEscrow,
         buyerPhone,
