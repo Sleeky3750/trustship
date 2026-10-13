@@ -44,6 +44,12 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // --- DYNAMIC METRICS CALCULATION ---
+  const totalEscrowValue = escrows.reduce((acc, tx) => acc + (tx.totalEscrow || tx.itemAmount || 0), 0);
+  const activeTransactionsCount = escrows.filter(tx => tx.status !== 'RELEASED').length;
+  const successfulReleasesCount = escrows.filter(tx => tx.status === 'RELEASED').length;
+  const activeDisputesCount = escrows.filter(tx => tx.status === 'DISPUTED').length;
+
   const filteredEscrows = escrows.filter(
     (tx) =>
       tx.transactionRef?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -72,14 +78,8 @@ export default function AdminDashboardPage() {
             <div className="hidden md:flex items-center gap-3 bg-[#030611]/80 border border-slate-800 rounded-xl px-4 py-1.5">
               <div className="flex items-center gap-2 border-r border-slate-800 pr-3">
                 <div>
-                  <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Escrow Locked</p>
-                  <p className="text-xs font-bold text-slate-200">₦245,000</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div>
-                  <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Paystack Balance</p>
-                  <p className="text-xs font-bold text-slate-200">₦1,420,500</p>
+                  <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Total Database Records</p>
+                  <p className="text-xs font-bold text-slate-200">{escrows.length} Transactions</p>
                 </div>
               </div>
             </div>
@@ -97,13 +97,13 @@ export default function AdminDashboardPage() {
       {/* MAIN CONTAINER */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
-        {/* METRICS OVERVIEW CARDS */}
+        {/* DYNAMIC METRICS OVERVIEW CARDS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-[#070C1E] border border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-lg">
             <div>
               <p className="text-xs text-slate-400 font-medium">Total Escrow Value</p>
-              <p className="text-xl font-extrabold text-white mt-1">₦382,500</p>
-              <p className="text-[11px] text-emerald-400 mt-1">+12% from last week</p>
+              <p className="text-xl font-extrabold text-white mt-1">₦{totalEscrowValue.toLocaleString()}</p>
+              <p className="text-[11px] text-emerald-400 mt-1">Live database sum</p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-lg font-bold">
               🛡️
@@ -113,7 +113,7 @@ export default function AdminDashboardPage() {
           <div className="bg-[#070C1E] border border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-lg">
             <div>
               <p className="text-xs text-slate-400 font-medium">Active Transactions</p>
-              <p className="text-xl font-extrabold text-white mt-1">{escrows.length}</p>
+              <p className="text-xl font-extrabold text-white mt-1">{activeTransactionsCount}</p>
               <p className="text-[11px] text-blue-400 mt-1">Pending Release</p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 text-lg font-bold">
@@ -124,8 +124,8 @@ export default function AdminDashboardPage() {
           <div className="bg-[#070C1E] border border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-lg">
             <div>
               <p className="text-xs text-slate-400 font-medium">Successful Releases</p>
-              <p className="text-xl font-extrabold text-white mt-1">128</p>
-              <p className="text-[11px] text-emerald-400 mt-1">99.2% success rate</p>
+              <p className="text-xl font-extrabold text-white mt-1">{successfulReleasesCount}</p>
+              <p className="text-[11px] text-emerald-400 mt-1">Completed orders</p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-lg font-bold">
               ✅
@@ -135,7 +135,7 @@ export default function AdminDashboardPage() {
           <div className="bg-[#070C1E] border border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-lg">
             <div>
               <p className="text-xs text-slate-400 font-medium">Active Disputes</p>
-              <p className="text-xl font-extrabold text-white mt-1">1</p>
+              <p className="text-xl font-extrabold text-white mt-1">{activeDisputesCount}</p>
               <p className="text-[11px] text-red-400 mt-1">Requires Admin Ruling</p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 text-lg font-bold">
@@ -192,7 +192,7 @@ export default function AdminDashboardPage() {
                     <tr key={tx.id} className="hover:bg-[#030611]/60 transition border-b border-slate-800/40">
                       <td className="py-3.5 px-4">
                         <span className="font-mono font-bold text-blue-400 block">{tx.transactionRef}</span>
-                        <span className="text-[10px] text-slate-400">Just now</span>
+                        <span className="text-[10px] text-slate-400">{new Date(tx.createdAt).toLocaleDateString()}</span>
                       </td>
                       <td className="py-3.5 px-4">
                         <div className="text-[11px]">
@@ -215,7 +215,7 @@ export default function AdminDashboardPage() {
                       </td>
                       <td className="py-3.5 px-4 text-center">
                         <span className="bg-[#030611] border border-slate-800 px-2.5 py-1 rounded font-mono font-bold text-amber-400 text-xs shadow-inner">
-                          {tx.releasePin || "4821"}
+                          {tx.releasePin || "----"}
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-right">
@@ -226,7 +226,7 @@ export default function AdminDashboardPage() {
                               disabled={actionLoading === tx.transactionRef + 'fund'}
                               className="bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 px-2.5 py-1 rounded text-[10px] font-semibold transition"
                             >
-                              Simulate Pay
+                              Fund
                             </button>
                           )}
                           {tx.status !== 'RELEASED' && (
@@ -235,7 +235,7 @@ export default function AdminDashboardPage() {
                               disabled={actionLoading === tx.transactionRef + 'release'}
                               className="bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/30 px-2.5 py-1 rounded text-[10px] font-semibold transition"
                             >
-                              Mark Delivered
+                              Release
                             </button>
                           )}
                         </div>
