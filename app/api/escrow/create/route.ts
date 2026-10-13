@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma"; // Adjust path if needed
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
@@ -11,25 +11,23 @@ export async function POST(req: Request) {
       waybillPayer,
       buyerPhone,
       sellerPhone,
-      buyerName,
-      sellerName,
     } = body;
 
     const itemNum = Number(itemAmount) || 0;
     const waybillNum = Number(waybillAmount) || 0;
     
-    // Updated 5% platform fee calculation
+    // 5% platform fee calculation
     const platformFee = Math.round(itemNum * 0.05 * 100) / 100;
     const totalEscrow = itemNum + (waybillPayer === "BUYER" ? waybillNum : 0) + platformFee;
 
-    // Generate reference code
+    // Generate reference code & PIN
     const transactionRef = `TS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
     const releasePin = Math.floor(1000 + Math.random() * 9000).toString();
 
     const escrow = await prisma.escrowTransaction.create({
       data: {
         transactionRef,
-        currency, // Saved to DB
+        currency,
         itemAmount: itemNum,
         waybillAmount: waybillNum,
         waybillPayer,
@@ -37,8 +35,6 @@ export async function POST(req: Request) {
         totalEscrow,
         buyerPhone,
         sellerPhone,
-        buyerName,
-        sellerName,
         releasePin,
         status: "PENDING_DEPOSIT",
       },
