@@ -9,21 +9,13 @@ export async function POST(
 ) {
   try {
     const { ref, action } = await params;
-    let newStatus = "";
+    let newStatus: any = "";
 
-    if (action === "fund") newStatus = "FUNDED";
-    else if (action === "release") newStatus = "COMPLETED";
+    if (action === "fund") newStatus = "ESCROW_LOCKED"; // matches TransactionStatus enum
+    else if (action === "release") newStatus = "RELEASED"; // matches TransactionStatus enum
     else return NextResponse.json({ error: "Invalid action" }, { status: 400 });
 
-    // Explicitly cast prisma to any as a separate variable to bypass TS property checks
-    const db: any = prisma;
-    const model = db.escrow || db.Escrow || db.transaction || db.Transaction;
-
-    if (!model) {
-      return NextResponse.json({ error: "Prisma escrow model not found in schema" }, { status: 500 });
-    }
-
-    const updated = await model.update({
+    const updated = await prisma.escrowTransaction.update({
       where: { transactionRef: ref },
       data: { status: newStatus },
     });
