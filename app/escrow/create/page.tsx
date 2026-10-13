@@ -3,12 +3,20 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+const CURRENCIES = [
+  { code: "NGN", symbol: "₦", label: "NGN (₦)" },
+  { code: "USD", symbol: "$", label: "USD ($)" },
+  { code: "GBP", symbol: "£", label: "GBP (£)" },
+  { code: "EUR", symbol: "€", label: "EUR (€)" },
+];
+
 export default function CreateEscrowPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const [formData, setFormData] = useState({
+    currency: "NGN",
     itemAmount: "",
     waybillAmount: "",
     waybillPayer: "BUYER",
@@ -17,6 +25,8 @@ export default function CreateEscrowPage() {
     buyerName: "",
     sellerName: "",
   });
+
+  const selectedCurrency = CURRENCIES.find((c) => c.code === formData.currency) || CURRENCIES[0];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,8 +44,7 @@ export default function CreateEscrowPage() {
       if (!res.ok) throw new Error(data.error || "Failed to create escrow");
 
       const ref = data.transactionRef || data.data?.transactionRef || data.ref;
-router.push(`/dashboard?ref=${ref}`);
-
+      router.push(`/dashboard?ref=${ref}`);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -44,8 +53,13 @@ router.push(`/dashboard?ref=${ref}`);
   };
 
   const itemNum = Number(formData.itemAmount) || 0;
-  const platformFee = Math.round(itemNum * 0.015);
-  const total = itemNum + (formData.waybillPayer === "BUYER" ? Number(formData.waybillAmount) || 0 : 0);
+  const waybillNum = Number(formData.waybillAmount) || 0;
+
+  // 5% Platform Fee calculation
+  const platformFee = Math.round(itemNum * 0.05 * 100) / 100;
+
+  // Total includes Item + Waybill (if buyer pays) + 5% Platform Fee
+  const total = itemNum + (formData.waybillPayer === "BUYER" ? waybillNum : 0) + platformFee;
 
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -62,8 +76,27 @@ router.push(`/dashboard?ref=${ref}`);
             </div>
           )}
 
+          {/* Currency Selector */}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Item Amount (₦)</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Transaction Currency</label>
+            <select
+              value={formData.currency}
+              onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-slate-800 bg-white font-medium"
+            >
+              {CURRENCIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Item Amount Input */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Item Amount ({selectedCurrency.symbol})
+            </label>
             <input
               type="number"
               required
@@ -74,9 +107,12 @@ router.push(`/dashboard?ref=${ref}`);
             />
           </div>
 
+          {/* Waybill Amount & Payer */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Waybill / Delivery Amount (₦)</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Waybill / Shipping ({selectedCurrency.symbol})
+              </label>
               <input
                 type="number"
                 placeholder="e.g. 2000"
@@ -98,24 +134,29 @@ router.push(`/dashboard?ref=${ref}`);
             </div>
           </div>
 
+          {/* International WhatsApp Phone Inputs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Buyer WhatsApp Phone</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Buyer WhatsApp (with country code)
+              </label>
               <input
-                type="text"
+                type="tel"
                 required
-                placeholder="e.g. 2349162483537"
+                placeholder="e.g. 2348012345678 or 14155552671"
                 value={formData.buyerPhone}
                 onChange={(e) => setFormData({ ...formData, buyerPhone: e.target.value })}
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-slate-800"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Seller WhatsApp Phone</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Seller WhatsApp (with country code)
+              </label>
               <input
-                type="text"
+                type="tel"
                 required
-                placeholder="e.g. 2348001112223"
+                placeholder="e.g. 2348001112223 or 447700900077"
                 value={formData.sellerPhone}
                 onChange={(e) => setFormData({ ...formData, sellerPhone: e.target.value })}
                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-slate-800"
@@ -123,14 +164,21 @@ router.push(`/dashboard?ref=${ref}`);
             </div>
           </div>
 
+          {/* Calculation Breakdown */}
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-sm text-slate-600">
             <div className="flex justify-between">
-              <span>Platform Fee (1.5%):</span>
-              <span className="font-semibold text-slate-800">₦{platformFee.toLocaleString()}</span>
+              <span>Platform Fee (5%):</span>
+              <span className="font-semibold text-slate-800">
+                {selectedCurrency.symbol}
+                {platformFee.toLocaleString()}
+              </span>
             </div>
             <div className="flex justify-between text-base font-bold text-slate-900 border-t border-slate-200 pt-2">
               <span>Total Escrow Deposit:</span>
-              <span className="text-blue-600">₦{total.toLocaleString()}</span>
+              <span className="text-blue-600">
+                {selectedCurrency.symbol}
+                {total.toLocaleString()}
+              </span>
             </div>
           </div>
 
@@ -139,7 +187,7 @@ router.push(`/dashboard?ref=${ref}`);
             disabled={loading}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl transition shadow-sm disabled:opacity-50"
           >
-            {loading ? "Creating Escrow..." : "Create & Fund Escrow"}
+            {loading ? "Creating Escrow..." : `Create & Fund Escrow (${formData.currency})`}
           </button>
         </form>
       </div>

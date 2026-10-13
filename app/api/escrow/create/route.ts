@@ -1,104 +1,52 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import crypto from "crypto";
+import { prisma } from "@/lib/prisma"; // Adjust path if needed
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const {
+      currency = "NGN",
       itemAmount,
-      waybillAmount = 0,
-      waybillPayer = "BUYER",
+      waybillAmount,
+      waybillPayer,
       buyerPhone,
       sellerPhone,
       buyerName,
       sellerName,
     } = body;
 
-    // 1. Validate required fields
-    if (!itemAmount || !buyerPhone || !sellerPhone) {
-      return NextResponse.json(
-        { error: "Missing required fields: itemAmount, buyerPhone, and sellerPhone are mandatory." },
-        { status: 400 }
-      );
-    }
-
-    // 2. Calculate fees & totals
-    const parsedItemAmount = Number(itemAmount);
-    const parsedWaybillAmount = Number(waybillAmount);
+    const itemNum = Number(itemAmount) || 0;
+    const waybillNum = Number(waybillAmount) || 0;
     
-    const platformFee = Math.round(parsedItemAmount * 0.015); 
-    const totalEscrow = parsedItemAmount + (waybillPayer === "BUYER" ? parsedWaybillAmount : 0);
+    // Updated 5% platform fee calculation
+    const platformFee = Math.round(itemNum * 0.05 * 100) / 100;
+    const totalEscrow = itemNum + (waybillPayer === "BUYER" ? waybillNum : 0) + platformFee;
 
-    // 3. Generate release PIN & transaction reference
+    // Generate reference code
+    const transactionRef = `TS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
     const releasePin = Math.floor(1000 + Math.random() * 9000).toString();
-    const transactionRef = `TS-${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
 
-    // 4. Upsert Buyer and Seller in database
-    const buyer = await prisma.user.upsert({
-      where: { phone: buyerPhone },
-      update: { name: buyerName || "Buyer" },
-      create: { 
-        phone: buyerPhone, 
-        name: buyerName || "Buyer", 
-        role: "BUYER",
-        bankCode: "",
-        accountNumber: "",
-        bankName: "",
-      },
-    });
-
-    const seller = await prisma.user.upsert({
-      where: { phone: sellerPhone },
-      update: { name: sellerName || "Seller" },
-      create: { 
-        phone: sellerPhone, 
-        name: sellerName || "Seller", 
-        role: "SELLER",
-        bankCode: "",
-        accountNumber: "",
-        bankName: "",
-      },
-    });
-
-    // 5. Create the Escrow Transaction record
-    const transaction = await prisma.escrowTransaction.create({
+    const escrow = await prisma.escrowTransaction.create({
       data: {
         transactionRef,
-        itemAmount: parsedItemAmount,
-        waybillAmount: parsedWaybillAmount,
-        totalEscrow,
-        platformFee,
+        currency, // Saved to DB
+        itemAmount: itemNum,
+        waybillAmount: waybillNum,
         waybillPayer,
-        dispatchStatus: "NOT_DISPATCHED",
-        status: "PENDING_DEPOSIT",
-        releasePin,
-        termsAcceptedByBuyer: true,
+        platformFee,
+        totalEscrow,
         buyerPhone,
         sellerPhone,
-        buyerId: buyer.id,
-        sellerId: seller.id,
+        buyerName,
+        sellerName,
+        releasePin,
+        status: "PENDING_DEPOSIT",
       },
     });
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: "Escrow transaction created successfully",
-        data: {
-          transactionRef: transaction.transactionRef,
-          totalEscrow: transaction.totalEscrow,
-          releasePin: transaction.releasePin, 
-          status: transaction.status,
-        },
-      },
-      { status: 201 }
-    );
+    return NextResponse.json({ success: true, transactionRef: escrow.transactionRef, escrow });
   } catch (error: any) {
-    console.error("Failed to create escrow transaction:", error);
-    return NextResponse.json(
-      { error: error.message || "Internal server error during escrow creation" },
-      { status: 500 }
-    );
+    console.error("Escrow creation error:", error);
+    return NextResponse.json({ error: error.message || "Failed to create escrow" }, { status: 500 });
   }
 }
