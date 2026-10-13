@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     const transactionRef = `TS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
     const releasePin = Math.floor(1000 + Math.random() * 9000).toString();
 
-    // Create escrow with complete fallback defaults for User relation requirements
+    // Create escrow matching the exact user model fields
     const escrow = await (prisma.escrowTransaction as any).create({
       data: {
         transactionRef,
@@ -45,8 +45,7 @@ export async function POST(req: Request) {
               name: "Buyer",
               bankCode: "000",
               bankName: "Default Bank",
-              accountNumber: "0000000000",
-              accountName: "Buyer Default"
+              accountNumber: "0000000000"
             },
           },
         },
@@ -58,8 +57,7 @@ export async function POST(req: Request) {
               name: "Seller",
               bankCode: "000",
               bankName: "Default Bank",
-              accountNumber: "0000000000",
-              accountName: "Seller Default"
+              accountNumber: "0000000000"
             },
           },
         },
