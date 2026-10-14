@@ -2,13 +2,21 @@ import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { generateSecret, generateURI } from 'otplib';
 import QRCode from 'qrcode';
+import { cookies } from 'next/headers';
 
 const prisma = new PrismaClient();
 
-export async function POST(request: Request) {
+export async function POST() {
   try {
-    const { adminId } = await request.json();
-    const admin = await prisma.adminUser.findUnique({ where: { id: adminId } });
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get('trustship_admin_session');
+
+    if (!sessionCookie) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Grab the active admin record
+    const admin = await prisma.adminUser.findFirst();
 
     if (!admin) {
       return NextResponse.json({ error: 'Admin not found' }, { status: 404 });

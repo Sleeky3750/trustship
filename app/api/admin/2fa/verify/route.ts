@@ -1,13 +1,21 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { verify } from 'otplib';
+import { cookies } from 'next/headers';
 
 const prisma = new PrismaClient();
 
 export async function POST(request: Request) {
   try {
-    const { adminId, token } = await request.json();
-    const admin = await prisma.adminUser.findUnique({ where: { id: adminId } });
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get('trustship_admin_session');
+
+    if (!sessionCookie) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { token } = await request.json();
+    const admin = await prisma.adminUser.findFirst();
 
     if (!admin || !admin.twoFactorSecret) {
       return NextResponse.json({ error: 'Setup not initiated' }, { status: 400 });
