@@ -1,68 +1,60 @@
-export default function TermsPage() {
-  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "trustship.app@gmail.com";
+"use client";
 
+import React from 'react';
+
+export default function PrivacyPolicyPage() {
   return (
-    <div className="bg-[#030611] text-slate-200 min-h-screen px-6 py-12 font-sans max-w-4xl mx-auto space-y-8">
-      {/* Header Section */}
-      <div className="border-b border-slate-800 pb-6">
-        <h1 className="text-3xl font-extrabold text-white tracking-tight">
-          TrustShip Escrow Terms of Service & Privacy Policy
-        </h1>
-        <p className="text-xs text-slate-400 mt-2">
-          Effective Date: October 2026 | TrustShip Escrow Technologies
-        </p>
-      </div>
+    <div className="bg-[#03070A] text-slate-100 min-h-screen font-sans selection:bg-[#00FF9D] selection:text-black">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-[#03070A]/85 backdrop-blur-md border-b border-emerald-950/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+          <a href="/" className="flex items-center gap-2 text-white font-black text-xl">
+            <span className="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center text-black font-bold">TS</span>
+            TrustShip <span className="text-xs text-emerald-400 font-semibold px-2 py-0.5 rounded bg-emerald-950/60">Privacy Policy</span>
+          </a>
+          <a href="/" className="text-xs font-bold text-[#00FF9D] hover:underline">
+            ← Back to Home
+          </a>
+        </div>
+      </header>
 
-      {/* Terms Content */}
-      <section className="space-y-4">
-        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          1. Escrow & Fund Holding Policy
-        </h2>
-        <p className="text-sm text-slate-300 leading-relaxed">
-          TrustShip operates as a neutral third-party escrow provider. Buyer funds are held securely in escrow upon payment initialization via Paystack. Funds are locked until delivery conditions are verified or the buyer explicitly issues a release PIN via WhatsApp.
-        </p>
-      </section>
+      {/* Content Section with Clean White Card contrast */}
+      <main className="max-w-4xl mx-auto px-4 py-16">
+        <div className="bg-white text-slate-900 rounded-3xl p-8 sm:p-12 shadow-2xl space-y-8">
+          <div className="border-b border-slate-200 pb-6">
+            <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Privacy Policy</h1>
+            <p className="text-xs text-slate-500 mt-2">Last updated: October 2026</p>
+          </div>
 
-      <section className="space-y-4">
-        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          2. Release PIN & Inspection Period
-        </h2>
-        <p className="text-sm text-slate-300 leading-relaxed">
-          Upon successful deposit, a unique 4-digit Release PIN is issued to the buyer. The buyer agrees to share or text this PIN back to the TrustShip WhatsApp bot only after receiving and verifying the physical condition of the item. Once the 4-digit PIN is entered and validated, funds are permanently released to the seller and cannot be recalled or refunded.
-        </p>
-      </section>
+          <div className="space-y-6 text-sm text-slate-700 leading-relaxed">
+            <section className="space-y-2">
+              <h2 className="text-lg font-bold text-slate-900">1. Introduction</h2>
+              <p>Welcome to TrustShip. We respect your privacy and are committed to protecting your personal data. This privacy policy informs you how we look after your personal data when you use our WhatsApp-native escrow platform and website.</p>
+            </section>
 
-      <section className="space-y-4">
-        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          3. Disputes & Refund Mediation
-        </h2>
-        <p className="text-sm text-slate-300 leading-relaxed">
-          If an item is damaged, incomplete, or not as described, the buyer must refrain from sharing their Release PIN and contact support immediately. TrustShip administrators will review waybill evidence, photo proof, and chat records before rendering an escrow refund or release ruling.
-        </p>
-      </section>
+            <section className="space-y-2">
+              <h2 className="text-lg font-bold text-slate-900">2. Data We Collect</h2>
+              <p>When you interact with our WhatsApp bot or platform, we may collect your phone number, display name, transaction details, and payment confirmation metadata processed via Flutterwave.</p>
+            </section>
 
-      <section className="space-y-4">
-        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          4. Privacy & Data Handling
-        </h2>
-        <p className="text-sm text-slate-300 leading-relaxed">
-          We collect phone numbers, transaction values, and delivery statuses solely to facilitate order completion via Meta’s WhatsApp Business Cloud API and Paystack payment processing. We do not sell or expose user contact information to third parties.
-        </p>
-      </section>
+            <section className="space-y-2">
+              <h2 className="text-lg font-bold text-slate-900">3. How We Secure Your Funds</h2>
+              <p>All escrow payments are held securely through our regulated payment partner, Flutterwave. Funds are only released upon verification of unique 4-digit buyer release PINs.</p>
+            </section>
 
-      {/* Support Section */}
-      <section className="border-t border-slate-800 pt-6 space-y-2">
-        <h2 className="text-lg font-bold text-white">Need Assistance?</h2>
-        <p className="text-sm text-slate-400">
-          For help, dispute arbitration, or legal inquiries, reach out directly to our help desk:
-        </p>
-        <a
-          href={`mailto:${supportEmail}`}
-          className="inline-block text-blue-400 hover:text-blue-300 font-semibold text-sm underline"
-        >
-          {supportEmail}
-        </a>
-      </section>
+            <section className="space-y-2">
+              <h2 className="text-lg font-bold text-slate-900">4. Contact Us</h2>
+              <p>If you have any questions about this privacy policy, please contact our support desk at <a href="mailto:trustship.app@gmail.com" className="text-emerald-600 font-bold underline">trustship.app@gmail.com</a>.</p>
+            </section>
+          </div>
+
+          <div className="pt-8 border-t border-slate-200">
+            <a href="/" className="inline-block bg-slate-900 text-white text-xs font-bold px-6 py-3 rounded-xl hover:bg-slate-800 transition">
+              Return to TrustShip Home
+            </a>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
