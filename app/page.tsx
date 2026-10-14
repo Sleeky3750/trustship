@@ -4,7 +4,7 @@ export default function HomePage() {
   // Demo state
   const [showDemo, setShowDemo] = useState(false);
   const [step, setStep] = useState("idle");
-  const [pin, setPin = useState("");
+  const [pin, setPin] = useState("");
   const [statusMessages, setStatusMessages] = useState([]);
 
   // Initialize messages
