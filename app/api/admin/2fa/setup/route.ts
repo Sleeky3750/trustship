@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import { authenticator } from 'otplib';
+import otplib from 'otplib';
 import QRCode from 'qrcode';
 
 const prisma = new PrismaClient();
+const { authenticator } = otplib;
 
 export async function POST(request: Request) {
   try {
