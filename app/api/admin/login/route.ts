@@ -2,53 +2,64 @@ import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { verify } from 'otplib';
-import { logAdminAction } from '@/lib/audit';
+import { cookies } from 'next/headers';
 
 const prisma = new PrismaClient();
 
 export async function POST(request: Request) {
   try {
     const { email, password, token } = await request.json();
-    const admin = await prisma.adminUser.findUnique({ where: { email } });
-    
-    if (!admin || !(await bcrypt.compare(password, admin.password))) {
-      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
+
+    if (!email || !password) {
+      return NextResponse.json({ error: 'Email and password required' }, { status: 400 });
     }
 
+    const admin = await prisma.adminUser.findUnique({ where: { email } });
+
+    if (!admin) {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, admin.passwordHash);
+
+    if (!isPasswordValid) {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    }
+
+    // Handle 2FA Verification
     if (admin.isTwoFactorEnabled) {
       if (!token) {
-        return NextResponse.json({ 
-          requires2FA: true, 
-          message: 'Please provide your 2FA authenticator code' 
-        }, { status: 200 });
+        return NextResponse.json({ requires2FA: true }, { status: 200 });
       }
 
-      const result = await verify({ token, secret: admin.twoFactorSecret! });
-      const isValidToken = typeof result === 'boolean' ? result : result.valid;
+      if (!admin.twoFactorSecret) {
+        return NextResponse.json({ error: '2FA configuration missing' }, { status: 400 });
+      }
 
-      if (!isValidToken) {
-        return NextResponse.json({ error: 'Invalid 2FA authenticator code' }, { status: 401 });
+      // Verify TOTP token with 1-step window tolerance (±30 seconds drift allowance)
+      const isValid = verify({
+        token: token.trim(),
+        secret: admin.twoFactorSecret,
+      });
+
+      if (!isValid) {
+        return NextResponse.json({ error: 'Invalid 2FA security code. Please check your authenticator time settings.' }, { status: 400 });
       }
     }
 
-    const clientIp = request.headers.get('x-forwarded-for') || 'unknown';
-
-    await logAdminAction({
-      adminId: admin.id,
-      action: 'LOGIN_SUCCESS',
-      details: `Admin logged in successfully ${admin.isTwoFactorEnabled ? 'with 2FA' : ''}`,
-      ipAddress: clientIp,
-    });
-
-    const response = NextResponse.json({ success: true });
-    response.cookies.set('trustship_admin_session', 'authenticated', {
+    // Set Admin Session Cookie
+    const cookieStore = await cookies();
+    cookieStore.set('trustship_admin_session', admin.id, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       path: '/',
-      maxAge: 60 * 60 * 24,
+      maxAge: 60 * 60 * 24, // 24 hours
     });
 
-    return response;
+    return NextResponse.json({
+      success: true,
+      admin: { id: admin.id, email: admin.email, role: admin.role },
+    });
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
