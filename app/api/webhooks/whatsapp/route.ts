@@ -10,7 +10,6 @@ export async function GET(request: NextRequest) {
   const token = searchParams.get("hub.verify_token")
   const challenge = searchParams.get("hub.challenge")
 
-  // Verify the verification token
   if (mode === "subscribe" && token === process.env.WHATSAPP_VERIFY_TOKEN) {
     return new NextResponse(challenge, { status: 200 })
   }
@@ -24,25 +23,21 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { entry } = body
 
-    // Process WhatsApp webhook entries
     if (entry) {
       for (const entryItem of entry) {
         if (entryItem.changes) {
           for (const change of entryItem.changes) {
             const value = change.value
 
-            // Safely handle incoming messages (ignores status updates like delivered/read)
             if (value && value.messages && Array.isArray(value.messages)) {
               for (const message of value.messages) {
                 const { from, text, interactive } = message
 
                 if (text) {
-                  // Handle text messages (e.g., 4-digit PIN verification)
                   await handleTextMessage(from, text.body || text.text)
                 }
 
                 if (interactive) {
-                  // Handle interactive button replies and list replies
                   await handleInteractiveMessage(from, interactive)
                 }
               }
@@ -64,27 +59,23 @@ export async function POST(request: NextRequest) {
 
 // --- State Machine Handlers ---
 
-/**
- * Handle text messages from buyers/sellers
- * State 3: 4-Digit Release PIN Verification
- */
 async function handleTextMessage(from: string, text: string) {
-  // Check if the text is a 4-digit PIN
-  const pinMatch = text.match(/^(\d{4})$/)
+  const cleanText = text.trim()
+  const pinMatch = cleanText.match(/^(\d{4})$/)
 
+  // 1. Handle 4-Digit Release PIN Verification
   if (pinMatch) {
     const pin = pinMatch[1]
 
-    // Find transaction where buyerPhone matches and status is awaiting PIN
     const transaction = await prisma.escrowTransaction.findFirst({
       where: {
         buyerPhone: from,
-        status: "DELIVERED", // Buyer has inspected and is now releasing PIN
+        releasePin: pin,
+        status: { in: ["ESCROW_LOCKED", "DELIVERED"] },
       },
     })
 
-    if (transaction && transaction.releasePin === pin) {
-      // State 3: PIN verified - release funds
+    if (transaction) {
       await prisma.escrowTransaction.update({
         where: { id: transaction.id },
         data: {
@@ -93,14 +84,13 @@ async function handleTextMessage(from: string, text: string) {
         },
       })
 
-      // Trigger Paystack Transfer API to payout to seller
       try {
         await axios.post(
           "https://api.paystack.co/transfer",
           {
-            amount: transaction.totalEscrow * 100, // Paystack uses kobo
-            recipient: transaction.sellerPhone, // Will need proper sub-account format
-            reason: "Escrow release - item delivered successfully",
+            amount: Math.round(transaction.totalEscrow * 100),
+            source: "balance",
+            reason: `Escrow release for ref: ${transaction.transactionRef}`,
           },
           {
             headers: {
@@ -108,50 +98,84 @@ async function handleTextMessage(from: string, text: string) {
             },
           }
         )
-      } catch (paystackError) {
-        console.error("Paystack transfer error:", paystackError)
-        // Continue even if transfer fails - log and notify
+      } catch (paystackError: any) {
+        console.error("Paystack transfer API error:", paystackError?.response?.data || paystackError.message)
       }
 
-      // Notify both parties
       await sendWhatsAppMessage(
         from,
-        `✅ Payment released successfully! ₦${transaction.totalEscrow} has been transferred to the seller.`
+        `✅ Payment released successfully! ₦${transaction.totalEscrow.toLocaleString()} has been cleared for transfer to the seller. Thank you for using TrustShip!`
       )
 
-      // Notify seller
       if (transaction.sellerPhone) {
         await sendWhatsAppMessage(
           transaction.sellerPhone,
-          `🎉 Payment of ₦${transaction.totalEscrow} has been released from escrow. The item was delivered successfully.`
+          `🎉 Success! The buyer has released funds (₦${transaction.totalEscrow.toLocaleString()}) for escrow *${transaction.transactionRef}*. Payout is processing.`
         )
       }
-    } else if (transaction) {
-      // Invalid PIN
+    } else {
+      const anyTx = await prisma.escrowTransaction.findFirst({
+        where: { buyerPhone: from },
+      })
+
+      if (anyTx) {
+        await sendWhatsAppMessage(
+          from,
+          `❌ Invalid PIN or this escrow is not currently in a locked/active deposit state.`
+        )
+      } else {
+        await sendWhatsAppMessage(
+          from,
+          `❌ No active escrow transaction found associated with your phone number.`
+        )
+      }
+    }
+    return
+  }
+
+  // 2. Handle checking transaction status via reference code (e.g. TS-XXXXXX)
+  if (cleanText.toUpperCase().startsWith("TS-")) {
+    const refCode = cleanText.toUpperCase()
+    const transaction = await prisma.escrowTransaction.findFirst({
+      where: {
+        transactionRef: refCode,
+        OR: [{ buyerPhone: from }, { sellerPhone: from }],
+      },
+    })
+
+    if (transaction) {
       await sendWhatsAppMessage(
         from,
-        `❌ Invalid PIN. Please enter the correct 4-digit release PIN for transaction ${transaction.transactionRef}.`
+        `📋 *Escrow Status: ${transaction.transactionRef}*\n\n` +
+        `• Status: *${transaction.status}*\n` +
+        `• Item Amount: ₦${transaction.itemAmount.toLocaleString()}\n` +
+        `• Waybill Status: ${transaction.dispatchStatus}\n\n` +
+        `_Reply with your 4-digit PIN to release funds upon inspection._`
       )
     } else {
       await sendWhatsAppMessage(
         from,
-        `❌ Invalid PIN. No active escrow transaction found for your phone number.`
+        `❌ Transaction *${refCode}* not found or you are not a participant in this trade.`
       )
     }
+    return
   }
+
+  // 3. Fallback Welcome Message
+  await sendWhatsAppMessage(
+    from,
+    `Welcome to *TrustShip Escrow* 🛡️\n\n` +
+    `Manage your trades right here on WhatsApp:\n` +
+    `• Send your reference code (e.g. *TS-XXXXXX*) to check status.\n` +
+    `• Send your 4-digit *Release PIN* after inspecting your item to release funds to the seller.`
+  )
 }
 
-/**
- * Handle interactive messages (button clicks, list replies)
- * State 1: Pre-Agreement & Terms Acceptance
- */
 async function handleInteractiveMessage(from: string, interactive: any) {
   const { type, title, id } = interactive
 
   if (type === "button") {
-    // Handle button replies - "Accept Terms"
     if (title === "Accept Terms") {
-      // Find transaction where buyerPhone matches and terms not yet accepted
       const transaction = await prisma.escrowTransaction.findFirst({
         where: {
           buyerPhone: from,
@@ -160,7 +184,6 @@ async function handleInteractiveMessage(from: string, interactive: any) {
       })
 
       if (transaction) {
-        // Update transaction: accept terms, set status to PENDING_DEPOSIT
         await prisma.escrowTransaction.update({
           where: { id: transaction.id },
           data: {
@@ -169,29 +192,18 @@ async function handleInteractiveMessage(from: string, interactive: any) {
           },
         })
 
-        // Trigger Paystack payment link message
         await initializePaystackPayment(transaction)
       }
     }
-    // Handle other button interactions
-    else {
-      console.log(`Interactive button pressed: ${title} (id: ${id})`)
-    }
-  } else if (type === "list") {
-    // Handle list replies
-    console.log(`List item selected: ${title} (id: ${id})`)
   }
 }
 
-/**
- * Initialize Paystack payment link for escrow deposit
- */
 async function initializePaystackPayment(transaction: any) {
   try {
     const response = await axios.post(
       "https://api.paystack.co/transaction/initialize",
       {
-        amount: transaction.totalEscrow * 100, // Convert to kobo
+        amount: Math.round(transaction.totalEscrow * 100),
         email: `buyer${transaction.id}@trustship.io`,
         callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/callback`,
         metadata: {
@@ -208,28 +220,17 @@ async function initializePaystackPayment(transaction: any) {
       }
     )
 
-    const { data, authorization_url } = response.data
+    const { authorization_url } = response.data.data
 
-    // Send payment link back to buyer via WhatsApp
     await sendWhatsAppMessage(
       transaction.buyerPhone!,
-      `💳 Payment Link for ₦${transaction.totalEscrow}\n\nPlease complete the payment to proceed with the escrow contract.\n\n[Pay Now](${authorization_url})`
-    )
-
-    // Also send interactive buttons with payment options
-    await sendInteractiveButtons(
-      transaction.buyerPhone!,
-      `Payment of ₦${transaction.totalEscrow} is required to accept the escrow terms.`,
-      [
-        { id: "pay_now", title: "Pay Now" },
-        { id: "deposit_later", title: "Deposit Later" },
-      ]
+      `💳 Payment Link for ₦${transaction.totalEscrow.toLocaleString()}\n\nPlease complete the payment to lock your escrow contract.\n\n${authorization_url}`
     )
   } catch (error) {
     console.error("Paystack initialization error:", error)
     await sendWhatsAppMessage(
       transaction.buyerPhone!,
-      `❌ Failed to generate payment link. Please contact support or try again later.`
+      `❌ Failed to generate payment link. Please try again later.`
     )
   }
 }
