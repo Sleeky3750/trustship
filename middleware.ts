@@ -1,37 +1,34 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export function middleware(request: any) {
+export function middleware(request: NextRequest) {
   const { pathname } = new URL(request.url);
 
-  // Protect all /admin/... and /api/admin/... routes
-  const isAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
+  // 1. Allow public access to the admin login page and login API route
+  if (pathname === "/admin/login" || pathname === "/api/admin/login") {
+    return NextResponse.next();
+  }
 
-  if (isAdminRoute) {
-    // Check for ADMIN_SECRET via header formats or cookie
-    let adminSecret = "";
+  // 2. Protect all other /admin routes (like /admin/dashboard)
+  if (pathname.startsWith("/admin")) {
+    const session = request.cookies.get("trustship_admin_session");
 
-    // Format 1: x-admin-secret header
-    adminSecret = request.headers.get("x-admin-secret");
-
-    // Format 2: Authorization: Bearer <secret>
-    if (!adminSecret) {
-      const authHeader = request.headers.get("authorization");
-      if (authHeader && authHeader.startsWith("Bearer ")) {
-        adminSecret = authHeader.substring(7);
-      }
-    }
-
-    // Format 3: admin_secret cookie (HTTP-only, secure)
-    if (!adminSecret) {
-      adminSecret = request.cookies.get("admin_secret")?.value;
-    }
-
-    if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
-      // Block with 401 Unauthorized - immediately redirect/block unauthorized access
-      return new NextResponse(null, { status: 401 });
+    if (!session || session.value !== "authenticated") {
+      return NextResponse.redirect(new URL("/admin/login", request.url));
     }
   }
 
-  // Continue to the route handler
-  return null;
+  // 3. Protect protected API routes under /api/admin
+  if (pathname.startsWith("/api/admin") && pathname !== "/api/admin/login") {
+    const session = request.cookies.get("trustship_admin_session");
+    if (!session || session.value !== "authenticated") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
+  return NextResponse.next();
 }
+
+export const config = {
+  matcher: ["/admin/:path*", "/api/admin/:path*"],
+};
