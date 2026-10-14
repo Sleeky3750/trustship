@@ -1,10 +1,30 @@
-import Link from 'next/link';
+'use client';
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const [adminRole, setAdminRole] = useState<string>('');
+
+  useEffect(() => {
+    async function checkRole() {
+      try {
+        const res = await fetch('/api/admin/me');
+        const data = await res.json();
+        if (data.success && data.admin) {
+          setAdminRole(data.admin.role);
+        }
+      } catch (err) {
+        console.error('Failed to load admin role for sidebar');
+      }
+    }
+    checkRole();
+  }, []);
+
+  const isSuperAdmin = adminRole === 'SUPER_ADMIN';
+
   return (
     <div className="flex h-screen bg-gray-50 text-gray-900 font-sans">
       {/* Admin Sidebar */}
@@ -12,30 +32,48 @@ export default function AdminLayout({
         <div className="mb-8">
           <h1 className="text-xl font-bold tracking-tight text-blue-400">TrustShip Admin</h1>
           <p className="text-xs text-slate-400 mt-1">Escrow Compliance Portal</p>
+          {adminRole && (
+            <span className="inline-block mt-2 px-2.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-blue-300 border border-slate-700">
+              Role: {adminRole}
+            </span>
+          )}
         </div>
 
         <nav className="flex flex-col space-y-1.5 flex-1">
           <Link
             href="/admin"
-            className="px-4 py-2.5 rounded-xl hover:bg-slate-800 transition text-sm font-medium text-slate-300 hover:text-white"
+            className={`px-4 py-2.5 rounded-xl transition text-sm font-medium ${
+              pathname === '/admin' ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+            }`}
           >
             📊 Dashboard
           </Link>
           <Link
             href="/admin/transactions"
-            className="px-4 py-2.5 rounded-xl hover:bg-slate-800 transition text-sm font-medium text-slate-300 hover:text-white"
+            className={`px-4 py-2.5 rounded-xl transition text-sm font-medium ${
+              pathname === '/admin/transactions' ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+            }`}
           >
             💼 Escrow Transactions
           </Link>
-          <Link
-            href="/admin/audit-logs"
-            className="px-4 py-2.5 rounded-xl hover:bg-slate-800 transition text-sm font-medium text-slate-300 hover:text-white"
-          >
-            📜 Audit Logs
-          </Link>
+
+          {/* RBAC Protected: Only SUPER_ADMIN can view Audit Logs */}
+          {isSuperAdmin && (
+            <Link
+              href="/admin/audit-logs"
+              className={`px-4 py-2.5 rounded-xl transition text-sm font-medium ${
+                pathname === '/admin/audit-logs' ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+              }`}
+            >
+              📜 Audit Logs
+            </Link>
+          )}
+
           <Link
             href="/admin/settings/security"
-            className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 transition text-sm font-medium text-white shadow-sm"
+            className={`px-4 py-2.5 rounded-xl transition text-sm font-medium ${
+              pathname === '/admin/settings/security' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+            }`}
           >
             🔒 Security & 2FA
           </Link>
