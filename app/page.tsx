@@ -2,13 +2,11 @@
 import { useState, useEffect } from "react";
 
 export default function HomePage() {
-  // Demo state
   const [showDemo, setShowDemo] = useState(false);
-  const [step, setStep] = useState("idle");
-  const [pin, setPin] = useState("");
-  const [statusMessages, setStatusMessages] = useState([]);
+  const [step, setStep] = useState<string>("idle");
+  const [pin, setPin] = useState<string>("");
+  const [statusMessages, setStatusMessages] = useState<string[]>([]);
 
-  // Initialize messages
   useEffect(() => {
     if (step === "start") {
       setStatusMessages([
@@ -19,23 +17,12 @@ export default function HomePage() {
     }
   }, [step]);
 
-  // Step transition handler
   const nextStep = () => {
     setStep((prev) => {
       if (prev === "idle" || prev === "start") return "created";
       if (prev === "created") return "secured";
       if (prev === "secured") return "delivered";
       if (prev === "delivered") return "released";
-      return "idle";
-    });
-  };
-
-  const prevStep = () => {
-    setStep((prev) => {
-      if (prev === "released") return "delivered";
-      if (prev === "delivered") return "secured";
-      if (prev === "secured") return "created";
-      if (prev === "created") return "idle";
       return "idle";
     });
   };
@@ -57,18 +44,14 @@ export default function HomePage() {
     setStatusMessages([]);
   };
 
-  // Generate PIN
   const generatePin = () => Math.floor(1000 + Math.random() * 9000).toString();
 
-  // Step 1 - Created
   if (step === "created" && !pin) {
-    const newPin = generatePin();
-    setPin(newPin);
+    setPin(generatePin());
   }
 
   return (
     <div className="bg-[#030611] text-slate-100 min-h-screen flex flex-col justify-between font-sans antialiased selection:bg-blue-500 selection:text-white">
-      {/* HERO SECTION */}
       <header className="border-b border-slate-800/80 bg-[#070C1E]/90 backdrop-blur-md sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -82,10 +65,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* MAIN CONTENT */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center space-y-6 my-auto">
-
-        {/* Hero Headline */}
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold">
           🛡️ Secure Transactions in Nigeria
         </div>
@@ -94,9 +74,7 @@ export default function HomePage() {
           Automated Escrow, Right on <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">WhatsApp</span>
         </h1>
 
-        {/* Hero CTA Buttons */}
         <div className="pt-8 flex flex-col sm:flex-row justify-center gap-3">
-          {/* Primary CTA - Watch Demo */}
           <button
             onClick={() => {
               setShowDemo(true);
@@ -113,7 +91,6 @@ export default function HomePage() {
             ⚡ Watch 1-Click Demo
           </button>
 
-          {/* Secondary CTA - Terms */}
           <a
             href="/terms"
             className="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold px-6 py-4 rounded-3xl border border-slate-700 transition flex items-center justify-center text-lg"
@@ -122,13 +99,9 @@ export default function HomePage() {
           </a>
         </div>
 
-        {/* Demo Modal */}
         {showDemo && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xl p-4">
-            {/* Glassmorphism iPhone/Chat Container */}
             <div className="relative w-full max-w-4xl max-h-[90vh] bg-[#070C1E]/90 border border-slate-800/50 rounded-3xl shadow-2xl shadow-blue-600/20 overflow-hidden transform scale-100 transition-transform ease-out text-left" onClick={(e) => e.stopPropagation()}>
-
-              {/* Top Bar / Step Indicators */}
               <div className="border-b border-slate-800/60 bg-[#030611] flex items-center justify-between px-6 py-3">
                 <div className="flex gap-6 text-xs font-medium text-slate-400">
                   <span>1</span> Creation
@@ -136,8 +109,6 @@ export default function HomePage() {
                   <span>3</span> Delivered
                   <span>4</span> Released
                 </div>
-
-                {/* Progress Bar */}
                 <div className="w-48 h-2 bg-slate-800 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${
@@ -150,10 +121,7 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Animated Content Area */}
               <div className="p-6 pt-8 min-h-[220px]">
-
-                {/* Step Content */}
                 {step === "start" && (
                   <div className="space-y-4 text-sm text-slate-400">
                     <p>🛡️ TrustShip Escrow Starting...</p>
@@ -162,7 +130,6 @@ export default function HomePage() {
                   </div>
                 )}
 
-                {/* Step 1: Created */}
                 {step === "created" && (
                   <div className="space-y-4 text-slate-300">
                     <p className="font-bold text-green-400">✅ Escrow Created Successfully!</p>
@@ -172,7 +139,6 @@ export default function HomePage() {
                   </div>
                 )}
 
-                {/* Step 2: Secured */}
                 {step === "secured" && (
                   <div className="space-y-4 text-slate-300">
                     <p className="font-bold text-blue-400">🔒 Transaction SECURED</p>
@@ -183,7 +149,6 @@ export default function HomePage() {
                   </div>
                 )}
 
-                {/* Step 3: Delivered */}
                 {step === "delivered" && (
                   <div className="space-y-4 text-slate-300">
                     <p className="font-bold text-purple-400">🚚 Waybill status: DELIVERED</p>
@@ -193,7 +158,6 @@ export default function HomePage() {
                   </div>
                 )}
 
-                {/* Step 4: Released */}
                 {step === "released" && (
                   <div className="space-y-4 text-slate-300">
                     <p className="font-bold text-emerald-400">✅ Funds successfully released to seller!</p>
@@ -204,7 +168,6 @@ export default function HomePage() {
                 )}
               </div>
 
-              {/* Navigation Buttons */}
               <div className="mt-8 flex gap-4 justify-center p-6 pt-0">
                 {step === "start" && (
                   <button
@@ -244,7 +207,6 @@ export default function HomePage() {
                 )}
               </div>
 
-              {/* Close Button */}
               <div className="absolute top-2 right-2">
                 <button
                   onClick={closeDemo}
@@ -258,25 +220,21 @@ export default function HomePage() {
         )}
       </main>
 
-      {/* COMPLIANCE FOOTER */}
       <footer className="border-t border-slate-800/80 bg-[#070C1E]/50 py-6 text-center text-xs text-slate-500">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mx-auto max-w-4xl px-4">
           <div>
             <p className="font-bold text-blue-400 text-sm mb-2">TrustShip Escrow Technologies</p>
             <p className="text-slate-500">Zero Registration • WhatsApp Native • Paystack Secured • 4-digit PIN protection</p>
           </div>
-
           <div className="text-slate-500 space-y-1">
             <p className="font-semibold text-slate-400">Integrations</p>
             <div><a href="/terms" className="hover:underline">Terms of Service</a></div>
             <div><a href="/terms" className="hover:underline">Privacy Policy</a></div>
           </div>
-
           <div className="text-slate-500 space-y-1">
             <p className="font-semibold text-slate-400">Support</p>
             <div><a href="mailto:support@trustship.io" className="hover:underline">Support Desk</a></div>
           </div>
-
           <div>
             <p className="text-slate-500">© {new Date().getFullYear()} TrustShip Escrow Technologies</p>
           </div>
