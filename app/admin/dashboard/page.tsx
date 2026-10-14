@@ -86,7 +86,7 @@ export default function AdminDashboardPage() {
       tx.sellerPhone?.includes(searchQuery)
   );
 
-  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@trustship.io";
+  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "trustship.app@gmail.com";
 
   return (
     <div className="bg-[#030611] text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-blue-500 selection:text-white">

@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
 async function handleTextMessage(from: string, text: string) {
   const cleanText = text.trim()
   const pinMatch = cleanText.match(/^(\d{4})$/)
-  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@trustship.io"
+  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "trustship.app@gmail.com"
 
   // 1. Handle 4-Digit Release PIN Verification
   if (pinMatch) {
@@ -233,7 +233,7 @@ async function initializePaystackPayment(transaction: any) {
     console.error("Paystack initialization error:", error)
     await sendWhatsAppMessage(
       transaction.buyerPhone!,
-      `❌ Failed to generate payment link. Please contact support at ${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@trustship.io"} if the issue persists.`
+      `❌ Failed to generate payment link. Please contact support at ${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "trustship.app@gmail.com"} if the issue persists.`
     )
   }
 }

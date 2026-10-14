@@ -1,5 +1,5 @@
 export default function TermsPage() {
-  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@trustship.io";
+  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "trustship.app@gmail.com";
 
   return (
     <div className="bg-[#030611] text-slate-200 min-h-screen px-6 py-12 font-sans max-w-4xl mx-auto space-y-8">
