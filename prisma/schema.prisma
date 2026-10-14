@@ -36,74 +36,96 @@ enum DisputeFault {
   BUYER_FAULT
 }
 
+enum AdminRole {
+  SUPER_ADMIN
+  FINANCE
+  SUPPORT
+}
+
 // Models
 
 model User {
-  id          String   @id @default(cuid())
-  name        String
-  phone       String   @unique
-  bankCode    String
+  id            String   @id @default(cuid())
+  name          String
+  phone         String   @unique
+  bankCode      String
   accountNumber String
-  bankName    String
-  role        Role     @default(BUYER)
-  createdAt   DateTime @default(now())
+  bankName      String
+  role          Role     @default(BUYER)
+  createdAt     DateTime @default(now())
 
-  transactionsEscrowed   EscrowTransaction[]  @relation("BuyerTransactions")
-  transactionsInvolving   EscrowTransaction[] @relation("SellerTransactions")
+  transactionsEscrowed  EscrowTransaction[] @relation("BuyerTransactions")
+  transactionsInvolving EscrowTransaction[] @relation("SellerTransactions")
 }
 
 model EscrowTransaction {
-  id               String   @id @default(cuid())
-  transactionRef   String   @unique
-  currency         String   @default("NGN")
-  countryCode      String   @default("NG")
-  paymentProvider  String   @default("PAYSTACK")
+  id              String   @id @default(cuid())
+  transactionRef  String   @unique
+  currency        String   @default("NGN")
+  countryCode     String   @default("NG")
+  paymentProvider String   @default("PAYSTACK")
 
-  itemAmount       Float
-  waybillAmount    Float
-  totalEscrow      Float
-  platformFee      Float
+  itemAmount    Float
+  waybillAmount Float
+  totalEscrow   Float
+  platformFee   Float
 
-  waybillPayer     WaybillPayer
+  waybillPayer WaybillPayer
 
-  dispatchStatus   String
+  dispatchStatus String
 
-  courierName      String?
-  courierPhone     String?
+  courierName  String?
+  courierPhone String?
 
-  status           TransactionStatus
-  releasePin       String   // 4 digits
+  status     TransactionStatus
+  releasePin String            // 4 digits
 
-  autoReleaseAt    DateTime?
+  autoReleaseAt DateTime?
 
-  termsAcceptedByBuyer Boolean  @default(false)
+  termsAcceptedByBuyer Boolean @default(false)
 
-  disputeFault     DisputeFault?
+  disputeFault DisputeFault?
 
-  buyerPhone       String
-  sellerPhone      String
+  buyerPhone String
+  sellerPhone String
 
-  buyerId          String
-  buyer            User    @relation("BuyerTransactions", fields: [buyerId], references: [id])
+  buyerId String
+  buyer   User   @relation("BuyerTransactions", fields: [buyerId], references: [id])
 
-  sellerId         String
-  seller           User    @relation("SellerTransactions", fields: [sellerId], references: [id])
-  
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  sellerId String
+  seller   User   @relation("SellerTransactions", fields: [sellerId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model WebhookLog {
   id        String   @id @default(cuid())
-  provider   String
-  payload    Json
-  createdAt  DateTime @default(now())
+  provider  String
+  payload   Json
+  createdAt DateTime @default(now())
 }
 
 model AdminUser {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String   // Hashed password
-  name      String?
-  createdAt DateTime @default(now())
+  id                 String          @id @default(cuid())
+  email              String          @unique
+  password           String          // Hashed password
+  name               String?
+  role               AdminRole       @default(SUPPORT)
+  twoFactorSecret    String?         // TOTP secret for authenticator apps
+  isTwoFactorEnabled Boolean         @default(false)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @default(now()) @updatedAt // Added @default(now())
+  auditLogs          AdminAuditLog[]
+}
+
+model AdminAuditLog {
+  id        String    @id @default(cuid())
+  adminId   String
+  admin     AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  action    String    // e.g. "RELEASE_FUNDS", "UPDATE_WAYBILL", "LOGIN_SUCCESS"
+  targetId  String?   // ID of the transaction or resource affected
+  details   String?   // JSON string with metadata
+  ipAddress String?   // Request IP address for forensics
+  createdAt DateTime  @default(now())
 }

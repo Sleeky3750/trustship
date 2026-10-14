@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { logAdminAction } from '@/lib/audit';
 
 const prisma = new PrismaClient();
 
@@ -13,6 +14,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
     }
 
+    // Capture client IP for security forensics
+    const clientIp = request.headers.get('x-forwarded-for') || 'unknown';
+
+    // Log the successful login in the immutable audit table
+    await logAdminAction({
+      adminId: admin.id,
+      action: 'LOGIN_SUCCESS',
+      details: `Admin logged in successfully`,
+      ipAddress: clientIp,
+    });
+
     const response = NextResponse.json({ success: true });
     response.cookies.set('trustship_admin_session', 'authenticated', {
       httpOnly: true,
@@ -23,6 +35,7 @@ export async function POST(request: Request) {
 
     return response;
   } catch (error) {
+    console.error('Login error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
