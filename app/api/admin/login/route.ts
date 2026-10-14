@@ -20,7 +20,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, admin.passwordHash);
+    // Use admin.password instead of admin.passwordHash
+    const isPasswordValid = await bcrypt.compare(password, admin.password);
 
     if (!isPasswordValid) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
@@ -36,7 +37,6 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: '2FA configuration missing' }, { status: 400 });
       }
 
-      // Verify TOTP token with 1-step window tolerance (±30 seconds drift allowance)
       const isValid = verify({
         token: token.trim(),
         secret: admin.twoFactorSecret,
