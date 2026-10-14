@@ -44,6 +44,35 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Handler for Waybill Delivery Updates + WhatsApp Notification
+  const handleWaybillDelivery = async (transactionRef: string) => {
+    setActionLoading(transactionRef + "waybill");
+    try {
+      const res = await fetch("/api/escrow/waybill", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          transactionRef,
+          dispatchStatus: "DELIVERED",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert(`Waybill status updated to DELIVERED for ${transactionRef}. WhatsApp notification dispatched to buyer!`);
+        fetchEscrows();
+      } else {
+        alert(data.error || "Waybill update failed");
+      }
+    } catch (err) {
+      console.error("Waybill delivery error", err);
+      alert("Error updating waybill status.");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   // --- DYNAMIC METRICS CALCULATION ---
   const totalEscrowValue = escrows.reduce((acc, tx) => acc + (tx.totalEscrow || tx.itemAmount || 0), 0);
   const activeTransactionsCount = escrows.filter(tx => tx.status !== 'RELEASED').length;
@@ -174,6 +203,7 @@ export default function AdminDashboardPage() {
                   <th className="py-3 px-4">Parties (Buyer / Seller)</th>
                   <th className="py-3 px-4">Financial Breakdown</th>
                   <th className="py-3 px-4">Lifecycle Status</th>
+                  <th className="py-3 px-4">Waybill Status</th>
                   <th className="py-3 px-4 text-center">Release PIN</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
@@ -181,11 +211,11 @@ export default function AdminDashboardPage() {
               <tbody className="divide-y divide-slate-800/60 text-xs">
                 {loading && escrows.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-8 text-slate-500">Loading escrow records...</td>
+                    <td colSpan={7} className="text-center py-8 text-slate-500">Loading escrow records...</td>
                   </tr>
                 ) : filteredEscrows.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-8 text-slate-500">No matching escrow transactions found.</td>
+                    <td colSpan={7} className="text-center py-8 text-slate-500">No matching escrow transactions found.</td>
                   </tr>
                 ) : (
                   filteredEscrows.map((tx) => (
@@ -213,6 +243,14 @@ export default function AdminDashboardPage() {
                           {tx.status}
                         </span>
                       </td>
+                      <td className="py-3.5 px-4">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+                          tx.dispatchStatus === 'DELIVERED' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                          'bg-slate-800 text-slate-400 border border-slate-700'
+                        }`}>
+                          {tx.dispatchStatus || "PENDING"}
+                        </span>
+                      </td>
                       <td className="py-3.5 px-4 text-center">
                         <span className="bg-[#030611] border border-slate-800 px-2.5 py-1 rounded font-mono font-bold text-amber-400 text-xs shadow-inner">
                           {tx.releasePin || "----"}
@@ -220,6 +258,17 @@ export default function AdminDashboardPage() {
                       </td>
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          {/* Waybill Mark Delivered Button */}
+                          {tx.dispatchStatus !== 'DELIVERED' && (
+                            <button
+                              onClick={() => handleWaybillDelivery(tx.transactionRef)}
+                              disabled={actionLoading === tx.transactionRef + 'waybill'}
+                              className="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded text-[10px] font-semibold transition"
+                            >
+                              {actionLoading === tx.transactionRef + 'waybill' ? "Delivering..." : "📦 Mark Delivered"}
+                            </button>
+                          )}
+
                           {tx.status !== 'ESCROW_LOCKED' && tx.status !== 'RELEASED' && (
                             <button
                               onClick={() => handleAction(tx.transactionRef, 'fund')}
