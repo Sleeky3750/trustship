@@ -86,6 +86,8 @@ export default function AdminDashboardPage() {
       tx.sellerPhone?.includes(searchQuery)
   );
 
+  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@trustship.io";
+
   return (
     <div className="bg-[#030611] text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-blue-500 selection:text-white">
       {/* NAVIGATION HEADER */}
@@ -258,7 +260,6 @@ export default function AdminDashboardPage() {
                       </td>
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
-                          {/* Waybill Mark Delivered Button */}
                           {tx.dispatchStatus !== 'DELIVERED' && (
                             <button
                               onClick={() => handleWaybillDelivery(tx.transactionRef)}
@@ -297,6 +298,17 @@ export default function AdminDashboardPage() {
           </div>
         </section>
       </main>
+
+      {/* SUPPORT FOOTER */}
+      <footer className="border-t border-slate-800/80 bg-[#070C1E]/50 py-6 text-center text-xs text-slate-500 mt-auto">
+        <p>© {new Date().getFullYear()} TrustShip Escrow Technologies. All rights reserved.</p>
+        <p className="mt-1">
+          Need technical assistance? Contact{" "}
+          <a href={`mailto:${supportEmail}`} className="text-blue-400 hover:underline font-medium">
+            {supportEmail}
+          </a>
+        </p>
+      </footer>
     </div>
   );
 }

@@ -62,6 +62,7 @@ export async function POST(request: NextRequest) {
 async function handleTextMessage(from: string, text: string) {
   const cleanText = text.trim()
   const pinMatch = cleanText.match(/^(\d{4})$/)
+  const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@trustship.io"
 
   // 1. Handle 4-Digit Release PIN Verification
   if (pinMatch) {
@@ -121,12 +122,12 @@ async function handleTextMessage(from: string, text: string) {
       if (anyTx) {
         await sendWhatsAppMessage(
           from,
-          `❌ Invalid PIN or this escrow is not currently in a locked/active deposit state.`
+          `❌ Invalid PIN or this escrow is not currently in a locked/active deposit state. Need help? Reach us at ${supportEmail}`
         )
       } else {
         await sendWhatsAppMessage(
           from,
-          `❌ No active escrow transaction found associated with your phone number.`
+          `❌ No active escrow transaction found associated with your phone number. Need help? Reach us at ${supportEmail}`
         )
       }
     }
@@ -155,19 +156,21 @@ async function handleTextMessage(from: string, text: string) {
     } else {
       await sendWhatsAppMessage(
         from,
-        `❌ Transaction *${refCode}* not found or you are not a participant in this trade.`
+        `❌ Transaction *${refCode}* not found or you are not a participant in this trade. Contact support: ${supportEmail}`
       )
     }
     return
   }
 
-  // 3. Fallback Welcome Message
+  // 3. Fallback Welcome Message with Support Info
   await sendWhatsAppMessage(
     from,
     `Welcome to *TrustShip Escrow* 🛡️\n\n` +
     `Manage your trades right here on WhatsApp:\n` +
     `• Send your reference code (e.g. *TS-XXXXXX*) to check status.\n` +
-    `• Send your 4-digit *Release PIN* after inspecting your item to release funds to the seller.`
+    `• Send your 4-digit *Release PIN* after inspecting your item to release funds to the seller.\n\n` +
+    `📧 *Need Support?*\n` +
+    `Email us at: ${supportEmail}`
   )
 }
 
@@ -230,7 +233,7 @@ async function initializePaystackPayment(transaction: any) {
     console.error("Paystack initialization error:", error)
     await sendWhatsAppMessage(
       transaction.buyerPhone!,
-      `❌ Failed to generate payment link. Please try again later.`
+      `❌ Failed to generate payment link. Please contact support at ${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "support@trustship.io"} if the issue persists.`
     )
   }
 }
