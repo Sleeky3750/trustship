@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [adminRole, setAdminRole] = useState<string>('');
 
   useEffect(() => {
@@ -22,6 +23,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
     checkRole();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/logout', { method: 'POST' });
+      router.push('/admin/login');
+      router.refresh();
+    } catch (err) {
+      console.error('Logout failed', err);
+    }
+  };
 
   const isSuperAdmin = adminRole === 'SUPER_ADMIN';
 
@@ -57,7 +68,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             💼 Escrow Transactions
           </Link>
 
-          {/* RBAC Protected: Only SUPER_ADMIN can view Audit Logs */}
           {isSuperAdmin && (
             <Link
               href="/admin/audit-logs"
@@ -79,8 +89,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Link>
         </nav>
 
-        <div className="pt-4 border-t border-slate-800 text-xs text-slate-500">
-          Environment: {process.env.NODE_ENV || 'development'}
+        <div className="pt-4 border-t border-slate-800 flex flex-col space-y-3">
+          <button
+            onClick={handleLogout}
+            className="w-full text-left px-4 py-2 rounded-xl text-xs font-semibold text-red-400 hover:bg-slate-800 transition flex items-center gap-2"
+          >
+            🚪 Log Out
+          </button>
+          <div className="text-[11px] text-slate-500 px-1">
+            Environment: {process.env.NODE_ENV || 'development'}
+          </div>
         </div>
       </aside>
 
