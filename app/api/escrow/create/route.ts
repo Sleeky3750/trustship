@@ -1,72 +1,86 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendWhatsAppMessage } from "@/lib/whatsapp";
+import axios from "axios";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const {
-      itemAmount,
-      waybillAmount,
-      waybillPayer,
-      buyerPhone,
-      sellerPhone,
-    } = body;
+    const { buyerPhone, sellerPhone, itemAmount, itemDescription } = body;
 
-    const itemNum = Number(itemAmount) || 0;
-    const waybillNum = Number(waybillAmount) || 0;
-    
-    // 5% platform fee calculation
-    const platformFee = Math.round(itemNum * 0.05 * 100) / 100;
-    const totalEscrow = itemNum + (waybillPayer === "BUYER" ? waybillNum : 0) + platformFee;
+    if (!buyerPhone || !sellerPhone || !itemAmount) {
+      return NextResponse.json(
+        { error: "Missing buyerPhone, sellerPhone, or itemAmount" },
+        { status: 400 }
+      );
+    }
 
-    // Generate reference code & PIN
-    const transactionRef = `TS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    const amount = Number(itemAmount);
+    const totalEscrow = amount; // Adjust if you add service fees
+
+    // 1. Generate random 4-digit Release PIN for the buyer
     const releasePin = Math.floor(1000 + Math.random() * 9000).toString();
 
-    // Create escrow matching the exact user model fields
-    const escrow = await (prisma.escrowTransaction as any).create({
+    // 2. Generate unique transaction reference
+    const transactionRef = `TS-${Math.floor(100000 + Math.random() * 900000)}`;
+
+    // 3. Save to Database with PENDING_DEPOSIT status
+    const transaction = await prisma.escrowTransaction.create({
       data: {
         transactionRef,
-        itemAmount: itemNum,
-        waybillAmount: waybillNum,
-        waybillPayer: waybillPayer || "BUYER",
-        platformFee,
-        totalEscrow,
         buyerPhone,
         sellerPhone,
+        itemAmount: amount,
+        totalEscrow,
         releasePin,
         status: "PENDING_DEPOSIT",
         dispatchStatus: "PENDING",
-        buyer: {
-          connectOrCreate: {
-            where: { phone: buyerPhone },
-            create: { 
-              phone: buyerPhone, 
-              name: "Buyer",
-              bankCode: "000",
-              bankName: "Default Bank",
-              accountNumber: "0000000000"
-            },
-          },
-        },
-        seller: {
-          connectOrCreate: {
-            where: { phone: sellerPhone },
-            create: { 
-              phone: sellerPhone, 
-              name: "Seller",
-              bankCode: "000",
-              bankName: "Default Bank",
-              accountNumber: "0000000000"
-            },
-          },
-        },
       },
     });
 
-    return NextResponse.json({ success: true, transactionRef: escrow.transactionRef, escrow });
+    // 4. Instantly Initialize Paystack Payment Link
+    const paystackRes = await axios.post(
+      "https://api.paystack.co/transaction/initialize",
+      {
+        amount: Math.round(totalEscrow * 100), // Paystack expects amount in kobo
+        email: `buyer${transaction.id}@trustship.io`,
+        callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/callback`,
+        metadata: {
+          transactionRef: transaction.transactionRef,
+          buyerPhone: transaction.buyerPhone,
+          sellerPhone: transaction.sellerPhone,
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const authorizationUrl = paystackRes.data.data.authorization_url;
+
+    // 5. Instantly Send WhatsApp Message to Buyer with Payment Link
+    await sendWhatsAppMessage(
+      buyerPhone,
+      `🛡️ *New TrustShip Escrow Created!*\n\n` +
+      `• Ref: *${transactionRef}*\n` +
+      `• Item Amount: ₦${amount.toLocaleString()}\n\n` +
+      `Please complete your payment to lock funds securely in escrow:\n${authorizationUrl}\n\n` +
+      `_Once paid, your escrow will lock and your tracking will update._`
+    );
+
+    return NextResponse.json({
+      success: true,
+      transactionRef,
+      authorizationUrl,
+    });
   } catch (error: any) {
-    console.error("Escrow creation error:", error);
-    return NextResponse.json({ error: error.message || "Failed to create escrow" }, { status: 500 });
+    console.error("Escrow creation error:", error?.response?.data || error.message);
+    return NextResponse.json(
+      { error: "Failed to create escrow and initialize payment" },
+      { status: 500 }
+    );
   }
 }
