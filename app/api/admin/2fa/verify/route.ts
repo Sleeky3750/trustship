@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import * as otplib from 'otplib';
+import { verify } from 'otplib';
 
 const prisma = new PrismaClient();
-const authenticator = otplib.authenticator;
 
 export async function POST(request: Request) {
   try {
@@ -14,7 +13,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Setup not initiated' }, { status: 400 });
     }
 
-    const isValid = authenticator.verify({ token, secret: admin.twoFactorSecret });
+    const result = await verify({ token, secret: admin.twoFactorSecret });
+    const isValid = typeof result === 'boolean' ? result : result.valid;
 
     if (!isValid) {
       return NextResponse.json({ error: 'Invalid authenticator code' }, { status: 400 });

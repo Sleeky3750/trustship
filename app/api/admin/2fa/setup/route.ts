@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
-import * as otplib from 'otplib';
+import { generateSecret, generateURI } from 'otplib';
 import QRCode from 'qrcode';
 
 const prisma = new PrismaClient();
-const authenticator = otplib.authenticator;
 
 export async function POST(request: Request) {
   try {
@@ -15,9 +14,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Admin not found' }, { status: 404 });
     }
 
-    const secret = authenticator.generateSecret();
-    const appName = 'TrustShip Admin';
-    const otpauth = authenticator.keyuri(admin.email, appName, secret);
+    const secret = generateSecret();
+    const otpauth = generateURI({
+      issuer: 'TrustShip Admin',
+      label: admin.email,
+      secret,
+    });
     const qrCodeUrl = await QRCode.toDataURL(otpauth);
 
     await prisma.adminUser.update({

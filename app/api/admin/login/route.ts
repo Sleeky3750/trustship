@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import * as otplib from 'otplib';
+import { verify } from 'otplib';
 import { logAdminAction } from '@/lib/audit';
 
 const prisma = new PrismaClient();
-const authenticator = otplib.authenticator;
 
 export async function POST(request: Request) {
   try {
@@ -24,7 +23,9 @@ export async function POST(request: Request) {
         }, { status: 200 });
       }
 
-      const isValidToken = authenticator.verify({ token, secret: admin.twoFactorSecret! });
+      const result = await verify({ token, secret: admin.twoFactorSecret! });
+      const isValidToken = typeof result === 'boolean' ? result : result.valid;
+
       if (!isValidToken) {
         return NextResponse.json({ error: 'Invalid 2FA authenticator code' }, { status: 401 });
       }
