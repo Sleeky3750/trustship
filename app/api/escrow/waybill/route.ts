@@ -4,6 +4,16 @@ import { sendWhatsAppMessage } from "@/lib/whatsapp";
 
 export async function POST(req: NextRequest) {
   try {
+    // 1. Admin authorization check - support multiple header formats
+    const adminSecret =
+      req.headers.get("x-admin-secret") ||
+      (req.headers.get("authorization")?.startsWith("Bearer ") && req.headers.get("authorization")!.substring(7)) ||
+      req.cookies.get("admin_secret")?.value;
+
+    if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { transactionRef, dispatchStatus } = await req.json();
 
     if (!transactionRef || !dispatchStatus) {

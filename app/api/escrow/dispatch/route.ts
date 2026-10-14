@@ -6,6 +6,16 @@ import axios from "axios"
 // POST - Dispatch status update endpoint
 export async function POST(request: NextRequest) {
   try {
+    // 1. Admin authorization check - support multiple header formats
+    const adminSecret =
+      request.headers.get("x-admin-secret") ||
+      (request.headers.get("authorization")?.startsWith("Bearer ") && request.headers.get("authorization")!.substring(7)) ||
+      request.cookies.get("admin_secret")?.value;
+
+    if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json()
     const { transactionId, courierName, courierPhone } = body
 

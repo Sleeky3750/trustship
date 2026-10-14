@@ -6,6 +6,16 @@ const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   try {
+    // 1. Admin authorization check - support multiple header formats
+    const adminSecret =
+      req.headers.get("x-admin-secret") ||
+      (req.headers.get("authorization")?.startsWith("Bearer ") && req.headers.get("authorization")!.substring(7)) ||
+      req.cookies.get("admin_secret")?.value;
+
+    if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json();
     const { transactionRef } = body;
 

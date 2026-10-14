@@ -13,6 +13,16 @@ interface DisputePayload {
 // POST - Dispute & liability arbitration route
 export async function POST(request: NextRequest) {
   try {
+    // 1. Admin authorization check - support multiple header formats
+    const adminSecret =
+      request.headers.get("x-admin-secret") ||
+      (request.headers.get("authorization")?.startsWith("Bearer ") && request.headers.get("authorization")!.substring(7)) ||
+      request.cookies.get("admin_secret")?.value;
+
+    if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body: DisputePayload = await request.json();
     const { transactionId, disputeFault, reason } = body;
 
@@ -131,11 +141,11 @@ export async function POST(request: NextRequest) {
     // Buyer notification
     let buyerMessage: string;
     if (disputeFault === "SELLER_FAULT") {
-      buyerMessage = `🛡️ Dispute resolved: Seller fault confirmed. Full refund of ₦${totalEscrow.toLocaleString()} is being processed to your account. Reference: ${transactionRef}`;
+      buyerMessage = `�️ Dispute resolved: Seller fault confirmed. Full refund of ₦${totalEscrow.toLocaleString()} is being processed to your account. Reference: ${transactionRef}`;
     } else {
       const returnedAmount = Math.round(refundAmount);
       const returnFee = totalEscrow - returnedAmount;
-      buyerMessage = `🛡️ Dispute resolved: Buyer fault. Refund of ₦${returnedAmount.toLocaleString()} processed (₦${returnFee.toLocaleString()} return fee applied). Reference: ${transactionRef}`;
+      buyerMessage = `�️ Dispute resolved: Buyer fault. Refund of ₦${returnedAmount.toLocaleString()} processed (₦${returnFee.toLocaleString()} return fee applied). Reference: ${transactionRef}`;
     }
 
     if (transaction.buyerPhone) {
@@ -145,9 +155,9 @@ export async function POST(request: NextRequest) {
     // Seller notification
     let sellerMessage: string;
     if (disputeFault === "SELLER_FAULT") {
-      sellerMessage = `🛡️ Dispute resolved: Seller fault confirmed. Full escrow of ₦${totalEscrow.toLocaleString()} refunded to buyer. Reference: ${transactionRef}`;
+      sellerMessage = `�️ Dispute resolved: Seller fault confirmed. Full escrow of ₦${totalEscrow.toLocaleString()} refunded to buyer. Reference: ${transactionRef}`;
     } else {
-      sellerMessage = `🛡️ Dispute resolved: Buyer fault. Return fee of ₦${sellerPayout.toLocaleString()} collected from escrow. Remaining ₦${Math.round(refundAmount).toLocaleString()} refunded to buyer. Reference: ${transactionRef}`;
+      sellerMessage = `�️ Dispute resolved: Buyer fault. Return fee of ₦${sellerPayout.toLocaleString()} collected from escrow. Remaining ₦${Math.round(refundAmount).toLocaleString()} refunded to buyer. Reference: ${transactionRef}`;
     }
 
     if (transaction.sellerPhone) {
