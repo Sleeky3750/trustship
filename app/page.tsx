@@ -1,12 +1,26 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 
 export default function HomePage() {
+  const [activeMessageIndex, setActiveMessageIndex] = useState(0);
+
+  const messages = [
+    { sender: "Buyer", role: "buyer", text: "New Escrow Created! Ref: TS-849201. Item: iPhone 15 Pro (₦850,000)." },
+    { sender: "TrustShip Bot", role: "bot", text: "Paystack Secure Link generated & sent." },
+    { sender: "Buyer", role: "buyer", text: "[Sends Paystack Payment Receipt - ₦850,000 Locked 🔒]" },
+    { sender: "TrustShip Bot", role: "bot", text: "Funds Secured in Escrow! Buyer Release PIN generated: *4821*." },
+    { sender: "Seller", role: "seller", text: "Item dispatched via waybill. Delivered!" },
+    { sender: "Buyer", role: "buyer", text: "Received and inspected. Here is my PIN: *4821*." },
+    { sender: "TrustShip Bot", role: "bot", text: "✅ PIN Verified! Instant payout of ₦850,000 transferred to Seller via Paystack." },
+  ];
+
   useEffect(() => {
-    // Billboard auto-plays on mount - no manual steps
-    return undefined;
-  }, []);
+    const interval = setInterval(() => {
+      setActiveMessageIndex((prev) => (prev + 1) % messages.length);
+    }, 3000); // Cycles every 3 seconds
+    return () => clearInterval(interval);
+  }, [messages.length]);
 
   return (
     <div className="bg-[#030611] text-slate-100 min-h-screen flex flex-col font-sans antialiased">
@@ -23,119 +37,62 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center space-y-6">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold">
           🛡️ Secure Transactions in Nigeria
         </div>
 
-        <h1 className="text-5xl sm:text-7xl font-black text-white tracking-tight mb-12">
+        <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight mb-8">
           Automated Escrow, Right on <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">WhatsApp</span>
         </h1>
 
-        {/* iPhone Billboard Animation - continuous looping WhatsApp chat */}
-        <div className="mx-auto w-full max-w-2xl">
-          <div className="relative overflow-hidden rounded-2xl shadow-2xl shadow-blue-600/30 bg-[#040A14] border border-slate-800/30 mb-16">
-            {/* iPhone top notch */}
-            <div className="absolute top-0 left-0 right-0 h-14 bg-[#0f172a] border-b border-slate-800/50">
-              <div className="absolute top-3 left-4 w-6 h-6 rounded-full bg-red-500 blur-sm border-2 white/20" />
-              <div className="absolute top-3 right-4 w-6 h-6 rounded-full bg-green-500 blur-sm border-2 white/20" />
-              <div className="absolute top-3 right-10 w-6 h-6 rounded-full bg-yellow-500 blur-sm border-2 white/20" />
+        {/* Billboard iPhone WhatsApp Simulation Frame */}
+        <div className="mx-auto w-full max-w-xl bg-[#0b141a] rounded-3xl border border-slate-800 shadow-2xl shadow-blue-600/20 overflow-hidden text-left mb-12">
+          {/* WhatsApp Header Bar */}
+          <div className="bg-[#202c33] px-6 py-4 flex items-center gap-3 border-b border-slate-700/50">
+            <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-sm">
+              TS
             </div>
-
-            {/* Chat messages with continuous looping animation */}
-            <div className="p-6 relative space-y-3 max-h-[650px] overflow-y-auto text-sm" aria-label="WhatsApp chat">
-              {/* Message 1: Buyer - New Escrow Created */}
-              <div className="message-bubble message-buyer message-1 absolute left-0 right-0">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-emerald-400 flex items-center justify-center text-white font-semibold text-xs">B</div>
-                  <div>
-                    <p className="font-medium text-white">Buyer</p>
-                    <p className="mt-1 text-slate-200 line-clamp-3">New Escrow Created! Ref: TS-849201. Item: iPhone 15 Pro (₦850,000).</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Message 2: Bot - Paystack Secure Link */}
-              <div className="message-bubble message-bot message-2 absolute left-0 right-0">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center text-white font-semibold text-xs">T</div>
-                  <div>
-                    <p className="font-medium text-white">TrustShip Bot</p>
-                    <p className="mt-1 text-slate-200 line-clamp-3">Paystack Secure Link generated & sent.</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Message 3: Buyer - Payment Receipt */}
-              <div className="message-bubble message-buyer message-3 absolute left-0 right-0">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-emerald-400 flex items-center justify-center text-white font-semibold text-xs">B</div>
-                  <div>
-                    <p className="font-medium text-white">Buyer</p>
-                    <p className="mt-1 text-slate-200 line-clamp-3">[Sends Paystack Payment Receipt - ₦850,000 Locked 🔒]</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Message 4: Bot - Funds Secured / PIN Generated */}
-              <div className="message-bubble message-bot message-4 absolute left-0 right-0">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center text-white font-semibold text-xs">T</div>
-                  <div>
-                    <p className="font-medium text-white">TrustShip Bot</p>
-                    <p className="mt-1 text-slate-200 line-clamp-3">Funds Secured in Escrow! Buyer Release PIN generated: *4821*.</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Message 5: Seller - Item Dispatched */}
-              <div className="message-bubble message-seller message-5 absolute left-0 right-0">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center text-white font-semibold text-xs">S</div>
-                  <div>
-                    <p className="font-medium text-white">Seller</p>
-                    <p className="mt-1 text-slate-200 line-clamp-3">Item dispatched via waybill. Delivered!</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Message 6: Buyer - PIN Received */}
-              <div className="message-bubble message-buyer message-6 absolute left-0 right-0">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-emerald-400 flex items-center justify-center text-white font-semibold text-xs">B</div>
-                  <div>
-                    <p className="font-medium text-white">Buyer</p>
-                    <p className="mt-1 text-slate-200 line-clamp-3">Received and inspected. Here is my PIN: *4821*.</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Message 7: Bot - PIN Verified & Payout */}
-              <div className="message-bubble message-bot message-7 absolute left-0 right-0">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-slate-600 flex items-center justify-center text-white font-semibold text-xs">T</div>
-                  <div>
-                    <p className="font-medium text-white">TrustShip Bot</p>
-                    <p className="mt-1 text-slate-200 line-clamp-3">✅ PIN Verified! Instant payout of ₦850,000 transferred to Seller via Paystack.</p>
-                  </div>
-                </div>
-              </div>
+            <div>
+              <p className="text-white font-bold text-sm">TrustShip Escrow Bot</p>
+              <p className="text-emerald-400 text-xs">Online • WhatsApp Native</p>
             </div>
+          </div>
 
-            {/* Signal / connectivity indicator at bottom */}
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-14 h-1 border-b border-slate-800/50">
-              <div className="flex h-1.5 items-center gap-1">
-                <div></div>
-                <div></div>
-                <div></div>
+          {/* Chat Stream Window */}
+          <div className="p-6 space-y-4 min-h-[320px] max-h-[400px] overflow-y-auto flex flex-col justify-end bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#0b141a] to-[#0b141a]">
+            {messages.slice(0, activeMessageIndex + 1).map((msg, idx) => (
+              <div
+                key={idx}
+                className={`flex flex-col max-w-[85%] p-3.5 rounded-2xl text-sm transition-all duration-500 animate-fadeIn ${
+                  msg.role === "buyer"
+                    ? "bg-[#005c4b] text-white self-end rounded-br-none shadow-md"
+                    : msg.role === "seller"
+                    ? "bg-[#202c33] text-slate-100 self-start rounded-bl-none shadow-md border border-slate-700/50"
+                    : "bg-[#1f2c34] text-emerald-300 self-start rounded-bl-none shadow-md border border-emerald-500/20"
+                }`}
+              >
+                <span className="text-[10px] font-bold uppercase tracking-wider opacity-70 mb-1">
+                  {msg.sender}
+                </span>
+                <p className="leading-relaxed">{msg.text}</p>
               </div>
+            ))}
+          </div>
+
+          {/* Footer input simulation */}
+          <div className="bg-[#202c33] px-4 py-3 flex items-center gap-3 border-t border-slate-700/50 text-slate-400 text-xs">
+            <span className="bg-[#2a3942] px-3 py-2 rounded-xl flex-1 text-slate-300 font-mono">
+              🔒 Type message or send 4-digit PIN...
+            </span>
+            <div className="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold">
+              ➤
             </div>
           </div>
         </div>
 
-        {/* Subtle CTA below billboard */}
-        <div className="mt-12 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold">
-          Live demo - escrow on WhatsApp
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold">
+          Live billboard animation - loops automatically
         </div>
       </main>
 
