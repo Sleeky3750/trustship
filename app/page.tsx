@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
 import { 
   Shield, 
@@ -20,7 +22,7 @@ import {
 // EXACT BRAND SVG LOGOS & ASSETS
 // ==========================================
 
-// TrustShip Shield Logo with Stylized 'T' (Exact Match to image_3.png)
+// TrustShip Shield Logo with Stylized 'T' (Exact Match)
 const TrustShipLogo = ({ className = "w-10 h-10", showText = true, showSlogan = false }) => (
   <div className="flex items-center gap-3 select-none">
     <div className={`relative flex items-center justify-center shrink-0 ${className}`}>
@@ -61,7 +63,7 @@ const TrustShipLogo = ({ className = "w-10 h-10", showText = true, showSlogan = 
           <span className="text-2xl font-black text-white tracking-tight font-sans">Trust</span>
           <span className="text-2xl font-black text-[#00FF9D] tracking-tight relative font-sans">
             Ship
-            {/* Small WhatsApp Bubble on the 'p' (matching image_3.png) */}
+            {/* Small WhatsApp Bubble on the 'p' */}
             <span className="absolute -top-1 -right-3.5 bg-[#25D366] text-white rounded-full p-[2px] shadow-sm">
               <svg className="w-2.5 h-2.5 fill-current" viewBox="0 0 24 24">
                 <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.762.459 3.48 1.332 5.001l-1.416 5.169 5.291-1.387c1.467.8 3.117 1.222 4.783 1.223h.004c5.505 0 9.988-4.478 9.989-9.984 0-2.667-1.038-5.175-2.925-7.062a9.923 9.923 0 0 0-7.068-2.944zm5.11 13.916c-.21.593-1.22 1.165-1.688 1.215-.469.05-.922.228-3.084-.627-2.603-1.028-4.286-3.666-4.415-3.84-.13-.174-1.047-1.393-1.047-2.656 0-1.263.66-1.884.896-2.143.235-.26.512-.325.682-.325.17 0 .341.002.49.009.158.007.371-.06.58.441.21.501.716 1.748.778 1.875.062.127.104.276.019.444-.085.168-.128.273-.254.422-.126.149-.265.333-.379.447-.126.126-.258.263-.111.515.147.252.654 1.08 1.403 1.747.964.859 1.777 1.126 2.029 1.252.252.126.399.105.547-.063.148-.168.631-.735.799-.987.168-.252.336-.21.564-.126.228.084 1.448.683 1.699.809.252.126.42.189.482.294.062.105.062.612-.148 1.205z"/>
