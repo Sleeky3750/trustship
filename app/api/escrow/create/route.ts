@@ -6,7 +6,7 @@ import axios from "axios";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { buyerPhone, sellerPhone, itemAmount, itemDescription } = body;
+    const { buyerPhone, sellerPhone, itemAmount, itemDescription, waybillAmount, platformFee, waybillPayer } = body;
 
     if (!buyerPhone || !sellerPhone || !itemAmount) {
       return NextResponse.json(
@@ -16,7 +16,9 @@ export async function POST(req: NextRequest) {
     }
 
     const amount = Number(itemAmount);
-    const totalEscrow = amount; // Adjust if you add service fees
+    const parsedWaybill = Number(waybillAmount || 0);
+    const parsedFee = Number(platformFee || 0);
+    const totalEscrow = amount + parsedWaybill + parsedFee;
 
     // 1. Generate random 4-digit Release PIN for the buyer
     const releasePin = Math.floor(1000 + Math.random() * 9000).toString();
@@ -24,14 +26,17 @@ export async function POST(req: NextRequest) {
     // 2. Generate unique transaction reference
     const transactionRef = `TS-${Math.floor(100000 + Math.random() * 900000)}`;
 
-    // 3. Save to Database with PENDING_DEPOSIT status
+    // 3. Save to Database satisfying schema requirements
     const transaction = await prisma.escrowTransaction.create({
       data: {
         transactionRef,
         buyerPhone,
         sellerPhone,
         itemAmount: amount,
+        waybillAmount: parsedWaybill,
+        platformFee: parsedFee,
         totalEscrow,
+        waybillPayer: waybillPayer || "BUYER",
         releasePin,
         status: "PENDING_DEPOSIT",
         dispatchStatus: "PENDING",
@@ -66,7 +71,7 @@ export async function POST(req: NextRequest) {
       buyerPhone,
       `🛡️ *New TrustShip Escrow Created!*\n\n` +
       `• Ref: *${transactionRef}*\n` +
-      `• Item Amount: ₦${amount.toLocaleString()}\n\n` +
+      `• Total Escrow: ₦${totalEscrow.toLocaleString()}\n\n` +
       `Please complete your payment to lock funds securely in escrow:\n${authorizationUrl}\n\n` +
       `_Once paid, your escrow will lock and your tracking will update._`
     );
