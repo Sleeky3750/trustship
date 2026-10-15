@@ -1,34 +1,25 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const { pathname } = new URL(request.url);
+  const { pathname } = request.nextUrl;
+  const adminSession = request.cookies.get('trustship_admin_session')?.value;
 
-  // 1. Allow public access to the admin login page and login API route
-  if (pathname === "/admin/login" || pathname === "/api/admin/login") {
-    return NextResponse.next();
-  }
-
-  // 2. Protect all other /admin routes (like /admin/dashboard)
-  if (pathname.startsWith("/admin")) {
-    const session = request.cookies.get("trustship_admin_session");
-
-    if (!session || session.value !== "authenticated") {
-      return NextResponse.redirect(new URL("/admin/login", request.url));
+  // 1. If trying to access protected admin pages without a session cookie, send to login
+  if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
+    if (!adminSession) {
+      return NextResponse.redirect(new URL('/admin/login', request.url));
     }
   }
 
-  // 3. Protect protected API routes under /api/admin
-  if (pathname.startsWith("/api/admin") && pathname !== "/api/admin/login") {
-    const session = request.cookies.get("trustship_admin_session");
-    if (!session || session.value !== "authenticated") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  // 2. If already logged in and trying to access /admin/login, send to dashboard
+  if (pathname === '/admin/login' && adminSession) {
+    return NextResponse.redirect(new URL('/admin', request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  matcher: ['/admin/:path*'],
 };

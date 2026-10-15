@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
@@ -10,7 +9,6 @@ export default function AdminLoginPage() {
   const [requires2FA, setRequires2FA] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,17 +32,17 @@ export default function AdminLoginPage() {
         throw new Error(data.error || 'Login failed');
       }
 
+      // If 2FA token required, switch UI mode
       if (data.requires2FA) {
         setRequires2FA(true);
+        setIsLoading(false);
         return;
       }
 
-      // Success -> navigate to admin portal
-      router.push('/admin');
-      router.refresh();
+      // Success! Perform hard navigation so session cookie attaches cleanly
+      window.location.href = '/admin';
     } catch (err: any) {
       setError(err.message || 'An error occurred during login');
-    } finally {
       setIsLoading(false);
     }
   };
