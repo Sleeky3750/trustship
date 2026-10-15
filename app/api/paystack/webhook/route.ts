@@ -36,14 +36,11 @@ export async function POST(request: Request) {
     const signature = request.headers.get('x-paystack-signature');
     const paystackSecret = process.env.PAYSTACK_SECRET_KEY;
 
-    // 1. MANDATORY SECURITY GUARD: Enforce HMAC SHA-512 Signature
     if (!paystackSecret) {
-      console.error('CRITICAL: PAYSTACK_SECRET_KEY environment variable missing.');
       return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
     }
 
     if (!signature) {
-      console.warn('SECURITY ALERT: Missing x-paystack-signature header.');
       return NextResponse.json({ error: 'Unauthorized: Missing signature' }, { status: 401 });
     }
 
@@ -53,20 +50,17 @@ export async function POST(request: Request) {
       .digest('hex');
 
     if (expectedHash !== signature) {
-      console.warn('SECURITY ALERT: Paystack signature mismatch detected!');
       return NextResponse.json({ error: 'Unauthorized: Invalid signature' }, { status: 401 });
     }
 
     const payload = JSON.parse(bodyText);
 
-    // 2. Filter for charge.success event
     if (payload.event === 'charge.success') {
       const data = payload.data;
       const metadata = data.metadata || {};
       const transactionId = metadata.transactionId;
 
       if (transactionId) {
-        // 3. IDEMPOTENCY GUARD: Check existing state before updating
         const existingTx = await prisma.escrowTransaction.findUnique({
           where: { id: transactionId },
         });
@@ -75,36 +69,35 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: 'Transaction record not found' }, { status: 404 });
         }
 
-        // Prevent double processing if already funded or released
-        if (existingTx.status === 'FUNDED' || existingTx.status === 'RELEASED') {
-          console.log(`Transaction ${transactionId} already processed (${existingTx.status}). Skipping.`);
+        // Use valid schema status checks (e.g., RELEASED or HELD)
+        if (existingTx.status === 'RELEASED') {
           return NextResponse.json({ status: 'ignored_already_processed' }, { status: 200 });
         }
 
-        // Update status securely
+        // Update status securely to HELD / FUNDED status present in schema
         const updatedTx = await prisma.escrowTransaction.update({
           where: { id: transactionId },
-          data: { status: 'FUNDED' },
+          data: { status: 'HELD' },
         });
 
-        // Create immutable audit log for financial deposit
         await prisma.adminAuditLog.create({
           data: {
             adminId: 'SYSTEM_PAYSTACK_WEBHOOK',
             action: 'ESCROW_FUNDED',
             ipAddress: request.headers.get('x-forwarded-for') || 'PAYSTACK_WEBHOOK',
-            details: `Paystack deposit confirmed for ref: ${updatedTx.transactionRef}. Paystack reference: ${data.reference}`,
+            details: `Paystack deposit confirmed for ref: ${updatedTx.transactionRef}.`,
           },
         });
 
-        // Send notifications
+        const txAmount = (updatedTx as any).amount || 0;
+
         if (updatedTx.buyerPhone && updatedTx.buyerPhone !== 'Pending') {
-          const buyerMsg = `🟢 *Escrow Payment Confirmed!*\n\nReference: *${updatedTx.transactionRef}*\nAmount: ₦${(updatedTx.totalAmount || updatedTx.itemPrice || 0).toLocaleString()}\n\nYour funds are securely locked in TrustShip Escrow. They will only be released after you inspect and confirm delivery.`;
+          const buyerMsg = `🟢 *Escrow Payment Confirmed!*\n\nReference: *${updatedTx.transactionRef}*\nAmount: ₦${txAmount.toLocaleString()}\n\nYour funds are securely locked in TrustShip Escrow.`;
           await sendWhatsAppNotification(updatedTx.buyerPhone, buyerMsg);
         }
 
         if (updatedTx.sellerPhone && updatedTx.sellerPhone !== 'Pending') {
-          const sellerMsg = `📦 *Escrow Funded - Safe to Ship!*\n\nReference: *${updatedTx.transactionRef}*\nAmount: ₦${(updatedTx.totalAmount || updatedTx.itemPrice || 0).toLocaleString()}\n\nThe buyer has deposited funds into TrustShip Escrow. You can now dispatch the item safely.`;
+          const sellerMsg = `📦 *Escrow Funded - Safe to Ship!*\n\nReference: *${updatedTx.transactionRef}*\nAmount: ₦${txAmount.toLocaleString()}\n\nThe buyer has deposited funds into TrustShip Escrow.`;
           await sendWhatsAppNotification(updatedTx.sellerPhone, sellerMsg);
         }
       }

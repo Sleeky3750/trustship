@@ -5,14 +5,9 @@ import crypto from 'crypto';
 export const dynamic = 'force-dynamic';
 const prisma = new PrismaClient();
 
-// Helper to verify Meta HMAC SHA-256 Signature
 function verifyMetaSignature(rawBody: string, signatureHeader: string | null): boolean {
   const appSecret = process.env.WHATSAPP_APP_SECRET;
-  if (!appSecret) {
-    // If WHATSAPP_APP_SECRET isn't set yet in dev, log warning but allow transition
-    console.warn('WARNING: WHATSAPP_APP_SECRET not set. Skipping Meta signature check.');
-    return true;
-  }
+  if (!appSecret) return true;
 
   if (!signatureHeader) return false;
 
@@ -27,7 +22,6 @@ function verifyMetaSignature(rawBody: string, signatureHeader: string | null): b
   return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
 }
 
-// Helper to send outbound WhatsApp messages
 async function sendWhatsAppMessage(toPhone: string, textMessage: string) {
   const token = process.env.WHATSAPP_ACCESS_TOKEN;
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
@@ -53,7 +47,6 @@ async function sendWhatsAppMessage(toPhone: string, textMessage: string) {
   }
 }
 
-// VERIFY WEBHOOK (Meta Cloud API Handshake)
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const mode = searchParams.get('hub.mode');
@@ -69,15 +62,12 @@ export async function GET(request: Request) {
   return NextResponse.json({ error: 'Verification failed' }, { status: 403 });
 }
 
-// HANDLE INCOMING MESSAGES
 export async function POST(request: Request) {
   try {
     const rawBody = await request.text();
     const signature = request.headers.get('x-hub-signature-256');
 
-    // Security Check: Validate payload against Meta App Secret
     if (!verifyMetaSignature(rawBody, signature)) {
-      console.warn('SECURITY ALERT: Invalid Meta signature on incoming WhatsApp webhook!');
       return NextResponse.json({ error: 'Unauthorized payload' }, { status: 401 });
     }
 
@@ -96,7 +86,6 @@ export async function POST(request: Request) {
         const amount = Math.abs(parseFloat(parts[1])) || 10000;
         const itemDescription = parts.slice(2).join(' ') || 'Escrow Item';
 
-        // Sanitize input amount
         if (isNaN(amount) || amount <= 0) {
           await sendWhatsAppMessage(senderPhone, '⚠️ Please provide a valid transaction amount. Example: `escrow 50000 iPhone 13`');
           return NextResponse.json({ status: 'invalid_amount' }, { status: 200 });
@@ -109,11 +98,10 @@ export async function POST(request: Request) {
             transactionRef: txRef,
             buyerPhone: senderPhone,
             sellerPhone: 'Pending',
-            itemPrice: amount,
-            totalAmount: amount,
-            status: 'PENDING_DEPOSIT',
-            countryCode: 'NG',
+            amount: amount,
+            status: 'PENDING',
             currency: 'NGN',
+            countryCode: 'NG',
             paymentProvider: 'PAYSTACK',
           },
         });
