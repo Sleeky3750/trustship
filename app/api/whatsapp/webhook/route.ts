@@ -1,21 +1,41 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
 const prisma = new PrismaClient();
 
-// Helper function to send outbound message via Meta WhatsApp Graph API
+// Helper to verify Meta HMAC SHA-256 Signature
+function verifyMetaSignature(rawBody: string, signatureHeader: string | null): boolean {
+  const appSecret = process.env.WHATSAPP_APP_SECRET;
+  if (!appSecret) {
+    // If WHATSAPP_APP_SECRET isn't set yet in dev, log warning but allow transition
+    console.warn('WARNING: WHATSAPP_APP_SECRET not set. Skipping Meta signature check.');
+    return true;
+  }
+
+  if (!signatureHeader) return false;
+
+  const [algorithm, signature] = signatureHeader.split('=');
+  if (algorithm !== 'sha256' || !signature) return false;
+
+  const expectedSignature = crypto
+    .createHmac('sha256', appSecret)
+    .update(rawBody)
+    .digest('hex');
+
+  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
+}
+
+// Helper to send outbound WhatsApp messages
 async function sendWhatsAppMessage(toPhone: string, textMessage: string) {
   const token = process.env.WHATSAPP_ACCESS_TOKEN;
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
-  if (!token || !phoneNumberId) {
-    console.log('WhatsApp Meta API tokens missing from environment. Skipping outbound call.');
-    return;
-  }
+  if (!token || !phoneNumberId) return;
 
   try {
-    const response = await fetch(`https://graph.facebook.com/v18.0/${phoneNumberId}/messages`, {
+    await fetch(`https://graph.facebook.com/v18.0/${phoneNumberId}/messages`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -28,9 +48,6 @@ async function sendWhatsAppMessage(toPhone: string, textMessage: string) {
         text: { body: textMessage },
       }),
     });
-
-    const data = await response.json();
-    console.log('WhatsApp message sent response:', data);
   } catch (error) {
     console.error('Error sending WhatsApp message:', error);
   }
@@ -46,7 +63,6 @@ export async function GET(request: Request) {
   const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || 'trustship_whatsapp_secret';
 
   if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-    console.log('WhatsApp Webhook Verified Successfully');
     return new Response(challenge, { status: 200 });
   }
 
@@ -56,28 +72,38 @@ export async function GET(request: Request) {
 // HANDLE INCOMING MESSAGES
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    const rawBody = await request.text();
+    const signature = request.headers.get('x-hub-signature-256');
 
+    // Security Check: Validate payload against Meta App Secret
+    if (!verifyMetaSignature(rawBody, signature)) {
+      console.warn('SECURITY ALERT: Invalid Meta signature on incoming WhatsApp webhook!');
+      return NextResponse.json({ error: 'Unauthorized payload' }, { status: 401 });
+    }
+
+    const body = JSON.parse(rawBody);
     const entry = body.entry?.[0];
     const changes = entry?.changes?.[0];
     const value = changes?.value;
     const message = value?.messages?.[0];
 
     if (message) {
-      const senderPhone = message.from; // e.g., "2348012345678"
+      const senderPhone = message.from;
       const text = message.text?.body?.trim() || '';
 
-      console.log(`Received WhatsApp message from ${senderPhone}: ${text}`);
-
-      // Basic Command Parser: e.g. "escrow 50000 iPhone 13" or "create 25000 Laptop"
       if (text.toLowerCase().startsWith('escrow') || text.toLowerCase().startsWith('create')) {
         const parts = text.split(' ');
-        const amount = parseFloat(parts[1]) || 10000;
+        const amount = Math.abs(parseFloat(parts[1])) || 10000;
         const itemDescription = parts.slice(2).join(' ') || 'Escrow Item';
+
+        // Sanitize input amount
+        if (isNaN(amount) || amount <= 0) {
+          await sendWhatsAppMessage(senderPhone, '⚠️ Please provide a valid transaction amount. Example: `escrow 50000 iPhone 13`');
+          return NextResponse.json({ status: 'invalid_amount' }, { status: 200 });
+        }
 
         const txRef = `TS-WA-${Math.floor(100000 + Math.random() * 900000)}`;
 
-        // Create Transaction Record in Database
         const transaction = await prisma.escrowTransaction.create({
           data: {
             transactionRef: txRef,
@@ -97,16 +123,15 @@ export async function POST(request: Request) {
 
         const replyMessage = `🛡️ *TrustShip Escrow Created!*\n\nReference: *${txRef}*\nAmount: ₦${amount.toLocaleString()}\nItem: ${itemDescription}\n\n👇 Click to deposit funds into secure escrow:\n${checkoutUrl}`;
 
-        // Send outbound response back into WhatsApp chat
         await sendWhatsAppMessage(senderPhone, replyMessage);
 
-        return NextResponse.json({ status: 'success', message: replyMessage });
+        return NextResponse.json({ status: 'success' });
       }
     }
 
     return NextResponse.json({ status: 'ignored' }, { status: 200 });
   } catch (error: any) {
-    console.error('WhatsApp Webhook Error:', error);
+    console.error('WhatsApp Webhook Security Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

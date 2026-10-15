@@ -9,10 +9,7 @@ async function sendWhatsAppNotification(toPhone: string, textMessage: string) {
   const token = process.env.WHATSAPP_ACCESS_TOKEN;
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
-  if (!token || !phoneNumberId) {
-    console.log('WhatsApp tokens unconfigured. Skipping outbound notification.');
-    return;
-  }
+  if (!token || !phoneNumberId) return;
 
   try {
     await fetch(`https://graph.facebook.com/v18.0/${phoneNumberId}/messages`, {
@@ -39,43 +36,73 @@ export async function POST(request: Request) {
     const signature = request.headers.get('x-paystack-signature');
     const paystackSecret = process.env.PAYSTACK_SECRET_KEY;
 
-    // Optional: Verify Paystack HMAC SHA512 signature if secret key is present
-    if (paystackSecret && signature) {
-      const hash = crypto
-        .createHmac('sha512', paystackSecret)
-        .update(bodyText)
-        .digest('hex');
+    // 1. MANDATORY SECURITY GUARD: Enforce HMAC SHA-512 Signature
+    if (!paystackSecret) {
+      console.error('CRITICAL: PAYSTACK_SECRET_KEY environment variable missing.');
+      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+    }
 
-      if (hash !== signature) {
-        return NextResponse.json({ error: 'Invalid Paystack signature' }, { status: 400 });
-      }
+    if (!signature) {
+      console.warn('SECURITY ALERT: Missing x-paystack-signature header.');
+      return NextResponse.json({ error: 'Unauthorized: Missing signature' }, { status: 401 });
+    }
+
+    const expectedHash = crypto
+      .createHmac('sha512', paystackSecret)
+      .update(bodyText)
+      .digest('hex');
+
+    if (expectedHash !== signature) {
+      console.warn('SECURITY ALERT: Paystack signature mismatch detected!');
+      return NextResponse.json({ error: 'Unauthorized: Invalid signature' }, { status: 401 });
     }
 
     const payload = JSON.parse(bodyText);
 
-    // Filter for charge.success event
+    // 2. Filter for charge.success event
     if (payload.event === 'charge.success') {
       const data = payload.data;
       const metadata = data.metadata || {};
       const transactionId = metadata.transactionId;
-      const reference = data.reference;
-
-      console.log(`Paystack payment confirmed for reference: ${reference}`);
 
       if (transactionId) {
-        // Update database record to FUNDED
+        // 3. IDEMPOTENCY GUARD: Check existing state before updating
+        const existingTx = await prisma.escrowTransaction.findUnique({
+          where: { id: transactionId },
+        });
+
+        if (!existingTx) {
+          return NextResponse.json({ error: 'Transaction record not found' }, { status: 404 });
+        }
+
+        // Prevent double processing if already funded or released
+        if (existingTx.status === 'FUNDED' || existingTx.status === 'RELEASED') {
+          console.log(`Transaction ${transactionId} already processed (${existingTx.status}). Skipping.`);
+          return NextResponse.json({ status: 'ignored_already_processed' }, { status: 200 });
+        }
+
+        // Update status securely
         const updatedTx = await prisma.escrowTransaction.update({
           where: { id: transactionId },
           data: { status: 'FUNDED' },
         });
 
-        // Notify Buyer on WhatsApp
+        // Create immutable audit log for financial deposit
+        await prisma.adminAuditLog.create({
+          data: {
+            adminId: 'SYSTEM_PAYSTACK_WEBHOOK',
+            action: 'ESCROW_FUNDED',
+            ipAddress: request.headers.get('x-forwarded-for') || 'PAYSTACK_WEBHOOK',
+            details: `Paystack deposit confirmed for ref: ${updatedTx.transactionRef}. Paystack reference: ${data.reference}`,
+          },
+        });
+
+        // Send notifications
         if (updatedTx.buyerPhone && updatedTx.buyerPhone !== 'Pending') {
           const buyerMsg = `🟢 *Escrow Payment Confirmed!*\n\nReference: *${updatedTx.transactionRef}*\nAmount: ₦${(updatedTx.totalAmount || updatedTx.itemPrice || 0).toLocaleString()}\n\nYour funds are securely locked in TrustShip Escrow. They will only be released after you inspect and confirm delivery.`;
           await sendWhatsAppNotification(updatedTx.buyerPhone, buyerMsg);
         }
 
-        // Notify Seller on WhatsApp if seller phone exists
         if (updatedTx.sellerPhone && updatedTx.sellerPhone !== 'Pending') {
           const sellerMsg = `📦 *Escrow Funded - Safe to Ship!*\n\nReference: *${updatedTx.transactionRef}*\nAmount: ₦${(updatedTx.totalAmount || updatedTx.itemPrice || 0).toLocaleString()}\n\nThe buyer has deposited funds into TrustShip Escrow. You can now dispatch the item safely.`;
           await sendWhatsAppNotification(updatedTx.sellerPhone, sellerMsg);
@@ -85,7 +112,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ status: 'success' }, { status: 200 });
   } catch (error: any) {
-    console.error('Paystack Webhook Error:', error);
+    console.error('Paystack Webhook Security Error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
