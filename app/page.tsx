@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { 
   Shield, 
   CheckCircle2, 
@@ -19,10 +20,46 @@ import {
 } from 'lucide-react';
 
 // ==========================================
-// EXACT BRAND SVG LOGOS & ASSETS
+// SCROLL REVEAL WRAPPER COMPONENT
+// ==========================================
+const RevealOnScroll = ({ children, className = "", delay = 0 }: { children: React.ReactNode, className?: string, delay?: number }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.15 }
+    );
+
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      style={{ transitionDelay: `${delay}ms` }}
+      className={`transition-all duration-700 ease-out ${
+        isVisible 
+          ? 'opacity-100 translate-y-0 scale-100' 
+          : 'opacity-0 translate-y-10 scale-[0.98]'
+      } ${className}`}
+    >
+      {children}
+    </div>
+  );
+};
+
+// ==========================================
+// BRAND SVG LOGOS & ASSETS
 // ==========================================
 
-// TrustShip Shield Logo with Stylized 'T' (Exact Match)
 const TrustShipLogo = ({ className = "w-10 h-10", showText = true, showSlogan = false }) => (
   <div className="flex items-center gap-3 select-none">
     <div className={`relative flex items-center justify-center shrink-0 ${className}`}>
@@ -38,22 +75,9 @@ const TrustShipLogo = ({ className = "w-10 h-10", showText = true, showSlogan = 
             <stop offset="100%" stopColor="#D0FFE9" />
           </linearGradient>
         </defs>
-        {/* Shield Outer Path */}
-        <path 
-          d="M100 10 L185 45 C185 130 150 190 100 220 C50 190 15 130 15 45 Z" 
-          fill="url(#tsShieldGrad)" 
-        />
-        {/* Shield Inner Dark Inset */}
-        <path 
-          d="M100 24 L170 54 C170 125 140 175 100 202 C60 175 30 125 30 54 Z" 
-          fill="#041810" 
-          opacity="0.85"
-        />
-        {/* Stylized T Mark */}
-        <path 
-          d="M55 62 H145 V85 H112 V162 L100 175 L88 162 V85 H55 Z" 
-          fill="url(#tsTGrad)" 
-        />
+        <path d="M100 10 L185 45 C185 130 150 190 100 220 C50 190 15 130 15 45 Z" fill="url(#tsShieldGrad)" />
+        <path d="M100 24 L170 54 C170 125 140 175 100 202 C60 175 30 125 30 54 Z" fill="#041810" opacity="0.85" />
+        <path d="M55 62 H145 V85 H112 V162 L100 175 L88 162 V85 H55 Z" fill="url(#tsTGrad)" />
       </svg>
     </div>
 
@@ -63,7 +87,6 @@ const TrustShipLogo = ({ className = "w-10 h-10", showText = true, showSlogan = 
           <span className="text-2xl font-black text-white tracking-tight font-sans">Trust</span>
           <span className="text-2xl font-black text-[#00FF9D] tracking-tight relative font-sans">
             Ship
-            {/* Small WhatsApp Bubble on the 'p' */}
             <span className="absolute -top-1 -right-3.5 bg-[#25D366] text-white rounded-full p-[2px] shadow-sm">
               <svg className="w-2.5 h-2.5 fill-current" viewBox="0 0 24 24">
                 <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.762.459 3.48 1.332 5.001l-1.416 5.169 5.291-1.387c1.467.8 3.117 1.222 4.783 1.223h.004c5.505 0 9.988-4.478 9.989-9.984 0-2.667-1.038-5.175-2.925-7.062a9.923 9.923 0 0 0-7.068-2.944zm5.11 13.916c-.21.593-1.22 1.165-1.688 1.215-.469.05-.922.228-3.084-.627-2.603-1.028-4.286-3.666-4.415-3.84-.13-.174-1.047-1.393-1.047-2.656 0-1.263.66-1.884.896-2.143.235-.26.512-.325.682-.325.17 0 .341.002.49.009.158.007.371-.06.58.441.21.501.716 1.748.778 1.875.062.127.104.276.019.444-.085.168-.128.273-.254.422-.126.149-.265.333-.379.447-.126.126-.258.263-.111.515.147.252.654 1.08 1.403 1.747.964.859 1.777 1.126 2.029 1.252.252.126.399.105.547-.063.148-.168.631-.735.799-.987.168-.252.336-.21.564-.126.228.084 1.448.683 1.699.809.252.126.42.189.482.294.062.105.062.612-.148 1.205z"/>
@@ -81,7 +104,6 @@ const TrustShipLogo = ({ className = "w-10 h-10", showText = true, showSlogan = 
   </div>
 );
 
-// Official Flutterwave SVG Mark & Text Logo
 const FlutterwaveLogo = ({ className = "w-5 h-5", showWordmark = true }) => (
   <div className="flex items-center gap-2">
     <svg className={className} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -97,46 +119,28 @@ const FlutterwaveLogo = ({ className = "w-5 h-5", showWordmark = true }) => (
   </div>
 );
 
-// Official WhatsApp Vector Logo
 const WhatsAppIcon = ({ className = "w-5 h-5" }) => (
   <svg className={`${className} fill-current text-[#25D366]`} viewBox="0 0 24 24">
     <path d="M12.012 2c-5.506 0-9.989 4.478-9.99 9.984 0 1.762.459 3.48 1.332 5.001l-1.416 5.169 5.291-1.387c1.467.8 3.117 1.222 4.783 1.223h.004c5.505 0 9.988-4.478 9.989-9.984 0-2.667-1.038-5.175-2.925-7.062a9.923 9.923 0 0 0-7.068-2.944zm5.11 13.916c-.21.593-1.22 1.165-1.688 1.215-.469.05-.922.228-3.084-.627-2.603-1.028-4.286-3.666-4.415-3.84-.13-.174-1.047-1.393-1.047-2.656 0-1.263.66-1.884.896-2.143.235-.26.512-.325.682-.325.17 0 .341.002.49.009.158.007.371-.06.58.441.21.501.716 1.748.778 1.875.062.127.104.276.019.444-.085.168-.128.273-.254.422-.126.149-.265.333-.379.447-.126.126-.258.263-.111.515.147.252.654 1.08 1.403 1.747.964.859 1.777 1.126 2.029 1.252.252.126.399.105.547-.063.148-.168.631-.735.799-.987.168-.252.336-.21.564-.126.228.084 1.448.683 1.699.809.252.126.42.189.482.294.062.105.062.612-.148 1.205z"/>
   </svg>
 );
 
-// Curved Sketch Arrow Annotation SVG
 const CurvedArrowAnnotation = ({ text = "You buy. We hold. You're safe." }) => (
   <div className="relative inline-flex flex-col items-center select-none pointer-events-none">
     <span className="font-serif italic text-[#00FF9D] text-lg font-bold tracking-wide -rotate-6 transform drop-shadow-[0_2px_8px_rgba(0,255,157,0.4)]">
       {text}
     </span>
     <svg className="w-20 h-10 text-[#00FF9D] mt-1 -rotate-12" viewBox="0 0 100 50" fill="none">
-      <path 
-        d="M10,10 Q50,45 85,20" 
-        stroke="currentColor" 
-        strokeWidth="2.5" 
-        strokeLinecap="round" 
-        fill="none" 
-        strokeDasharray="4 2"
-      />
-      <path 
-        d="M75,25 L87,19 L82,10" 
-        stroke="currentColor" 
-        strokeWidth="2.5" 
-        strokeLinecap="round" 
-        strokeLinejoin="round"
-        fill="none"
-      />
+      <path d="M10,10 Q50,45 85,20" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" fill="none" strokeDasharray="4 2" />
+      <path d="M75,25 L87,19 L82,10" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
     </svg>
   </div>
 );
 
-// MAIN APP COMPONENT
 export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [chatStep, setChatStep] = useState(0);
 
-  // Dynamic Chat Simulation Data
   const chatMessages = [
     { type: 'bot', text: '👋 Welcome to TrustShip Escrow! What transaction are you initializing today?' },
     { type: 'buyer', text: 'I am paying N350,000 for a MacBook Air M1 from @SellerGamer' },
@@ -156,6 +160,17 @@ export default function App() {
   return (
     <div className="bg-[#03070A] text-slate-100 min-h-screen font-sans selection:bg-[#00FF9D] selection:text-black overflow-x-hidden relative">
       
+      {/* Custom CSS for Continuous Phone Floating Animation */}
+      <style jsx global>{`
+        @keyframes floatPhone {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+        }
+        .animate-float-phone {
+          animation: floatPhone 4s ease-in-out infinite;
+        }
+      `}</style>
+
       {/* Background Radial Glow Effects */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute -top-40 -left-40 w-[600px] h-[600px] bg-[#00FF9D]/10 rounded-full blur-[140px]" />
@@ -167,16 +182,16 @@ export default function App() {
       <header className="sticky top-0 z-50 bg-[#03070A]/85 backdrop-blur-md border-b border-emerald-950/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           
-          <a href="#" className="hover:opacity-90 transition">
+          <Link href="/" className="hover:opacity-90 transition">
             <TrustShipLogo className="w-10 h-10" showText={true} showSlogan={true} />
-          </a>
+          </Link>
 
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
             <a href="#how-it-works" className="hover:text-[#00FF9D] transition">How It Works</a>
             <a href="#why-trust-us" className="hover:text-[#00FF9D] transition">Why Trust Us</a>
             <a href="#security" className="hover:text-[#00FF9D] transition">Security</a>
             <a href="#reviews" className="hover:text-[#00FF9D] transition">Reviews</a>
-            <a href="#faqs" className="hover:text-[#00FF9D] transition">FAQs</a>
+            <Link href="/terms" className="hover:text-[#00FF9D] transition">Terms</Link>
           </nav>
 
           <div className="hidden md:flex items-center gap-4">
@@ -213,24 +228,17 @@ export default function App() {
             <a href="#why-trust-us" onClick={() => setMobileMenuOpen(false)} className="block text-slate-300 hover:text-[#00FF9D]">Why Trust Us</a>
             <a href="#security" onClick={() => setMobileMenuOpen(false)} className="block text-slate-300 hover:text-[#00FF9D]">Security</a>
             <a href="#reviews" onClick={() => setMobileMenuOpen(false)} className="block text-slate-300 hover:text-[#00FF9D]">Reviews</a>
-            <div className="pt-4 flex flex-col gap-3">
-              <a href="https://wa.me/" className="w-full text-center py-3 rounded-xl border border-emerald-700/50 text-slate-200 flex items-center justify-center gap-2 text-sm font-semibold">
-                <WhatsAppIcon className="w-4 h-4" /> Chat on WhatsApp
-              </a>
-              <a href="https://wa.me/" className="w-full text-center py-3 rounded-xl bg-[#00FF9D] text-black font-bold text-sm">
-                Get Started
-              </a>
-            </div>
+            <Link href="/terms" onClick={() => setMobileMenuOpen(false)} className="block text-slate-300 hover:text-[#00FF9D]">Terms</Link>
+            <Link href="/privacy" onClick={() => setMobileMenuOpen(false)} className="block text-slate-300 hover:text-[#00FF9D]">Privacy</Link>
           </div>
         )}
       </header>
 
-      {/* ================= HERO SECTION (DARK) ================= */}
+      {/* ================= HERO SECTION ================= */}
       <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-20 lg:pt-20 lg:pb-28">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           
-          <div className="lg:col-span-7 space-y-8 text-center lg:text-left">
-            
+          <RevealOnScroll className="lg:col-span-7 space-y-8 text-center lg:text-left">
             <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-emerald-950/80 border border-[#00FF9D]/30 text-[#00FF9D] text-xs font-bold tracking-wide shadow-inner">
               <span className="w-2 h-2 rounded-full bg-[#00FF9D] animate-ping" />
               100% SECURE NATIVE WHATSAPP ESCROW
@@ -281,21 +289,15 @@ export default function App() {
                 <p className="text-xs text-slate-400">Escrow Creation</p>
               </div>
             </div>
+          </RevealOnScroll>
 
-          </div>
-
-          {/* Right Column: Phone Mockup with Annotation */}
-          <div className="lg:col-span-5 flex flex-col items-center justify-center relative">
-            
-            {/* Hand-drawn Annotation Positioned Top Right */}
+          {/* Right Column: Phone Mockup with Continuous Float */}
+          <RevealOnScroll delay={200} className="lg:col-span-5 flex flex-col items-center justify-center relative">
             <div className="hidden sm:block absolute -top-8 -right-4 z-20">
               <CurvedArrowAnnotation text="Same WhatsApp. More Security." />
             </div>
 
-            {/* Phone Frame */}
-            <div className="w-full max-w-[320px] bg-[#08140E] border-[8px] border-slate-800 rounded-[44px] shadow-2xl shadow-[#00FF9D]/15 overflow-hidden relative">
-              
-              {/* WhatsApp Header Mock */}
+            <div className="w-full max-w-[320px] bg-[#08140E] border-[8px] border-slate-800 rounded-[44px] shadow-2xl shadow-[#00FF9D]/15 overflow-hidden relative animate-float-phone">
               <div className="bg-[#0b1b13] px-4 py-3.5 flex items-center gap-3 border-b border-emerald-900/50">
                 <div className="w-9 h-9 rounded-full bg-[#00FF9D] flex items-center justify-center font-bold text-black text-sm">
                   TS
@@ -309,12 +311,11 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Chat Simulation Area */}
               <div className="p-4 space-y-3 min-h-[360px] max-h-[400px] overflow-y-auto bg-[#040C08] flex flex-col justify-end">
                 {chatMessages.slice(0, chatStep + 1).map((msg, idx) => (
                   <div 
                     key={idx}
-                    className={`max-w-[85%] p-3 rounded-2xl text-xs leading-snug transition-all duration-300 animate-fadeIn ${
+                    className={`max-w-[85%] p-3 rounded-2xl text-xs leading-snug transition-all duration-300 ${
                       msg.type === 'buyer' 
                         ? 'bg-[#005c4b] text-white self-end rounded-br-none shadow-sm'
                         : msg.type === 'seller'
@@ -328,7 +329,6 @@ export default function App() {
                 ))}
               </div>
 
-              {/* Chat Input Footer */}
               <div className="bg-[#0b1b13] p-2.5 flex items-center gap-2 border-t border-emerald-900/40">
                 <div className="flex-1 bg-[#14281E] rounded-full px-3 py-1.5 text-[11px] text-slate-400">
                   Type seller username...
@@ -337,59 +337,61 @@ export default function App() {
                   ➔
                 </div>
               </div>
-
             </div>
-          </div>
+          </RevealOnScroll>
 
         </div>
       </section>
 
-      {/* ================= TRUST BAR (DARK) ================= */}
+      {/* ================= TRUST BAR ================= */}
       <section className="relative z-10 border-y border-emerald-950/80 bg-[#040D08]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center justify-between">
             
-            {/* Badge 1: Flutterwave */}
-            <div className="flex items-center gap-4 bg-emerald-950/20 p-4 rounded-2xl border border-emerald-900/30">
-              <div className="w-12 h-12 rounded-full bg-emerald-950 flex items-center justify-center shrink-0 border border-emerald-800/50">
-                <FlutterwaveLogo className="w-6 h-6" showWordmark={false} />
+            <RevealOnScroll delay={100}>
+              <div className="flex items-center gap-4 bg-emerald-950/20 p-4 rounded-2xl border border-emerald-900/30 hover:-translate-y-1 hover:border-emerald-500/50 hover:shadow-lg transition duration-300">
+                <div className="w-12 h-12 rounded-full bg-emerald-950 flex items-center justify-center shrink-0 border border-emerald-800/50">
+                  <FlutterwaveLogo className="w-6 h-6" showWordmark={false} />
+                </div>
+                <div>
+                  <p className="font-bold text-white text-sm">Powered by Flutterwave</p>
+                  <p className="text-xs text-slate-400">Secure Payments</p>
+                </div>
               </div>
-              <div>
-                <p className="font-bold text-white text-sm">Powered by Flutterwave</p>
-                <p className="text-xs text-slate-400">Secure Payments</p>
-              </div>
-            </div>
+            </RevealOnScroll>
 
-            {/* Badge 2: WhatsApp API */}
-            <div className="flex items-center gap-4 bg-emerald-950/20 p-4 rounded-2xl border border-emerald-900/30">
-              <div className="w-12 h-12 rounded-full bg-emerald-950 flex items-center justify-center shrink-0 border border-emerald-800/50">
-                <WhatsAppIcon className="w-6 h-6" />
+            <RevealOnScroll delay={200}>
+              <div className="flex items-center gap-4 bg-emerald-950/20 p-4 rounded-2xl border border-emerald-900/30 hover:-translate-y-1 hover:border-emerald-500/50 hover:shadow-lg transition duration-300">
+                <div className="w-12 h-12 rounded-full bg-emerald-950 flex items-center justify-center shrink-0 border border-emerald-800/50">
+                  <WhatsAppIcon className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="font-bold text-white text-sm">WhatsApp API</p>
+                  <p className="text-xs text-slate-400">Seamless Communication</p>
+                </div>
               </div>
-              <div>
-                <p className="font-bold text-white text-sm">WhatsApp API</p>
-                <p className="text-xs text-slate-400">Seamless Communication</p>
-              </div>
-            </div>
+            </RevealOnScroll>
 
-            {/* Badge 3: 100% Scam Protection */}
-            <div className="flex items-center gap-4 bg-emerald-950/20 p-4 rounded-2xl border border-emerald-900/30">
-              <div className="w-12 h-12 rounded-full bg-emerald-950 flex items-center justify-center shrink-0 border border-emerald-800/50 text-[#00FF9D]">
-                <Shield className="w-6 h-6" />
+            <RevealOnScroll delay={300}>
+              <div className="flex items-center gap-4 bg-emerald-950/20 p-4 rounded-2xl border border-emerald-900/30 hover:-translate-y-1 hover:border-emerald-500/50 hover:shadow-lg transition duration-300">
+                <div className="w-12 h-12 rounded-full bg-emerald-950 flex items-center justify-center shrink-0 border border-emerald-800/50 text-[#00FF9D]">
+                  <Shield className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="font-bold text-white text-sm">100% Scam Protection</p>
+                  <p className="text-xs text-slate-400">Your Safety, Our Priority</p>
+                </div>
               </div>
-              <div>
-                <p className="font-bold text-white text-sm">100% Scam Protection</p>
-                <p className="text-xs text-slate-400">Your Safety, Our Priority</p>
-              </div>
-            </div>
+            </RevealOnScroll>
 
           </div>
         </div>
       </section>
 
-      {/* ================= WHY YOU NEED TRUSTSHIP (CLEAN WHITE SECTION) ================= */}
+      {/* ================= WHY YOU NEED TRUSTSHIP ================= */}
       <section id="why-trust-us" className="relative z-10 bg-white text-slate-900 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
+          <RevealOnScroll className="text-center max-w-3xl mx-auto space-y-4 mb-16">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-100 border border-emerald-200 text-emerald-800 text-xs font-bold tracking-wider uppercase">
               THE TRUSTSHIP ADVANTAGE
             </div>
@@ -399,7 +401,7 @@ export default function App() {
             <p className="text-slate-600 text-sm sm:text-base">
               Online transactions on Instagram, Twitter, and marketplaces carry high risks. TrustShip removes the fear by holding funds securely until both parties are satisfied.
             </p>
-          </div>
+          </RevealOnScroll>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
@@ -412,26 +414,25 @@ export default function App() {
               { icon: Package, title: "Waybill Safe", desc: "Perfect for inter-state deliveries across Nigeria." },
               { icon: Star, title: "100% Protection", desc: "Guaranteed money-back if transaction requirements fail." },
             ].map((item, idx) => (
-              <div 
-                key={idx}
-                className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-emerald-500/50 transition duration-300 group hover:-translate-y-1 shadow-sm"
-              >
-                <div className="w-12 h-12 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-600 mb-4 group-hover:scale-110 transition">
-                  <item.icon className="w-6 h-6" />
+              <RevealOnScroll key={idx} delay={idx * 75}>
+                <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 shadow-sm h-full hover:-translate-y-1 hover:border-emerald-500/50 hover:shadow-md transition duration-300">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-600 mb-4">
+                    <item.icon className="w-6 h-6" />
+                  </div>
+                  <h3 className="font-bold text-slate-900 text-base mb-2">{item.title}</h3>
+                  <p className="text-xs text-slate-600 leading-relaxed">{item.desc}</p>
                 </div>
-                <h3 className="font-bold text-slate-900 text-base mb-2">{item.title}</h3>
-                <p className="text-xs text-slate-600 leading-relaxed">{item.desc}</p>
-              </div>
+              </RevealOnScroll>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ================= HOW IT WORKS (DARK) ================= */}
+      {/* ================= HOW IT WORKS ================= */}
       <section id="how-it-works" className="relative z-10 border-t border-emerald-950/80 bg-[#020A06] py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-16 gap-6">
+          <RevealOnScroll className="flex flex-col md:flex-row items-start md:items-end justify-between mb-16 gap-6">
             <div className="space-y-3">
               <span className="text-xs font-bold uppercase tracking-widest text-[#00FF9D]">
                 SIMPLE. SECURE. SEAMLESS.
@@ -444,78 +445,42 @@ export default function App() {
               </p>
             </div>
 
-            {/* Handwritten Annotation on Top Right */}
             <div className="hidden md:block">
               <CurvedArrowAnnotation text="You buy. We hold. You're safe." />
             </div>
-          </div>
+          </RevealOnScroll>
 
-          {/* 4 Steps Horizontal Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative">
-            
-            <div className="p-6 rounded-2xl bg-[#06140D] border border-emerald-900/40 relative space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="w-9 h-9 rounded-full bg-[#00FF9D] text-black font-black flex items-center justify-center text-sm">
-                  1
-                </span>
-                <MessageSquare className="w-5 h-5 text-slate-400" />
-              </div>
-              <h3 className="font-bold text-white text-lg">Start on WhatsApp</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Chat with our TrustShip bot and specify what item you're buying or selling.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-[#06140D] border border-emerald-900/40 relative space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="w-9 h-9 rounded-full bg-[#00FF9D] text-black font-black flex items-center justify-center text-sm">
-                  2
-                </span>
-                <Lock className="w-5 h-5 text-slate-400" />
-              </div>
-              <h3 className="font-bold text-white text-lg">Pay via Flutterwave</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Buyer pays into the TrustShip Flutterwave escrow wallet. Funds are safely locked.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-[#06140D] border border-emerald-900/40 relative space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="w-9 h-9 rounded-full bg-[#00FF9D] text-black font-black flex items-center justify-center text-sm">
-                  3
-                </span>
-                <Package className="w-5 h-5 text-slate-400" />
-              </div>
-              <h3 className="font-bold text-white text-lg">Confirm Delivery</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Seller ships item. Buyer inspects goods upon arrival and enters secret release PIN.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-2xl bg-[#06140D] border border-emerald-900/40 relative space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="w-9 h-9 rounded-full bg-[#00FF9D] text-black font-black flex items-center justify-center text-sm">
-                  4
-                </span>
-                <CheckCircle2 className="w-5 h-5 text-slate-400" />
-              </div>
-              <h3 className="font-bold text-white text-lg">Transaction Complete</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                Funds are instantly transferred to the seller's bank account. Simple & safe!
-              </p>
-            </div>
-
+            {[
+              { num: 1, icon: MessageSquare, title: "Start on WhatsApp", desc: "Chat with our TrustShip bot and specify what item you're buying or selling." },
+              { num: 2, icon: Lock, title: "Pay via Flutterwave", desc: "Buyer pays into the TrustShip Flutterwave escrow wallet. Funds are safely locked." },
+              { num: 3, icon: Package, title: "Confirm Delivery", desc: "Seller ships item. Buyer inspects goods upon arrival and enters secret release PIN." },
+              { num: 4, icon: CheckCircle2, title: "Transaction Complete", desc: "Funds are instantly transferred to the seller's bank account. Simple & safe!" },
+            ].map((step, idx) => (
+              <RevealOnScroll key={idx} delay={idx * 100}>
+                <div className="p-6 rounded-2xl bg-[#06140D] border border-emerald-900/40 relative space-y-4 h-full hover:-translate-y-1 hover:border-emerald-500/50 hover:shadow-lg transition duration-300">
+                  <div className="flex items-center justify-between">
+                    <span className="w-9 h-9 rounded-full bg-[#00FF9D] text-black font-black flex items-center justify-center text-sm">
+                      {step.num}
+                    </span>
+                    <step.icon className="w-5 h-5 text-slate-400" />
+                  </div>
+                  <h3 className="font-bold text-white text-lg">{step.title}</h3>
+                  <p className="text-xs text-slate-400 leading-relaxed">{step.desc}</p>
+                </div>
+              </RevealOnScroll>
+            ))}
           </div>
 
         </div>
       </section>
 
-      {/* ================= YOUR SECURITY MATTERS (CLEAN WHITE SECTION) ================= */}
+      {/* ================= YOUR SECURITY MATTERS ================= */}
       <section id="security" className="relative z-10 bg-white text-slate-900 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
-            <div className="lg:col-span-6 space-y-6">
+            <RevealOnScroll className="lg:col-span-6 space-y-6">
               <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-100 border border-amber-200 text-amber-800 text-xs font-bold tracking-wider uppercase">
                 DON'T BE SCARED. BE SMART.
               </div>
@@ -543,19 +508,15 @@ export default function App() {
                   </div>
                 ))}
               </div>
-            </div>
+            </RevealOnScroll>
 
-            {/* Right Visual Stack */}
-            <div className="lg:col-span-6 flex justify-center">
+            <RevealOnScroll delay={200} className="lg:col-span-6 flex justify-center">
               <div className="relative w-full max-w-md h-[340px] flex items-center justify-center">
-                
-                {/* Flutterwave Floating Card */}
                 <div className="absolute top-0 left-0 bg-white text-slate-900 p-4 rounded-2xl shadow-2xl border border-slate-200 transform -rotate-6 w-52 z-10">
                   <FlutterwaveLogo className="w-5 h-5" showWordmark={true} />
                   <p className="text-[11px] font-bold text-slate-700 mt-2">Secure Payments You Can Trust 🔒</p>
                 </div>
 
-                {/* WhatsApp API Floating Card */}
                 <div className="absolute top-4 right-0 bg-white text-slate-900 p-4 rounded-2xl shadow-2xl border border-slate-200 transform rotate-6 w-52 z-10">
                   <div className="flex items-center gap-2">
                     <WhatsAppIcon className="w-5 h-5" />
@@ -564,34 +525,32 @@ export default function App() {
                   <p className="text-[11px] font-bold text-slate-700 mt-2">Real Conversations. Real Safety.</p>
                 </div>
 
-                {/* Central Dark TrustShip Badge */}
-                <div className="relative z-20 bg-[#06180F] border-2 border-[#00FF9D] p-8 rounded-3xl text-center space-y-3 shadow-2xl shadow-[#00FF9D]/20 w-64 transform hover:scale-105 transition duration-300">
+                <div className="relative z-20 bg-[#06180F] border-2 border-[#00FF9D] p-8 rounded-3xl text-center space-y-3 shadow-2xl shadow-[#00FF9D]/20 w-64">
                   <TrustShipLogo className="w-14 h-14 mx-auto" showText={false} />
                   <p className="text-xl font-black text-white">TrustShip</p>
                   <p className="text-xs text-[#00FF9D] font-bold uppercase tracking-wider">
                     Escrow for a Safer Tomorrow
                   </p>
                 </div>
-
               </div>
-            </div>
+            </RevealOnScroll>
 
           </div>
         </div>
       </section>
 
-      {/* ================= TESTIMONIALS (DARK) ================= */}
+      {/* ================= TESTIMONIALS ================= */}
       <section id="reviews" className="relative z-10 border-t border-emerald-950/80 bg-[#020A06] py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-12">
           
-          <div className="space-y-3">
+          <RevealOnScroll className="space-y-3">
             <span className="text-xs font-bold uppercase tracking-widest text-[#00FF9D]">
               REAL PEOPLE. REAL STORIES.
             </span>
             <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
               Loved by Nigerian Buyers & Sellers
             </h2>
-          </div>
+          </RevealOnScroll>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
             {[
@@ -614,48 +573,52 @@ export default function App() {
                 role: "Fashion Merchant"
               }
             ].map((review, i) => (
-              <div key={i} className="p-6 rounded-2xl bg-[#06120D] border border-emerald-950 space-y-4">
-                <div className="flex text-amber-400 gap-1 text-sm">
-                  ★★★★★
-                </div>
-                <p className="text-slate-300 text-xs leading-relaxed italic">
-                  "{review.quote}"
-                </p>
-                <div className="pt-2 border-t border-emerald-950 flex items-center justify-between text-xs">
-                  <div>
-                    <p className="font-bold text-white">{review.name}</p>
-                    <p className="text-slate-400">{review.location}</p>
+              <RevealOnScroll key={i} delay={i * 100}>
+                <div className="p-6 rounded-2xl bg-[#06120D] border border-emerald-950 space-y-4 h-full hover:-translate-y-1 hover:border-emerald-500/50 hover:shadow-lg transition duration-300">
+                  <div className="flex text-amber-400 gap-1 text-sm">
+                    ★★★★★
                   </div>
-                  <span className="px-2.5 py-1 rounded-full bg-emerald-950 text-[#00FF9D] text-[10px] font-bold">
-                    {review.role}
-                  </span>
+                  <p className="text-slate-300 text-xs leading-relaxed italic">
+                    "{review.quote}"
+                  </p>
+                  <div className="pt-2 border-t border-emerald-950 flex items-center justify-between text-xs">
+                    <div>
+                      <p className="font-bold text-white">{review.name}</p>
+                      <p className="text-slate-400">{review.location}</p>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full bg-emerald-950 text-[#00FF9D] text-[10px] font-bold">
+                      {review.role}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </RevealOnScroll>
             ))}
           </div>
 
         </div>
       </section>
 
-      {/* ================= FINAL CTA BANNER (DARK) ================= */}
+      {/* ================= FINAL CTA ================= */}
       <section className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <div className="p-10 sm:p-14 rounded-3xl bg-gradient-to-br from-[#062014] via-[#04140D] to-[#020A06] border border-[#00FF9D]/30 space-y-6 shadow-2xl shadow-[#00FF9D]/10">
-          <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
-            Ready to Buy or Sell Safely?
-          </h2>
-          <p className="text-slate-300 text-sm sm:text-base max-w-xl mx-auto">
-            Join thousands of smart Nigerians taking the risk out of online commerce today.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-            <a 
-              href="https://wa.me/" 
-              className="bg-[#00FF9D] hover:bg-[#00E08A] text-slate-950 font-black px-8 py-4 rounded-2xl text-sm transition flex items-center justify-center gap-2"
-            >
-              <WhatsAppIcon className="w-5 h-5 text-black" />
-              Start on WhatsApp Now
-            </a>
+        <RevealOnScroll>
+          <div className="p-10 sm:p-14 rounded-3xl bg-gradient-to-br from-[#062014] via-[#04140D] to-[#020A06] border border-[#00FF9D]/30 space-y-6 shadow-2xl shadow-[#00FF9D]/10 hover:-translate-y-1 hover:border-[#00FF9D]/50 transition duration-300">
+            <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
+              Ready to Buy or Sell Safely?
+            </h2>
+            <p className="text-slate-300 text-sm sm:text-base max-w-xl mx-auto">
+              Join thousands of smart Nigerians taking the risk out of online commerce today.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
+              <a 
+                href="https://wa.me/" 
+                className="bg-[#00FF9D] hover:bg-[#00E08A] text-slate-950 font-black px-8 py-4 rounded-2xl text-sm transition flex items-center justify-center gap-2"
+              >
+                <WhatsAppIcon className="w-5 h-5 text-black" />
+                Start on WhatsApp Now
+              </a>
+            </div>
           </div>
-        </div>
+        </RevealOnScroll>
       </section>
 
       {/* ================= FOOTER ================= */}
@@ -678,8 +641,8 @@ export default function App() {
 
           <div className="space-y-2">
             <p className="font-bold text-white">Legal & Support</p>
-            <p><a href="#" className="hover:text-[#00FF9D]">Terms of Service</a></p>
-            <p><a href="#" className="hover:text-[#00FF9D]">Privacy Policy</a></p>
+            <p><Link href="/terms" className="hover:text-[#00FF9D]">Terms of Service</Link></p>
+            <p><Link href="/privacy" className="hover:text-[#00FF9D]">Privacy Policy</Link></p>
             <p><a href="mailto:trustship.app@gmail.com" className="hover:text-[#00FF9D]">trustship.app@gmail.com</a></p>
           </div>
 
