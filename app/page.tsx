@@ -1,4 +1,4 @@
-'import Link from 'next/link';
+import Link from 'next/link';
 
 export default function LandingPage() {
   return (
@@ -84,7 +84,6 @@ export default function LandingPage() {
                 alt="Meta Logo"
                 className="w-full h-full object-contain filter brightness-90 group-hover:brightness-100 transition-all"
                 onError={(e) => {
-                  // Fallback icon if image hasn't been placed in public/logos/ yet
                   e.currentTarget.style.display = 'none';
                   e.currentTarget.parentElement!.innerHTML = '<span class="text-2xl">💬</span>';
                 }}
@@ -104,7 +103,6 @@ export default function LandingPage() {
                 alt="Flutterwave Logo"
                 className="w-full h-full object-contain filter brightness-90 group-hover:brightness-100 transition-all"
                 onError={(e) => {
-                  // Fallback icon if image hasn't been placed in public/logos/ yet
                   e.currentTarget.style.display = 'none';
                   e.currentTarget.parentElement!.innerHTML = '<span class="text-2xl">💳</span>';
                 }}
