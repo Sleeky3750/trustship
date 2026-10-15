@@ -98,12 +98,14 @@ export async function POST(request: Request) {
             transactionRef: txRef,
             buyerPhone: senderPhone,
             sellerPhone: 'Pending',
+            itemPrice: amount,
+            totalAmount: amount,
             amount: amount,
             status: 'PENDING' as any,
             currency: 'NGN',
             countryCode: 'NG',
             paymentProvider: 'PAYSTACK',
-          },
+          } as any,
         });
 
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://trustship.app';
