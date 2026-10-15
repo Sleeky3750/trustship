@@ -4,6 +4,38 @@ import { PrismaClient } from '@prisma/client';
 export const dynamic = 'force-dynamic';
 const prisma = new PrismaClient();
 
+// Helper function to send outbound message via Meta WhatsApp Graph API
+async function sendWhatsAppMessage(toPhone: string, textMessage: string) {
+  const token = process.env.WHATSAPP_ACCESS_TOKEN;
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+
+  if (!token || !phoneNumberId) {
+    console.log('WhatsApp Meta API tokens missing from environment. Skipping outbound call.');
+    return;
+  }
+
+  try {
+    const response = await fetch(`https://graph.facebook.com/v18.0/${phoneNumberId}/messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        to: toPhone,
+        type: 'text',
+        text: { body: textMessage },
+      }),
+    });
+
+    const data = await response.json();
+    console.log('WhatsApp message sent response:', data);
+  } catch (error) {
+    console.error('Error sending WhatsApp message:', error);
+  }
+}
+
 // VERIFY WEBHOOK (Meta Cloud API Handshake)
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -26,19 +58,18 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    // Check if message payload exists
     const entry = body.entry?.[0];
     const changes = entry?.changes?.[0];
     const value = changes?.value;
     const message = value?.messages?.[0];
 
     if (message) {
-      const senderPhone = message.from; // e.g. "2348012345678"
+      const senderPhone = message.from; // e.g., "2348012345678"
       const text = message.text?.body?.trim() || '';
 
       console.log(`Received WhatsApp message from ${senderPhone}: ${text}`);
 
-      // Basic Command Parser: e.g. "escrow 50000 iPhone 13" or "start"
+      // Basic Command Parser: e.g. "escrow 50000 iPhone 13" or "create 25000 Laptop"
       if (text.toLowerCase().startsWith('escrow') || text.toLowerCase().startsWith('create')) {
         const parts = text.split(' ');
         const amount = parseFloat(parts[1]) || 10000;
@@ -61,13 +92,15 @@ export async function POST(request: Request) {
           },
         });
 
-        const checkoutUrl = `https://${process.env.NEXT_PUBLIC_APP_URL || 'trustship.app'}/checkout/${transaction.id}`;
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://trustship.app';
+        const checkoutUrl = `${baseUrl}/checkout/${transaction.id}`;
 
-        // Return JSON confirmation or trigger Meta API response
-        return NextResponse.json({
-          status: 'success',
-          reply: `🛡️ *TrustShip Escrow Created!*\n\nReference: *${txRef}*\nAmount: ₦${amount.toLocaleString()}\nItem: ${itemDescription}\n\n👇 Click to deposit funds:\n${checkoutUrl}`,
-        });
+        const replyMessage = `🛡️ *TrustShip Escrow Created!*\n\nReference: *${txRef}*\nAmount: ₦${amount.toLocaleString()}\nItem: ${itemDescription}\n\n👇 Click to deposit funds into secure escrow:\n${checkoutUrl}`;
+
+        // Send outbound response back into WhatsApp chat
+        await sendWhatsAppMessage(senderPhone, replyMessage);
+
+        return NextResponse.json({ status: 'success', message: replyMessage });
       }
     }
 

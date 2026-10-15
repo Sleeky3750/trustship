@@ -1,50 +1,91 @@
-import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-import crypto from "crypto";
+import { NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import crypto from 'crypto';
 
+export const dynamic = 'force-dynamic';
 const prisma = new PrismaClient();
 
-export async function POST(req: Request) {
+async function sendWhatsAppNotification(toPhone: string, textMessage: string) {
+  const token = process.env.WHATSAPP_ACCESS_TOKEN;
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+
+  if (!token || !phoneNumberId) {
+    console.log('WhatsApp tokens unconfigured. Skipping outbound notification.');
+    return;
+  }
+
   try {
-    const bodyText = await req.text();
-    const signature = req.headers.get("x-paystack-signature");
+    await fetch(`https://graph.facebook.com/v18.0/${phoneNumberId}/messages`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        to: toPhone,
+        type: 'text',
+        text: { body: textMessage },
+      }),
+    });
+  } catch (err) {
+    console.error('Failed to send WhatsApp notification:', err);
+  }
+}
 
-    // 1. Verify Paystack webhook signature for security
-    const secret = process.env.PAYSTACK_SECRET_KEY || "";
-    const hash = crypto
-      .createHmac("sha512", secret)
-      .update(bodyText)
-      .digest("hex");
+export async function POST(request: Request) {
+  try {
+    const bodyText = await request.text();
+    const signature = request.headers.get('x-paystack-signature');
+    const paystackSecret = process.env.PAYSTACK_SECRET_KEY;
 
-    if (hash !== signature) {
-      console.warn("⚠️ Invalid Paystack webhook signature detected.");
-      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+    // Optional: Verify Paystack HMAC SHA512 signature if secret key is present
+    if (paystackSecret && signature) {
+      const hash = crypto
+        .createHmac('sha512', paystackSecret)
+        .update(bodyText)
+        .digest('hex');
+
+      if (hash !== signature) {
+        return NextResponse.json({ error: 'Invalid Paystack signature' }, { status: 400 });
+      }
     }
 
-    const event = JSON.parse(bodyText);
+    const payload = JSON.parse(bodyText);
 
-    // 2. Handle successful charge event
-    if (event.event === "charge.success") {
-      const paymentData = event.data;
-      const transactionRef = paymentData.metadata?.transactionRef || paymentData.reference;
+    // Filter for charge.success event
+    if (payload.event === 'charge.success') {
+      const data = payload.data;
+      const metadata = data.metadata || {};
+      const transactionId = metadata.transactionId;
+      const reference = data.reference;
 
-      console.log(`💳 Paystack payment successful for reference: ${transactionRef}`);
+      console.log(`Paystack payment confirmed for reference: ${reference}`);
 
-      // Update transaction status to funded/active (e.g., ready for dispatch)
-      const updatedTx = await prisma.escrowTransaction.updateMany({
-        where: { transactionRef: transactionRef },
-        data: { 
-          // You can map this to an active state like "FUNDED" or keep tracking dispatchStatus
-          dispatchStatus: "PROCESSING" 
-        },
-      });
+      if (transactionId) {
+        // Update database record to FUNDED
+        const updatedTx = await prisma.escrowTransaction.update({
+          where: { id: transactionId },
+          data: { status: 'FUNDED' },
+        });
 
-      console.log(`✅ Updated transaction state for ${transactionRef}. Records modified:`, updatedTx.count);
+        // Notify Buyer on WhatsApp
+        if (updatedTx.buyerPhone && updatedTx.buyerPhone !== 'Pending') {
+          const buyerMsg = `🟢 *Escrow Payment Confirmed!*\n\nReference: *${updatedTx.transactionRef}*\nAmount: ₦${(updatedTx.totalAmount || updatedTx.itemPrice || 0).toLocaleString()}\n\nYour funds are securely locked in TrustShip Escrow. They will only be released after you inspect and confirm delivery.`;
+          await sendWhatsAppNotification(updatedTx.buyerPhone, buyerMsg);
+        }
+
+        // Notify Seller on WhatsApp if seller phone exists
+        if (updatedTx.sellerPhone && updatedTx.sellerPhone !== 'Pending') {
+          const sellerMsg = `📦 *Escrow Funded - Safe to Ship!*\n\nReference: *${updatedTx.transactionRef}*\nAmount: ₦${(updatedTx.totalAmount || updatedTx.itemPrice || 0).toLocaleString()}\n\nThe buyer has deposited funds into TrustShip Escrow. You can now dispatch the item safely.`;
+          await sendWhatsAppNotification(updatedTx.sellerPhone, sellerMsg);
+        }
+      }
     }
 
-    return NextResponse.json({ status: "success" }, { status: 200 });
+    return NextResponse.json({ status: 'success' }, { status: 200 });
   } catch (error: any) {
-    console.error("Paystack webhook error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('Paystack Webhook Error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
