@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 
 interface Transaction {
   id: string;
-  reference: string;
+  transactionRef: string;
   buyerPhone: string;
   sellerPhone: string;
-  amount: number;
+  totalAmount?: number;
+  itemPrice?: number;
   status: string;
   createdAt: string;
 }
@@ -119,14 +120,14 @@ export default function AdminTransactionsPage() {
                   transactions.map((tx) => (
                     <tr key={tx.id} className="hover:bg-gray-50 transition">
                       <td className="py-4 px-4">
-                        <div className="font-mono font-semibold text-xs text-gray-900">{tx.reference}</div>
+                        <div className="font-mono font-semibold text-xs text-gray-900">{tx.transactionRef}</div>
                         <div className="text-[11px] text-gray-500 mt-0.5">{new Date(tx.createdAt).toLocaleDateString()}</div>
                       </td>
                       <td className="py-4 px-4 text-xs text-gray-600">
                         <div>B: {tx.buyerPhone}</div>
                         <div>S: {tx.sellerPhone}</div>
                       </td>
-                      <td className="py-4 px-4 font-semibold text-gray-900">₦{tx.amount.toLocaleString()}</td>
+                      <td className="py-4 px-4 font-semibold text-gray-900">₦{(tx.totalAmount || tx.itemPrice || 0).toLocaleString()}</td>
                       <td className="py-4 px-4">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
                           tx.status === 'RELEASED' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
@@ -137,7 +138,7 @@ export default function AdminTransactionsPage() {
                       <td className="py-4 px-4 text-right space-x-2">
                         {isSuperAdmin && tx.status !== 'RELEASED' && (
                           <button
-                            onClick={() => handleReleaseFunds(tx.id, tx.reference)}
+                            onClick={() => handleReleaseFunds(tx.id, tx.transactionRef)}
                             className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-sm transition"
                           >
                             Release Funds
