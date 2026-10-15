@@ -83,10 +83,6 @@ export default function LandingPage() {
                 src="/logos/meta.svg"
                 alt="Meta Logo"
                 className="w-full h-full object-contain filter brightness-90 group-hover:brightness-100 transition-all"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.parentElement!.innerHTML = '<span class="text-2xl">💬</span>';
-                }}
               />
             </div>
             <div>
@@ -102,10 +98,6 @@ export default function LandingPage() {
                 src="/logos/flutterwave.svg"
                 alt="Flutterwave Logo"
                 className="w-full h-full object-contain filter brightness-90 group-hover:brightness-100 transition-all"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.parentElement!.innerHTML = '<span class="text-2xl">💳</span>';
-                }}
               />
             </div>
             <div>
