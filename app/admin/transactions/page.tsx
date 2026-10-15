@@ -73,13 +73,19 @@ export default function AdminTransactionsPage() {
     }
   };
 
+  const formatWhatsAppUrl = (phone: string, role: string, ref: string) => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    const message = encodeURIComponent(`Hello, I am contacting you from TrustShip Support regarding escrow transaction reference: ${ref} (${role}).`);
+    return `https://wa.me/${cleanPhone}?text=${message}`;
+  };
+
   const isSuperAdmin = adminRole === 'SUPER_ADMIN';
 
   return (
     <div className="space-y-6 text-black">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Escrow Transactions Management</h1>
-        <p className="text-sm text-gray-500 mt-1">Monitor multi-state transaction lifecycles and execute secure fund releases.</p>
+        <p className="text-sm text-gray-500 mt-1">Monitor multi-state transaction lifecycles and connect instantly with parties via WhatsApp.</p>
       </div>
 
       {actionMessage && (
@@ -103,7 +109,7 @@ export default function AdminTransactionsPage() {
               <thead>
                 <tr className="bg-gray-50 border-b text-xs font-semibold text-gray-500 uppercase">
                   <th className="py-3 px-4">Ref & Date</th>
-                  <th className="py-3 px-4">Parties</th>
+                  <th className="py-3 px-4">WhatsApp Parties</th>
                   <th className="py-3 px-4">Amount</th>
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4 text-right">Actions</th>
@@ -123,9 +129,31 @@ export default function AdminTransactionsPage() {
                         <div className="font-mono font-semibold text-xs text-gray-900">{tx.transactionRef}</div>
                         <div className="text-[11px] text-gray-500 mt-0.5">{new Date(tx.createdAt).toLocaleDateString()}</div>
                       </td>
-                      <td className="py-4 px-4 text-xs text-gray-600">
-                        <div>B: {tx.buyerPhone}</div>
-                        <div>S: {tx.sellerPhone}</div>
+                      <td className="py-4 px-4 text-xs space-y-1.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-500 font-medium">Buyer:</span>
+                          <a
+                            href={formatWhatsAppUrl(tx.buyerPhone, 'Buyer', tx.transactionRef)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-2 py-0.5 rounded-md font-mono font-semibold transition border border-emerald-200"
+                            title="Chat with Buyer on WhatsApp"
+                          >
+                            💬 {tx.buyerPhone}
+                          </a>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-500 font-medium">Seller:</span>
+                          <a
+                            href={formatWhatsAppUrl(tx.sellerPhone, 'Seller', tx.transactionRef)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-2 py-0.5 rounded-md font-mono font-semibold transition border border-emerald-200"
+                            title="Chat with Seller on WhatsApp"
+                          >
+                            💬 {tx.sellerPhone}
+                          </a>
+                        </div>
                       </td>
                       <td className="py-4 px-4 font-semibold text-gray-900">₦{(tx.totalAmount || tx.itemPrice || 0).toLocaleString()}</td>
                       <td className="py-4 px-4">
