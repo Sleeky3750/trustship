@@ -34,18 +34,17 @@ export default function AdminLoginPage() {
         throw new Error(data.error || 'Login failed');
       }
 
-      // Check if backend requests 2FA token
       if (data.requires2FA) {
         setRequires2FA(true);
-        setIsLoading(false);
         return;
       }
 
-      // Successful login -> Navigate to Admin Root
+      // Success -> navigate to admin portal
       router.push('/admin');
       router.refresh();
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'An error occurred during login');
+    } finally {
       setIsLoading(false);
     }
   };

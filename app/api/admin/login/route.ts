@@ -4,6 +4,8 @@ import bcrypt from 'bcryptjs';
 import { verify } from 'otplib';
 import { cookies } from 'next/headers';
 
+export const dynamic = 'force-dynamic';
+
 const prisma = new PrismaClient();
 
 export async function POST(request: Request) {
@@ -20,14 +22,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    // Use admin.password instead of admin.passwordHash
     const isPasswordValid = await bcrypt.compare(password, admin.password);
 
     if (!isPasswordValid) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    // Handle 2FA Verification
+    // If 2FA is enabled
     if (admin.isTwoFactorEnabled) {
       if (!token) {
         return NextResponse.json({ requires2FA: true }, { status: 200 });
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
       });
 
       if (!isValid) {
-        return NextResponse.json({ error: 'Invalid 2FA security code. Please check your authenticator time settings.' }, { status: 400 });
+        return NextResponse.json({ error: 'Invalid 2FA security code.' }, { status: 400 });
       }
     }
 
@@ -60,8 +61,8 @@ export async function POST(request: Request) {
       success: true,
       admin: { id: admin.id, email: admin.email, role: admin.role },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Login error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
   }
 }
