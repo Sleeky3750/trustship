@@ -1,15 +1,19 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+
+export const dynamic = 'force-dynamic';
+const prisma = new PrismaClient();
 
 export async function GET() {
   try {
     const transactions = await prisma.escrowTransaction.findMany({
-      include: { seller: true, buyer: true },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
     });
 
-    return NextResponse.json({ transactions }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true, transactions });
+  } catch (error) {
+    console.error('Fetch transactions error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
