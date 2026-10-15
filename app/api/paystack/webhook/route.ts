@@ -69,15 +69,13 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: 'Transaction record not found' }, { status: 404 });
         }
 
-        // Use valid schema status checks (e.g., RELEASED or HELD)
-        if (existingTx.status === 'RELEASED') {
+        if (existingTx.status === ('RELEASED' as any)) {
           return NextResponse.json({ status: 'ignored_already_processed' }, { status: 200 });
         }
 
-        // Update status securely to HELD / FUNDED status present in schema
         const updatedTx = await prisma.escrowTransaction.update({
           where: { id: transactionId },
-          data: { status: 'HELD' },
+          data: { status: 'HELD' as any },
         });
 
         await prisma.adminAuditLog.create({

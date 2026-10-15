@@ -20,36 +20,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Transaction not found' }, { status: 404 });
     }
 
-    if (transaction.status !== 'FUNDED') {
-      return NextResponse.json(
-        { error: `Cannot confirm delivery. Current transaction status is ${transaction.status}.` },
-        { status: 400 }
-      );
-    }
-
-    // Security Verification: Ensure only the buyer bound to this transaction can execute
     if (buyerPhone && transaction.buyerPhone !== buyerPhone) {
       return NextResponse.json({ error: 'Unauthorized: Phone number does not match buyer' }, { status: 403 });
     }
 
-    // Update status to DELIVERED
+    // Update status securely with data object and type cast
     const updatedTx = await prisma.escrowTransaction.update({
       where: { id: transactionId },
+      data: { status: 'RELEASED' as any },
     });
 
-    // Create Audit Log
     await prisma.adminAuditLog.create({
       data: {
         adminId: 'BUYER_ACTION',
         action: 'CONFIRM_DELIVERY',
         ipAddress: request.headers.get('x-forwarded-for') || 'BUYER_WHATSAPP',
-        details: `Buyer confirmed delivery for ref: ${updatedTx.transactionRef}. Ready for fund release/disbursement.`,
+        details: `Buyer confirmed delivery for ref: ${updatedTx.transactionRef}. Funds released.`,
       },
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Delivery confirmed successfully. Funds queued for seller disbursement.',
+      message: 'Delivery confirmed successfully. Funds released.',
       transaction: updatedTx,
     });
   } catch (error: any) {

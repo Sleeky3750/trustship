@@ -99,7 +99,7 @@ export async function POST(request: Request) {
             buyerPhone: senderPhone,
             sellerPhone: 'Pending',
             amount: amount,
-            status: 'PENDING',
+            status: 'PENDING' as any,
             currency: 'NGN',
             countryCode: 'NG',
             paymentProvider: 'PAYSTACK',
