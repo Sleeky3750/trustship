@@ -38,12 +38,13 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: '2FA configuration missing' }, { status: 400 });
       }
 
-      const isValid = verify({
+      // Properly AWAIT verify and check result.valid property
+      const result = await verify({
         token: token.trim(),
         secret: admin.twoFactorSecret,
       });
 
-      if (!isValid) {
+      if (!result.valid) {
         return NextResponse.json({ error: 'Invalid 2FA security code.' }, { status: 400 });
       }
     }
