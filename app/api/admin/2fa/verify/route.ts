@@ -1,41 +1,64 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { verify } from 'otplib';
-import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { verify } from "otplib";
 
-const prisma = new PrismaClient();
-
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('trustship_admin_session');
+    const body = await request.json();
+    const { code, adminId } = body;
 
-    if (!sessionCookie) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!code || !adminId) {
+      return NextResponse.json(
+        { success: false, error: "Code and admin ID are required" },
+        { status: 400 }
+      );
     }
 
-    const { token } = await request.json();
-    const admin = await prisma.adminUser.findFirst();
+    // Look up the admin user
+    const admin = await prisma.adminUser.findUnique({
+      where: { id: adminId },
+    });
 
-    if (!admin || !admin.twoFactorSecret) {
-      return NextResponse.json({ error: 'Setup not initiated' }, { status: 400 });
+    if (!admin) {
+      return NextResponse.json(
+        { success: false, error: "Admin user not found" },
+        { status: 404 }
+      );
     }
 
-    const result = await verify({ token, secret: admin.twoFactorSecret });
-    const isValid = typeof result === 'boolean' ? result : result.valid;
+    if (!admin.twoFactorSecret) {
+      return NextResponse.json(
+        { success: false, error: "2FA not set up for this admin" },
+        { status: 400 }
+      );
+    }
+
+    // Verify the TOTP code
+    const isValid = verify({ secret: admin.twoFactorSecret, token: code });
 
     if (!isValid) {
-      return NextResponse.json({ error: 'Invalid authenticator code' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "Invalid 2FA code" },
+        { status: 401 }
+      );
     }
 
+    // Mark 2FA as enabled and return success
     await prisma.adminUser.update({
-      where: { id: admin.id },
+      where: { id: adminId },
       data: { isTwoFactorEnabled: true },
     });
 
-    return NextResponse.json({ success: true, message: '2FA successfully enabled' });
-  } catch (error) {
-    console.error('2FA verification error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({
+      success: true,
+      message: "2FA verification successful",
+      isTwoFactorEnabled: true,
+    });
+  } catch (error: any) {
+    console.error("Admin 2FA verify error:", error);
+    return NextResponse.json(
+      { success: false, error: error?.message || "Internal server error" },
+      { status: 500 }
+    );
   }
 }

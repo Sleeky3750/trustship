@@ -1,69 +1,48 @@
-import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import { sendWhatsAppMessage } from "@/lib/whatsapp"
-import axios from "axios"
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { sendWhatsAppMessage } from "@/lib/whatsapp";
 
-// POST - Dispatch status update endpoint
 export async function POST(request: NextRequest) {
   try {
-    // 1. Admin authorization check - support multiple header formats
-    const adminSecret =
-      request.headers.get("x-admin-secret") ||
-      (request.headers.get("authorization")?.startsWith("Bearer ") && request.headers.get("authorization")!.substring(7)) ||
-      request.cookies.get("admin_secret")?.value;
+    const { transactionRef, courierName, courierPhone } = await request.json();
 
-    if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!transactionRef) {
+      return NextResponse.json({ error: "Transaction reference is required" }, { status: 400 });
     }
 
-    const body = await request.json()
-    const { transactionId, courierName, courierPhone } = body
+    const transaction = await prisma.escrowTransaction.findUnique({
+      where: { transactionRef },
+    });
 
-    // Validate required fields
-    if (!transactionId) {
-      return NextResponse.json(
-        { error: "Missing required field: transactionId" },
-        { status: 400 }
-      )
+    if (!transaction) {
+      return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
     }
 
-    // Update transaction: set dispatchStatus to IN_TRANSIT, status to DISPATCHED
-    const transaction = await prisma.escrowTransaction.update({
-      where: { id: transactionId },
+    // Update dispatch details and status
+    const updated = await prisma.escrowTransaction.update({
+      where: { id: transaction.id },
       data: {
-        dispatchStatus: "IN_TRANSIT",
         status: "DISPATCHED",
-        courierName,
-        courierPhone,
-        updatedAt: new Date(),
+        dispatchStatus: "IN_TRANSIT",
+        courierName: courierName || null,
+        courierPhone: courierPhone || null,
       },
-    })
+    });
 
-    // Notify Buyer via WhatsApp with courier details
+    // Notify buyer via WhatsApp
     if (transaction.buyerPhone) {
-      let courierInfo = ""
-      if (courierName && courierPhone) {
-        courierInfo = `\nCourier: ${courierName}\nPhone: ${courierPhone}`
-      }
+      const whatsappMessage = `📦 *Escrow Update (${transactionRef})*\n\n` +
+        `Your item has been *DISPATCHED*!${
+          courierName ? `\n• Courier: ${courierName}` : ""
+        }${courierPhone ? `\n• Courier Phone: ${courierPhone}` : ""}\n\n` +
+        `Please inspect the package carefully upon delivery.`;
 
-      await sendWhatsAppMessage(
-        transaction.buyerPhone,
-        `🚚 Your item has been dispatched!\n\n` +
-          `Transaction Reference: ${transaction.transactionRef}\n` +
-`Total Paid: ₦${transaction.totalEscrow}\n` +
-`${courierInfo}\nYou can track your waybill status. The courier will deliver your item shortly.`
-      )
+      await sendWhatsAppMessage(transaction.buyerPhone, whatsappMessage);
     }
 
-    return NextResponse.json(
-      { success: true, data: transaction },
-      { status: 200 }
-    )
-  } catch (error) {
-    console.error("Dispatch endpoint error:", error)
-    return NextResponse.json(
-      { error: "Failed to update dispatch status" },
-      { status: 500 }
-    )
+    return NextResponse.json({ success: true, transaction: updated });
+  } catch (error: any) {
+    console.error("Dispatch update error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

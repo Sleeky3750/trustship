@@ -1,69 +1,95 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
-import { verify } from 'otplib';
-import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
-export const dynamic = 'force-dynamic';
+const JWT_SECRET = process.env.JWT_SECRET || "default-jwt-secret-change-in-production";
 
-const prisma = new PrismaClient();
-
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const { email, password, token } = await request.json();
+    const body = await request.json();
+    const { email, password } = body;
 
     if (!email || !password) {
-      return NextResponse.json({ error: 'Email and password required' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "Email and password are required" },
+        { status: 400 }
+      );
     }
 
-    const admin = await prisma.adminUser.findUnique({ where: { email } });
+    // 1. Find admin user by email
+    const admin = await prisma.adminUser.findUnique({
+      where: { email: email.toLowerCase().trim() },
+    });
 
     if (!admin) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+      return NextResponse.json(
+        { success: false, error: "Invalid email or password" },
+        { status: 401 }
+      );
     }
 
-    const isPasswordValid = await bcrypt.compare(password, admin.password);
+    // 2. Verify password (supports both hashed and plain text for legacy setup migration)
+    let isPasswordValid = false;
+    if (admin.password.startsWith("$2a$") || admin.password.startsWith("$2b$")) {
+      isPasswordValid = await bcrypt.compare(password, admin.password);
+    } else {
+      isPasswordValid = admin.password === password;
+    }
 
     if (!isPasswordValid) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+      return NextResponse.json(
+        { success: false, error: "Invalid email or password" },
+        { status: 401 }
+      );
     }
 
-    // If 2FA is enabled
+    // 3. Check if 2F is enabled (prepare for 2FA verification step if needed)
     if (admin.isTwoFactorEnabled) {
-      if (!token) {
-        return NextResponse.json({ requires2FA: true }, { status: 200 });
-      }
-
-      if (!admin.twoFactorSecret) {
-        return NextResponse.json({ error: '2FA configuration missing' }, { status: 400 });
-      }
-
-      // Properly AWAIT verify and check result.valid property
-      const result = await verify({
-        token: token.trim(),
-        secret: admin.twoFactorSecret,
-      });
-
-      if (!result.valid) {
-        return NextResponse.json({ error: 'Invalid 2FA security code.' }, { status: 400 });
-      }
+      return NextResponse.json(
+        {
+          success: true,
+          requires2FA: true,
+          adminId: admin.id,
+          message: "2FA verification required",
+        },
+        { status: 200 }
+      );
     }
 
-    // Set Admin Session Cookie
-    const cookieStore = await cookies();
-    cookieStore.set('trustship_admin_session', admin.id, {
+    // 4. Mint JWT token for authenticated admin (when 2FA is not enabled)
+    const token = jwt.sign({ adminId: admin.id }, JWT_SECRET, { expiresIn: "1d" });
+
+    // 5. Set JWT token in httpOnly cookie and return success
+    const response = NextResponse.json(
+      {
+        success: true,
+        message: "Login successful",
+        admin: {
+          id: admin.id,
+          email: admin.email,
+          name: admin.name,
+          role: admin.role,
+        },
+      },
+      { status: 200 }
+    );
+
+    response.cookies.set("admin_token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-      maxAge: 60 * 60 * 24, // 24 hours
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24, // 1 day
     });
 
-    return NextResponse.json({
-      success: true,
-      admin: { id: admin.id, email: admin.email, role: admin.role },
-    });
+    return response;
   } catch (error: any) {
-    console.error('Login error:', error);
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
+    console.error("Admin login error:", error);
+    // CRITICAL: Always return JSON, never let Next.js return HTML error pages
+    return NextResponse.json(
+      { success: false, error: error?.message || "Internal server error" },
+      { status: 500 }
+    );
   }
 }

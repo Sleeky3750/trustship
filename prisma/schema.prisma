@@ -63,7 +63,10 @@ model EscrowTransaction {
   transactionRef  String   @unique
   currency        String   @default("NGN")
   countryCode     String   @default("NG")
-  paymentProvider String   @default("PAYSTACK")
+  paymentProvider String   @default("FLUTTERWAVE")
+  
+  flwTransactionId String?
+
 
   itemAmount    Float
   waybillAmount Float

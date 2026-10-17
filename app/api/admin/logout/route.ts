@@ -1,19 +1,22 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    cookieStore.set('trustship_admin_session', '', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      path: '/',
-      maxAge: 0, // Expire immediately
+    // Clear the admin session cookie
+    const response = NextResponse.json({
+      success: true,
+      message: "Admin logged out successfully",
     });
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Logout error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    // Remove the admin session cookie
+    response.cookies.delete('trustship_admin_session');
+
+    return response;
+  } catch (error: any) {
+    console.error("Admin logout error:", error);
+    return NextResponse.json(
+      { success: false, error: error?.message || "Internal server error" },
+      { status: 500 }
+    );
   }
 }

@@ -1,93 +1,97 @@
-'use client';
+"use client";
 
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
-interface Transaction {
-  id: string;
-  transactionRef: string;
-  itemPrice: number;
-  totalAmount: number;
-  status: string;
-  buyerPhone: string;
-}
-
-export default function CheckoutPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params);
-  const [tx, setTx] = useState<Transaction | null>(null);
+export default function CheckoutPage() {
+  const params = useParams();
+  const id = params?.id as string; // This is the transactionRef (e.g. TS-ESCROW-...)
+  
   const [loading, setLoading] = useState(true);
+  const [transaction, setTransaction] = useState<any>(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    async function loadTx() {
+    if (!id) return;
+    
+    // Fetch transaction details from a backend endpoint if needed, 
+    // or parse from URL / verify status
+    async function fetchDetails() {
       try {
-        const res = await fetch(`/api/checkout/${resolvedParams.id}`);
+        const res = await fetch(`/api/escrow/status?ref=${id}`);
         const data = await res.json();
-        if (data.success) {
-          setTx(data.transaction);
+        if (res.ok) {
+          setTransaction(data.transaction);
+        } else {
+          setError(data.error || "Transaction not found");
         }
       } catch (err) {
-        console.error('Failed to load transaction');
+        setError("Failed to load transaction details.");
       } finally {
         setLoading(false);
       }
     }
-    loadTx();
-  }, [resolvedParams.id]);
+
+    fetchDetails();
+  }, [id]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center font-sans">
-        <p className="text-sm animate-pulse">Loading TrustShip Escrow Checkout...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <p className="text-gray-600 animate-pulse font-medium">Loading TrustShip Escrow details...</p>
       </div>
     );
   }
 
-  if (!tx) {
+  if (error || !transaction) {
     return (
-      <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center font-sans p-4">
-        <div className="bg-slate-800 p-6 rounded-2xl max-w-sm w-full text-center space-y-3 border border-slate-700">
-          <h2 className="text-lg font-bold text-red-400">Transaction Not Found</h2>
-          <p className="text-xs text-slate-400">This escrow link may have expired or is invalid.</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="max-w-md w-full bg-white rounded-xl shadow-md p-6 text-center">
+          <h2 className="text-xl font-bold text-red-600 mb-2">Error</h2>
+          <p className="text-gray-600">{error || "Escrow transaction could not be found."}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center font-sans p-4">
-      <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl max-w-md w-full shadow-2xl space-y-6">
-        <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500 mx-auto flex items-center justify-center text-white font-black text-xl">
-            TS
-          </div>
-          <h1 className="text-xl font-bold">TrustShip Escrow Deposit</h1>
-          <p className="text-xs text-slate-400">Ref: <span className="font-mono text-emerald-400">{tx.transactionRef}</span></p>
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-lg mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+        <div className="bg-blue-600 px-6 py-4 text-white">
+          <h1 className="text-lg font-bold">TrustShip Secure Escrow</h1>
+          <p className="text-xs text-blue-100 font-mono mt-1">Ref: {transaction.transactionRef}</p>
         </div>
+        
+        <div className="p-6 space-y-4">
+          <div className="flex justify-between border-b pb-3">
+            <span className="text-gray-500">Item Description</span>
+            <span className="font-semibold text-gray-800">{transaction.itemTitle}</span>
+          </div>
 
-        <div className="bg-slate-800/50 p-4 rounded-2xl space-y-2 border border-slate-700/50 text-sm">
-          <div className="flex justify-between text-xs text-slate-400">
-            <span>Escrow Amount</span>
-            <span className="font-semibold text-white">₦{(tx.totalAmount || tx.itemPrice || 0).toLocaleString()}</span>
+          <div className="flex justify-between border-b pb-3">
+            <span className="text-gray-500">Total Escrow Amount</span>
+            <span className="font-bold text-green-600 text-lg">₦{transaction.totalEscrow?.toLocaleString()}</span>
           </div>
-          <div className="flex justify-between text-xs text-slate-400">
-            <span>Buyer Phone</span>
-            <span className="font-mono text-white">+{tx.buyerPhone}</span>
+
+          <div className="flex justify-between border-b pb-3">
+            <span className="text-gray-500">Current Status</span>
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+              {transaction.status}
+            </span>
           </div>
-          <div className="flex justify-between text-xs text-slate-400">
-            <span>Status</span>
-            <span className="text-yellow-400 font-medium">{tx.status}</span>
+
+          <div className="pt-4">
+            {transaction.status === "PENDING_DEPOSIT" ? (
+              <div className="text-center text-sm text-gray-500 bg-blue-50 p-4 rounded-lg">
+                Please complete your payment via the link sent to your WhatsApp or restart the payment session.
+              </div>
+            ) : (
+              <div className="text-center text-sm text-green-600 bg-green-50 p-4 rounded-lg font-medium">
+                Payment verified & escrow locked securely! Track status via WhatsApp.
+              </div>
+            )}
           </div>
         </div>
-
-        <button
-          onClick={() => alert('Paystack integration active! Proceeding to Paystack checkout gateway...')}
-          className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-4 rounded-2xl text-sm transition shadow-lg shadow-emerald-500/20"
-        >
-          Pay ₦{(tx.totalAmount || tx.itemPrice || 0).toLocaleString()} into Escrow
-        </button>
-
-        <p className="text-[11px] text-slate-500 text-center">
-          🔒 Funds are held safely in TrustShip Escrow and only released when you confirm delivery.
-        </p>
       </div>
     </div>
   );

@@ -1,51 +1,71 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { sendWhatsAppMessage } from "@/lib/whatsapp";
+import { TransactionStatus } from "@prisma/client";
 
-export const dynamic = 'force-dynamic';
-const prisma = new PrismaClient();
-
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const { transactionId, buyerPhone } = await request.json();
+    const { transactionRef } = await request.json();
 
-    if (!transactionId) {
-      return NextResponse.json({ error: 'Transaction ID is required' }, { status: 400 });
+    if (!transactionRef) {
+      return NextResponse.json(
+        { error: "Transaction reference is required" },
+        { status: 400 }
+      );
     }
 
     const transaction = await prisma.escrowTransaction.findUnique({
-      where: { id: transactionId },
+      where: { transactionRef },
     });
 
     if (!transaction) {
-      return NextResponse.json({ error: 'Transaction not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: "Transaction not found" },
+        { status: 404 }
+      );
     }
 
-    if (buyerPhone && transaction.buyerPhone !== buyerPhone) {
-      return NextResponse.json({ error: 'Unauthorized: Phone number does not match buyer' }, { status: 403 });
+    // Prevent duplicate processing
+    if (transaction.status === TransactionStatus.DELIVERED) {
+      return NextResponse.json(
+        { message: "Delivery already confirmed for this transaction" },
+        { status: 200 }
+      );
     }
 
-    // Update status securely with data object and type cast
-    const updatedTx = await prisma.escrowTransaction.update({
-      where: { id: transactionId },
-      data: { status: 'RELEASED' as any },
-    });
-
-    await prisma.adminAuditLog.create({
+    // Mark shipment as DELIVERED with timestamp
+    const now = new Date();
+    const updatedTransaction = await prisma.escrowTransaction.update({
+      where: { id: transaction.id },
       data: {
-        adminId: 'BUYER_ACTION',
-        action: 'CONFIRM_DELIVERY',
-        ipAddress: request.headers.get('x-forwarded-for') || 'BUYER_WHATSAPP',
-        details: `Buyer confirmed delivery for ref: ${updatedTx.transactionRef}. Funds released.`,
+        status: TransactionStatus.DELIVERED,
+        dispatchStatus: "DELIVERED",
+        updatedAt: now,
       },
     });
 
+    // WhatsApp Inspection Prompt: Alert buyer via WhatsApp to inspect the item and input/share the Release PIN
+    if (transaction.buyerPhone) {
+      const inspectionMessage = `📦 *Delivery Confirmed (${transactionRef})*\n\n` +
+        `The item has been marked as delivered.\n\n` +
+        `• Please inspect the item carefully.\n` +
+        `• Share or input the 4-digit Release PIN to release funds to the seller.\n` +
+        `• You have a 7-day inspection window to raise any disputes.\n\n` +
+        `Release PIN: ${transaction.releasePin}`;
+
+      await sendWhatsAppMessage(transaction.buyerPhone, inspectionMessage);
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'Delivery confirmed successfully. Funds released.',
-      transaction: updatedTx,
+      message: "Delivery confirmed and inspection prompt sent via WhatsApp",
+      transaction: updatedTransaction,
     });
   } catch (error: any) {
-    console.error('Confirm delivery error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error("Confirm delivery error:", error);
+    return NextResponse.json(
+      { error: error?.message || "Internal server error" },
+      { status: 500 }
+    );
   }
 }

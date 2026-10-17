@@ -1,31 +1,51 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import jwt from "jsonwebtoken";
 
-const prisma = new PrismaClient();
+const JWT_SECRET = process.env.JWT_SECRET || "default-jwt-secret-change-in-production";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('trustship_admin_session');
+    const token = request.cookies.get("admin_token")?.value;
 
-    if (!sessionCookie) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // For secure lookup, we pull the admin record. (If session stores email or ID, adjust here).
-    // Let's fallback to the primary active admin or query by stored session value.
-    const admin = await prisma.adminUser.findFirst({
-      select: { id: true, email: true, name: true, role: true, isTwoFactorEnabled: true }
+    const decoded = jwt.verify(token, JWT_SECRET) as { adminId: string };
+
+    const admin = await prisma.adminUser.findUnique({
+      where: { id: decoded.adminId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        twoFactorSecret: true,
+        isTwoFactorEnabled: true,
+      },
     });
 
     if (!admin) {
-      return NextResponse.json({ error: 'Admin not found' }, { status: 404 });
+      return NextResponse.json({ error: "Admin not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, admin });
+    // Compute 2FA state reliably from twoFactorSecret presence
+    // This avoids Prisma boolean select quirks that may always return true
+    const computedIsTwoFactorEnabled = !!(admin.twoFactorSecret || admin.isTwoFactorEnabled);
+
+    return NextResponse.json({
+      success: true,
+      admin: {
+        id: admin.id,
+        email: admin.email,
+        name: admin.name,
+        role: admin.role,
+        isTwoFactorEnabled: computedIsTwoFactorEnabled,
+        twoFactorSecret: admin.twoFactorSecret,
+      },
+    });
   } catch (error) {
-    console.error('Session check error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: "Invalid or expired token" }, { status: 401 });
   }
 }
