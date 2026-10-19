@@ -45,7 +45,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isSuperAdmin = adminRole === 'SUPER_ADMIN';
 
   return (
-    <div className="flex h-screen bg-gray-50 text-gray-900 font-sans">
+    <div className="flex h-screen bg-[#03070A] text-slate-100 font-sans">
       {/* Admin Sidebar */}
       <aside className="w-64 bg-slate-900 text-slate-100 flex flex-col p-6 shadow-xl">
         <div className="mb-8">

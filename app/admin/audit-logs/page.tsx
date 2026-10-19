@@ -48,11 +48,11 @@ export default function AdminAuditLogsPage() {
   });
 
   return (
-    <div className="space-y-6 text-black">
+    <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Immutable Audit Logs</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-slate-100">Immutable Audit Logs</h1>
+        <p className="text-sm text-slate-400 mt-1">
           Forensic records of all administrative actions, logins, and IP forensics across TrustShip.
         </p>
       </div>
@@ -64,9 +64,9 @@ export default function AdminAuditLogsPage() {
           placeholder="Search by action, admin email, IP address, or details..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full max-w-md px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm shadow-sm"
+          className="w-full max-w-md px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-400 text-sm shadow-sm"
         />
-        <span className="text-xs font-medium text-gray-500 bg-gray-100 px-3 py-2 rounded-lg">
+        <span className="text-xs font-medium text-slate-300 bg-slate-800 px-3 py-2 rounded-lg">
           Showing {filteredLogs.length} of {logs.length} records
         </span>
       </div>
@@ -79,7 +79,7 @@ export default function AdminAuditLogsPage() {
       )}
 
       {/* Logs Table */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white text-slate-900 rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>

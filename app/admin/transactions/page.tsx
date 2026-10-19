@@ -82,10 +82,10 @@ export default function AdminTransactionsPage() {
   const isSuperAdmin = adminRole === 'SUPER_ADMIN';
 
   return (
-    <div className="space-y-6 text-black">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Escrow Transactions Management</h1>
-        <p className="text-sm text-gray-500 mt-1">Monitor multi-state transaction lifecycles and connect instantly with parties via WhatsApp.</p>
+        <h1 className="text-2xl font-bold text-slate-100">Escrow Transactions Management</h1>
+        <p className="text-sm text-slate-400 mt-1">Monitor multi-state transaction lifecycles and connect instantly with parties via WhatsApp.</p>
       </div>
 
       {actionMessage && (
@@ -100,7 +100,7 @@ export default function AdminTransactionsPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+      <div className="bg-white text-slate-900 rounded-2xl shadow-sm border border-gray-100 p-6">
         {isLoading ? (
           <p className="text-gray-500 text-center py-8">Loading escrow records...</p>
         ) : (
