@@ -23,31 +23,65 @@ export default function AdminAuditLogsPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    let isMounted = true;
+
     async function fetchLogs() {
       try {
         const res = await fetch('/api/admin/audit-logs');
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Failed to fetch audit logs');
-        setLogs(data.logs);
+        let data: any = null;
+        try {
+          data = await res.json();
+        } catch {
+          // Non-JSON response (e.g. proxy HTML error page) — treat as failure.
+          data = null;
+        }
+        if (!res.ok) {
+          throw new Error(data?.error || 'Failed to fetch audit logs');
+        }
+        // Never trust the response shape: only accept a real array.
+        const payload = Array.isArray(data?.logs)
+          ? data.logs
+          : Array.isArray(data?.auditLogs)
+            ? data.auditLogs
+            : [];
+        if (isMounted) setLogs(payload);
       } catch (err: any) {
-        setError(err.message);
+        if (isMounted) {
+          setError(err?.message || 'Failed to fetch audit logs');
+          setLogs([]);
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     }
     fetchLogs();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
+  // Defense-in-depth: `logs` is always treated as an array even if state is
+  // somehow set to a non-array value.
+  const safeLogs: AuditLog[] = Array.isArray(logs) ? logs : [];
+
   // Filter logs by action, admin email, or IP address
-  const filteredLogs = logs.filter((log) => {
+  const filteredLogs = safeLogs.filter((log) => {
     const term = searchTerm.toLowerCase();
     return (
-      log.action.toLowerCase().includes(term) ||
-      log.admin.email.toLowerCase().includes(term) ||
-      log.ipAddress.toLowerCase().includes(term) ||
-      log.details.toLowerCase().includes(term)
+      (log?.action || '').toLowerCase().includes(term) ||
+      (log?.admin?.email || '').toLowerCase().includes(term) ||
+      (log?.ipAddress || '').toLowerCase().includes(term) ||
+      (log?.details || '').toLowerCase().includes(term)
     );
   });
+
+  // Null-safe timestamp rendering: `toISOString()` throws on invalid dates.
+  const formatTimestamp = (value?: string | null): string => {
+    if (!value) return '-';
+    const date = new Date(value);
+    return isNaN(date.getTime()) ? String(value) : date.toISOString();
+  };
 
   return (
     <div className="space-y-6">
@@ -69,7 +103,7 @@ export default function AdminAuditLogsPage() {
           className="w-full max-w-md px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-400 text-sm shadow-sm"
         />
         <span className="text-xs font-medium text-slate-300 bg-slate-800 px-3 py-2 rounded-lg">
-          Showing {filteredLogs.length} of {logs.length} records
+          Showing {filteredLogs.length} of {safeLogs.length} records
         </span>
       </div>
 
@@ -95,22 +129,39 @@ export default function AdminAuditLogsPage() {
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm">
               {isLoading ? (
-                <tr>
-                  <td colSpan={5} className="py-12 text-center text-gray-400">
-                    Loading audit records...
-                  </td>
-                </tr>
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={`skeleton-${i}`} className="animate-pulse">
+                    <td className="py-4 px-6">
+                      <div className="h-3 w-28 bg-gray-200 rounded" />
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="h-3 w-40 bg-gray-200 rounded" />
+                      <div className="h-2.5 w-24 bg-gray-100 rounded mt-2" />
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="h-5 w-24 bg-gray-200 rounded-lg" />
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="h-3 w-32 bg-gray-200 rounded" />
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="h-3 w-24 bg-gray-200 rounded" />
+                    </td>
+                  </tr>
+                ))
               ) : filteredLogs.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-12 text-center text-gray-400">
-                    No audit logs found matching your criteria.
+                    {safeLogs.length === 0
+                      ? 'No audit logs recorded yet.'
+                      : 'No audit logs found matching your criteria.'}
                   </td>
                 </tr>
               ) : (
                 filteredLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-gray-50 transition">
+                  <tr key={log.id || log.createdAt} className="hover:bg-gray-50 transition">
                     <td className="py-4 px-6 text-gray-500 text-xs whitespace-nowrap font-mono">
-                      {new Date(log.createdAt).toISOString()}
+                      {formatTimestamp(log.createdAt)}
                     </td>
                     <td className="py-4 px-6">
                       <div className="font-medium text-gray-900">{log.admin?.email || log.adminId}</div>

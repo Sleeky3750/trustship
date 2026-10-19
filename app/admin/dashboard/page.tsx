@@ -33,8 +33,8 @@ export default function AdminDashboardPage() {
     try {
       const res = await fetch("/api/admin/audit-logs?limit=5");
       const data = await res.json();
-      if (data.success && data.auditLogs) {
-        setRecentLogs(data.auditLogs);
+      if (data.success && Array.isArray(data.auditLogs)) {
+        setRecentLogs(data.auditLogs.slice(0, 5));
       }
     } catch (err) {
       console.error("Failed to fetch recent audit logs", err);
@@ -360,7 +360,12 @@ export default function AdminDashboardPage() {
                   recentLogs.map((log: any) => (
                     <tr key={log.id} className="hover:bg-[#030611]/40 transition">
                       <td className="py-2.5 px-4 text-slate-400 font-mono text-[11px] whitespace-nowrap">
-                        {new Date(log.createdAt).toISOString()}
+                        {(() => {
+                          const d = new Date(log.createdAt);
+                          return isNaN(d.getTime())
+                            ? String(log.createdAt || '-')
+                            : d.toISOString();
+                        })()}
                       </td>
                       <td className="py-2.5 px-4">
                         <div className="text-slate-200 text-[11px]">

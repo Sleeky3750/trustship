@@ -11,8 +11,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const adminId = searchParams.get("adminId");
     const action = searchParams.get("action");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1);
+    const limit = Math.min(
+      100,
+      Math.max(1, parseInt(searchParams.get("limit") || "20", 10) || 20)
+    );
 
     // Build where clause for filtering
     const where: any = {};
@@ -46,6 +49,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      // `logs` is the canonical key; `auditLogs` is kept as an alias for
+      // consumers (e.g. the dashboard Recent Activity widget) that read it.
+      logs: auditLogs,
       auditLogs,
       pagination: {
         total: totalCount,
@@ -57,7 +63,12 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error("Admin audit logs error:", error);
     return NextResponse.json(
-      { success: false, error: error?.message || "Internal server error" },
+      {
+        success: false,
+        logs: [],
+        auditLogs: [],
+        error: error?.message || "Internal server error",
+      },
       { status: 500 }
     );
   }
