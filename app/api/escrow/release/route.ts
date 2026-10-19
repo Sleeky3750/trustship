@@ -3,9 +3,15 @@ import { prisma } from "@/lib/prisma";
 import { initiateFlutterwaveTransfer } from "@/lib/flutterwave";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { TransactionStatus } from "@prisma/client";
+import { computePayoutAmount } from "@/lib/payout";
+import { requireAdmin } from "@/lib/admin-auth";
 
 export async function POST(request: NextRequest) {
   try {
+    // Releasing escrow is a money-moving admin action.
+    const auth = await requireAdmin(request);
+    if (auth.error) return auth.error;
+
     const { transactionRef, releasePin } = await request.json();
 
     if (!transactionRef) {
@@ -56,13 +62,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 5. Initiate automated payout transfer via Flutterwave
+    // 5. Initiate automated payout transfer via Flutterwave.
+    //    payoutAmount = totalEscrow - platformFee (see lib/payout.ts).
     const payoutRef = `TS-PAYOUT-${Date.now()}`;
+    const payoutAmount = computePayoutAmount(transaction);
 
     const transferResult = await initiateFlutterwaveTransfer({
       accountBank: transaction.seller.bankCode,
       accountNumber: transaction.seller.accountNumber,
-      amount: transaction.itemAmount,
+      amount: payoutAmount,
       narration: `TrustShip Payout: ${transaction.transactionRef}`,
       reference: payoutRef,
       beneficiaryName: transaction.seller.name || "TrustShip Seller",
@@ -83,7 +91,7 @@ export async function POST(request: NextRequest) {
         await sendWhatsAppMessage(
           transaction.sellerPhone,
           `🎉 *Funds Released (${transactionRef})*\n\n` +
-            `The escrow payment of *₦${transaction.itemAmount.toLocaleString()}* has been released and transferred to your bank account (${transaction.seller.bankName}).`
+            `The escrow payment of *₦${payoutAmount.toLocaleString()}* has been released and transferred to your bank account (${transaction.seller.bankName}).`
         );
       } catch (wsErr) {
         console.warn("Failed to send WhatsApp notification:", wsErr);
@@ -95,6 +103,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "Funds successfully released to seller",
+      payoutAmount,
       payoutReference: payoutRef,
       transferDetails: transferResult,
       transaction: updatedTransaction,

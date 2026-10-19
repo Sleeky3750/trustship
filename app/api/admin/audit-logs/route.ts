@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/admin-auth";
 
 export async function GET(request: NextRequest) {
   try {
+    // Audit trails are restricted to SUPER_ADMIN (mirrors the sidebar gating).
+    const auth = await requireAdmin(request, { roles: ["SUPER_ADMIN"] });
+    if (auth.error) return auth.error;
+
     const { searchParams } = new URL(request.url);
     const adminId = searchParams.get("adminId");
     const action = searchParams.get("action");

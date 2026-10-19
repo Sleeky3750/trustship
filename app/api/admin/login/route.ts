@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { JWT_SECRET } from "@/lib/admin-auth";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "default-jwt-secret-change-in-production";
+import { verify } from "otplib";
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,20 +44,64 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Check if 2F is enabled (prepare for 2FA verification step if needed)
-    if (admin.isTwoFactorEnabled) {
-      return NextResponse.json(
-        {
-          success: true,
-          requires2FA: true,
-          adminId: admin.id,
-          message: "2FA verification required",
-        },
-        { status: 200 }
+    // 3. Two-factor authentication: enrolled admins must present a valid TOTP code
+    const hasTokenField = Object.prototype.hasOwnProperty.call(body, "token");
+    const totpCode =
+      typeof body.token === "string" ? body.token.trim() : body.token;
+
+    if (admin.isTwoFactorEnabled && admin.twoFactorSecret) {
+      if (!totpCode) {
+        // A second step was submitted with an empty code → explicit error.
+        if (hasTokenField) {
+          return NextResponse.json(
+            { success: false, error: "2FA code is required" },
+            { status: 400 }
+          );
+        }
+        // First step: password accepted, now ask for the authenticator code.
+        return NextResponse.json(
+          {
+            success: true,
+            requires2FA: true,
+            message: "2FA verification required",
+          },
+          { status: 200 }
+        );
+      }
+
+      try {
+        const result = await verify({
+          secret: admin.twoFactorSecret,
+          token: String(totpCode),
+          epochTolerance: 30, // accept ±1 time step to tolerate clock drift
+        });
+        if (!result.valid) {
+          return NextResponse.json(
+            { success: false, error: "Invalid 2FA code" },
+            { status: 401 }
+          );
+        }
+      } catch (err: any) {
+        // Malformed code (e.g. not 6 digits) or crypto failure — treat as invalid
+        console.error(
+          "Admin login TOTP verification error:",
+          err?.message || err
+        );
+        return NextResponse.json(
+          { success: false, error: "Invalid 2FA code" },
+          { status: 401 }
+        );
+      }
+    } else if (admin.isTwoFactorEnabled) {
+      // Flag set but no secret stored: only reachable via manual DB edits.
+      // Password still gates access — refusing here would hard-lock the admin
+      // out of an account whose authenticator can never work again anyway.
+      console.warn(
+        `[admin-login] admin ${admin.id} has isTwoFactorEnabled=true but no twoFactorSecret; falling back to password-only login`
       );
     }
 
-    // 4. Mint JWT token for authenticated admin (when 2FA is not enabled)
+    // 4. Mint JWT token for authenticated admin (password + TOTP both passed)
     const token = jwt.sign({ adminId: admin.id }, JWT_SECRET, { expiresIn: "1d" });
 
     // 5. Set JWT token in httpOnly cookie and return success

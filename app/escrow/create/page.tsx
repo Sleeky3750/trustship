@@ -17,6 +17,7 @@ export default function CreateEscrowPage() {
 
   const [formData, setFormData] = useState({
     currency: "NGN",
+    itemTitle: "",
     itemAmount: "",
     waybillAmount: "",
     waybillPayer: "BUYER",
@@ -90,6 +91,20 @@ export default function CreateEscrowPage() {
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Item Title (optional) */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Item Title <span className="text-slate-400 font-normal">(optional)</span>
+            </label>
+            <input
+              type="text"
+              placeholder="e.g. iPhone 13 Pro - 256GB"
+              value={formData.itemTitle}
+              onChange={(e) => setFormData({ ...formData, itemTitle: e.target.value })}
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-slate-800"
+            />
           </div>
 
           {/* Item Amount Input */}

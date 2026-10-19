@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function AdminLoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [token, setToken] = useState('');
@@ -28,7 +30,7 @@ export default function AdminLoginPage() {
 
       const data = await res.json();
 
-      if (!res.ok) {
+      if (!res.ok || !data.success) {
         throw new Error(data.error || 'Login failed');
       }
 
@@ -39,8 +41,10 @@ export default function AdminLoginPage() {
         return;
       }
 
-      // Success! Perform hard navigation so session cookie attaches cleanly
-      window.location.href = '/admin';
+      // Success (HTTP 200): the admin_token cookie is now set — enter the dashboard
+      setIsLoading(false);
+      router.push('/admin/dashboard');
+      router.refresh();
     } catch (err: any) {
       setError(err.message || 'An error occurred during login');
       setIsLoading(false);

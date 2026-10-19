@@ -23,12 +23,17 @@ export async function GET(request: NextRequest) {
       transaction: {
         id: transaction.id,
         transactionRef: transaction.transactionRef,
+        itemTitle: transaction.itemTitle,
+        currency: transaction.currency,
         status: transaction.status,
         dispatchStatus: transaction.dispatchStatus,
         totalEscrow: transaction.totalEscrow,
         itemAmount: transaction.itemAmount,
         waybillAmount: transaction.waybillAmount,
-        releasePin: transaction.releasePin,
+        waybillPayer: transaction.waybillPayer,
+        platformFee: transaction.platformFee,
+        // releasePin is intentionally NOT returned here: this endpoint is
+        // publicly reachable and the PIN is what authorises fund release.
         createdAt: transaction.createdAt,
         updatedAt: transaction.updatedAt,
       },

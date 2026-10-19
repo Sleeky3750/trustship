@@ -1,13 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/admin-auth";
+import { initiateFlutterwaveTransfer } from "@/lib/flutterwave";
+import { computePayoutAmount } from "@/lib/payout";
+import { sendWhatsAppMessage } from "@/lib/whatsapp";
 
-export async function POST(request: NextRequest) {
+type ActionContext = { params: Promise<{ ref: string; action: string }> };
+
+export async function POST(request: NextRequest, context: ActionContext) {
   try {
-    // Extract dynamic route params from URL pathname
-    const url = new URL(request.url);
-    const pathnameParts = url.pathname.split("/").filter(Boolean);
-    const ref = pathnameParts[pathnameParts.indexOf("admin") + 1];
-    const action = pathnameParts[pathnameParts.indexOf("admin") + 2];
+    // Admin actions on escrows require a valid admin_token session.
+    const auth = await requireAdmin(request);
+    if (auth.error) return auth.error;
+
+    const { ref, action } = await context.params;
 
     if (!ref || !action) {
       return NextResponse.json({ error: "Transaction reference and action are required" }, { status: 400 });
@@ -15,38 +21,83 @@ export async function POST(request: NextRequest) {
 
     const transaction = await prisma.escrowTransaction.findUnique({
       where: { transactionRef: ref },
+      include: { seller: true },
     });
 
     if (!transaction) {
       return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
     }
 
-    // Handle different actions
+    // Parsed once, before the switch, so every action can read it safely.
+    const body = await request.json().catch(() => ({} as any));
+    const { releasePin, disputeFault } = body ?? {};
+
     let updated;
 
     switch (action) {
-      case "release":
-        // This would typically require admin authentication
-        // For now, check if release PIN was provided via query param
-        const body = await request.json();
-        const { releasePin } = body;
-
-        if (!releasePin || transaction.releasePin !== releasePin) {
-          return NextResponse.json({ error: "Invalid release PIN" }, { status: 400 });
+      case "fund": {
+        // Manual "payment received" lock, mirroring the Flutterwave webhook.
+        if (transaction.status !== "PENDING_DEPOSIT") {
+          return NextResponse.json(
+            { error: `Transaction is ${transaction.status}, not PENDING_DEPOSIT` },
+            { status: 409 }
+          );
         }
 
-        // Prevent double release
+        updated = await prisma.escrowTransaction.update({
+          where: { id: transaction.id },
+          data: { status: "ESCROW_LOCKED" },
+        });
+
+        return NextResponse.json({ success: true, transaction: updated });
+      }
+
+      case "release": {
         if (transaction.status === "RELEASED") {
           return NextResponse.json({ message: "Funds already released" }, { status: 200 });
         }
 
-        // Update status to RELEASED
-        updated = await prisma.escrowTransaction.update({
+        // The release PIN is only required when the operator supplies one;
+        // an authenticated admin release can proceed without it.
+        if (releasePin && transaction.releasePin !== releasePin) {
+          return NextResponse.json({ error: "Invalid release PIN" }, { status: 400 });
+        }
+
+        if (!transaction.seller.bankCode || !transaction.seller.accountNumber) {
+          return NextResponse.json({ error: "Seller has no bank account on file" }, { status: 400 });
+        }
+
+        const payoutAmount = computePayoutAmount(transaction);
+        const payoutRef = `TS-ADMIN-REL-${transaction.id}-${Date.now()}`;
+
+        await initiateFlutterwaveTransfer({
+          accountBank: transaction.seller.bankCode,
+          accountNumber: transaction.seller.accountNumber,
+          amount: payoutAmount,
+          narration: `Admin Release for Tx ${transaction.transactionRef}`,
+          reference: payoutRef,
+          beneficiaryName: transaction.seller.name || "TrustShip Seller",
+        });
+
+        const released = await prisma.escrowTransaction.update({
           where: { id: transaction.id },
           data: { status: "RELEASED" },
         });
 
-        return NextResponse.json({ success: true, transaction: updated });
+        if (transaction.sellerPhone) {
+          try {
+            await sendWhatsAppMessage(
+              transaction.sellerPhone,
+              `🎉 *Funds Released (${transaction.transactionRef})*\n\n` +
+                `₦${payoutAmount.toLocaleString()} has been transferred to your bank account (${transaction.seller.bankName}).`
+            );
+          } catch (wsErr) {
+            console.warn("Failed to send WhatsApp notification:", wsErr);
+          }
+        }
+
+        return NextResponse.json({ success: true, payoutAmount, payoutReference: payoutRef, transaction: released });
+      }
 
       case "deliver":
         // Mark as delivered
@@ -58,9 +109,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, transaction: updated });
 
       case "dispute":
-        // Raise dispute
-        const { disputeFault } = body;
-
         if (!disputeFault) {
           return NextResponse.json({ error: "Dispute fault is required" }, { status: 400 });
         }
@@ -81,12 +129,13 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest, context: ActionContext) {
   try {
-    // Extract dynamic route params from URL pathname
-    const url = new URL(request.url);
-    const pathnameParts = url.pathname.split("/").filter(Boolean);
-    const ref = pathnameParts[pathnameParts.indexOf("admin") + 1];
+    // Detail view exposes the release PIN — admin session required.
+    const auth = await requireAdmin(request);
+    if (auth.error) return auth.error;
+
+    const { ref } = await context.params;
 
     if (!ref) {
       return NextResponse.json({ error: "Transaction reference is required" }, { status: 400 });
@@ -105,9 +154,12 @@ export async function GET(request: NextRequest) {
       transaction: {
         id: transaction.id,
         transactionRef: transaction.transactionRef,
+        itemTitle: transaction.itemTitle,
         status: transaction.status,
         dispatchStatus: transaction.dispatchStatus,
         totalEscrow: transaction.totalEscrow,
+        platformFee: transaction.platformFee,
+        // Only an authenticated admin ever sees the release PIN.
         releasePin: transaction.releasePin,
       },
     });

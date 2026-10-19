@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
-    const { transactionRef, waybillNumber, waybillPayer } = await request.json();
+    const { transactionRef, waybillPayer, dispatchStatus } = await request.json();
 
     if (!transactionRef) {
       return NextResponse.json({ error: "Transaction reference is required" }, { status: 400 });
@@ -17,11 +17,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
     }
 
+    // Allow the admin dashboard's "Mark Delivered" action to move the
+    // dispatch state forward alongside the waybill payer.
+    const allowedDispatch = ["PENDING", "IN_TRANSIT", "DELIVERED"];
+    const nextDispatch =
+      typeof dispatchStatus === "string" && allowedDispatch.includes(dispatchStatus)
+        ? dispatchStatus
+        : undefined;
+
     // Update waybill metadata
     const updated = await prisma.escrowTransaction.update({
       where: { id: transaction.id },
       data: {
         waybillPayer: waybillPayer || transaction.waybillPayer,
+        ...(nextDispatch ? { dispatchStatus: nextDispatch } : {}),
+        ...(nextDispatch === "DELIVERED" && transaction.status !== "RELEASED"
+          ? { status: "DELIVERED" }
+          : {}),
       },
     });
 

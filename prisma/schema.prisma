@@ -68,6 +68,8 @@ model EscrowTransaction {
   flwTransactionId String?
 
 
+  itemTitle     String?
+
   itemAmount    Float
   waybillAmount Float
   totalEscrow   Float

@@ -45,7 +45,7 @@ export default function EscrowTrackingPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`/api/escrow/${ref}`);
+      const res = await fetch(`/api/escrow/status?ref=${encodeURIComponent(ref)}`);
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Transaction not found");
@@ -69,7 +69,7 @@ export default function EscrowTrackingPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          transactionId: transaction.id,
+          transactionRef: transaction.transactionRef,
           disputeFault,
           reason: disputeReason,
         }),

@@ -5,15 +5,18 @@ import { DisputeFault, TransactionStatus } from "@prisma/client";
 
 export async function POST(request: NextRequest) {
   try {
-    const { transactionRef, disputeFault, reportedBy } = await request.json();
+    // Accept either the escrow reference or its database id so both the
+    // tracking page (transactionRef) and admin tooling (id) work.
+    const { transactionRef, transactionId, disputeFault, reportedBy, reason } =
+      await request.json();
 
-    if (!transactionRef) {
+    if (!transactionRef && !transactionId) {
       return NextResponse.json({ error: "Transaction reference is required" }, { status: 400 });
     }
 
-    const transaction = await prisma.escrowTransaction.findUnique({
-      where: { transactionRef },
-    });
+    const transaction = transactionRef
+      ? await prisma.escrowTransaction.findUnique({ where: { transactionRef } })
+      : await prisma.escrowTransaction.findUnique({ where: { id: transactionId } });
 
     if (!transaction) {
       return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
@@ -34,10 +37,11 @@ export async function POST(request: NextRequest) {
     });
 
     // Send WhatsApp notification to both parties about the dispute
-    const disputeInfo = `⚠️ *Dispute Raised (${transactionRef})*\n\n` +
+    const disputeInfo = `⚠️ *Dispute Raised (${transaction.transactionRef})*\n\n` +
       `A dispute has been raised for this escrow transaction.\n` +
       `• Dispute Fault: ${disputeFault}\n` +
-      `• Reported by: ${reportedBy}`;
+      `• Reported by: ${reportedBy || "Buyer"}\n` +
+      `• Reason: ${reason || "Not specified"}`;
 
     if (transaction.buyerPhone) {
       await sendWhatsAppMessage(transaction.buyerPhone, disputeInfo);

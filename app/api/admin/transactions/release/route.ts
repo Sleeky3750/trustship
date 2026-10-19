@@ -3,9 +3,18 @@ import { prisma } from "@/lib/prisma";
 import { initiateFlutterwaveTransfer } from "@/lib/flutterwave";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { TransactionStatus } from "@prisma/client";
+import { requireAdmin } from "@/lib/admin-auth";
+import { computePayoutAmount } from "@/lib/payout";
 
 export async function POST(request: NextRequest) {
   try {
+    // Admin identity comes from the admin_token session, never the body.
+    // Fund releases are limited to FINANCE and SUPER_ADMIN (per product intent).
+    const auth = await requireAdmin(request, {
+      roles: ["SUPER_ADMIN", "FINANCE"],
+    });
+    if (auth.error) return auth.error;
+
     const { transactionId } = await request.json();
 
     if (!transactionId) {
@@ -21,8 +30,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
     }
 
-    // Check admin permissions - this route should be protected with admin auth
-    // For now, we'll allow FINANCE and SUPER_ADMIN roles
+    // Admin permissions (FINANCE / SUPER_ADMIN) are enforced by requireAdmin above.
 
     // Prevent double release
     if (transaction.status === TransactionStatus.RELEASED) {
@@ -31,11 +39,12 @@ export async function POST(request: NextRequest) {
 
     // Initiate Flutterwave transfer to seller
     const payoutRef = `TS-ADMIN-REL-${transactionId}-${Date.now()}`;
+    const payoutAmount = computePayoutAmount(transaction);
 
     const transferResult = await initiateFlutterwaveTransfer({
       accountBank: transaction.seller.bankCode,
       accountNumber: transaction.seller.accountNumber,
-      amount: transaction.totalEscrow,
+      amount: payoutAmount,
       narration: `Admin Release for Tx ${transaction.transactionRef}`,
       reference: payoutRef,
       beneficiaryName: transaction.seller.name || "TrustShip Seller",
@@ -53,14 +62,14 @@ export async function POST(request: NextRequest) {
         await sendWhatsAppMessage(
           transaction.sellerPhone,
           `🎉 *Admin Released Funds*\n\n` +
-            `Funds of *₦${transaction.totalEscrow.toLocaleString()}* have been released and transferred to your bank account (${transaction.seller.bankName})`
+            `Funds of *₦${payoutAmount.toLocaleString()}* have been released and transferred to your bank account (${transaction.seller.bankName})`
         );
       } catch (wsErr) {
         console.warn("Failed to send WhatsApp notification:", wsErr);
       }
     }
 
-    return NextResponse.json({ success: true, transaction: updated });
+    return NextResponse.json({ success: true, payoutAmount, transaction: updated });
   } catch (error: any) {
     console.error("Admin transaction release error:", error);
     return NextResponse.json({ error: error?.message || "Internal server error" }, { status: 500 });

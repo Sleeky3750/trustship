@@ -2,9 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { DisputeFault, TransactionStatus } from "@prisma/client";
+import { requireAdmin } from "@/lib/admin-auth";
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request);
+    if (auth.error) return auth.error;
+
     const { transactionRef, disputeFault, resolution, resolvedBy } = await request.json();
 
     if (!transactionRef) {

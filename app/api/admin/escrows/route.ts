@@ -1,44 +1,44 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/admin-auth";
 
+// Returns escrow transactions (this endpoint used to return User records,
+// which is why the admin dashboard read `data.escrows` and rendered nothing).
 export async function GET(request: NextRequest) {
   try {
+    const auth = await requireAdmin(request);
+    if (auth.error) return auth.error;
+
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
     const status = searchParams.get("status");
-    const role = searchParams.get("role");
+    const ref = searchParams.get("ref");
 
-    // Build where clause for filtering
     const where: any = {};
     if (status) {
       where.status = status;
     }
-    if (role) {
-      where.role = role as "BUYER" | "SELLER" | "ADMIN";
+    if (ref) {
+      where.transactionRef = ref;
     }
 
-    // Count total records for pagination
-    const totalCount = await prisma.user.count({ where });
+    const totalCount = await prisma.escrowTransaction.count({ where });
 
-    // Fetch users with pagination
-    const users = await prisma.user.findMany({
+    const escrows = await prisma.escrowTransaction.findMany({
       where,
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * limit,
       take: limit,
-      select: {
-        id: true,
-        name: true,
-        phone: true,
-        role: true,
-        createdAt: true,
+      include: {
+        buyer: { select: { id: true, name: true, phone: true } },
+        seller: { select: { id: true, name: true, phone: true } },
       },
     });
 
     return NextResponse.json({
       success: true,
-      users,
+      escrows,
       pagination: {
         total: totalCount,
         page,

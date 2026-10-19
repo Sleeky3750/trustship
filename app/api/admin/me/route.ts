@@ -1,21 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "default-jwt-secret-change-in-production";
+import { JWT_SECRET } from "@/lib/admin-auth";
 
 export async function GET(request: NextRequest) {
+  const token = request.cookies.get("admin_token")?.value;
+
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // 1. Verify the JWT. On failure, clear the cookie so the middleware stops
+  //    treating this browser as authenticated (prevents redirect loops).
+  let adminId: string;
   try {
-    const token = request.cookies.get("admin_token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const decoded = jwt.verify(token, JWT_SECRET) as { adminId?: string };
+    if (typeof decoded !== "object" || !decoded.adminId) {
+      throw new Error("Malformed token payload");
     }
+    adminId = decoded.adminId;
+  } catch {
+    const response = NextResponse.json(
+      { error: "Invalid or expired token" },
+      { status: 401 }
+    );
+    response.cookies.delete("admin_token");
+    return response;
+  }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as { adminId: string };
-
+  try {
     const admin = await prisma.adminUser.findUnique({
-      where: { id: decoded.adminId },
+      where: { id: adminId },
       select: {
         id: true,
         email: true,
@@ -27,12 +42,22 @@ export async function GET(request: NextRequest) {
     });
 
     if (!admin) {
-      return NextResponse.json({ error: "Admin not found" }, { status: 404 });
+      // Admin account was removed → invalidate the session cookie too.
+      const response = NextResponse.json(
+        { error: "Admin not found" },
+        { status: 404 }
+      );
+      response.cookies.delete("admin_token");
+      return response;
     }
 
-    // Compute 2FA state reliably from twoFactorSecret presence
-    // This avoids Prisma boolean select quirks that may always return true
-    const computedIsTwoFactorEnabled = !!(admin.twoFactorSecret || admin.isTwoFactorEnabled);
+    // Enrolled = flag set AND a TOTP secret exists — the same predicate the
+    // login route uses. Deriving this from secret presence alone reported
+    // "Enabled" after a mere Setup click (before verification), which hid the
+    // enrollment UI while login still did not require a code.
+    const computedIsTwoFactorEnabled = !!(
+      admin.isTwoFactorEnabled && admin.twoFactorSecret
+    );
 
     return NextResponse.json({
       success: true,

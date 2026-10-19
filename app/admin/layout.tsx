@@ -13,6 +13,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     async function checkRole() {
       try {
         const res = await fetch('/api/admin/me');
+        if (res.status === 401 || res.status === 404) {
+          // Session missing or invalid (expired / removed admin) → back to login.
+          // No-op when the login screen itself is the current page.
+          if (window.location.pathname !== '/admin/login') {
+            router.replace('/admin/login');
+          }
+          return;
+        }
         const data = await res.json();
         if (data.success && data.admin) {
           setAdminRole(data.admin.role);
@@ -22,7 +30,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       }
     }
     checkRole();
-  }, []);
+  }, [router]);
 
   const handleLogout = async () => {
     try {

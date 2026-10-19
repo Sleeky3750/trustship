@@ -23,7 +23,7 @@ export async function initializeFlutterwavePayment(params: {
         tx_ref: params.txRef,
         amount: params.amount,
         currency: "NGN",
-        redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/escrow/status?ref=${params.txRef}`,
+        redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/escrow/${params.txRef}`,
         payment_method: "card",
         customer: {
           email: params.email,

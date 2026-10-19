@@ -3,26 +3,20 @@ import { prisma } from "@/lib/prisma";
 import { initiateFlutterwaveTransfer } from "@/lib/flutterwave";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { TransactionStatus } from "@prisma/client";
+import { requireAdmin } from "@/lib/admin-auth";
+import { computePayoutAmount } from "@/lib/payout";
 
 export async function POST(request: NextRequest) {
   try {
-    const { transactionRef, adminId, reason } = await request.json();
+    // Admin identity comes from the admin_token session, never the request body.
+    const auth = await requireAdmin(request);
+    if (auth.error) return auth.error;
+    const admin = auth.admin;
 
-    if (!transactionRef || !adminId) {
-      return NextResponse.json({ error: "Transaction reference and admin ID are required" }, { status: 400 });
-    }
+    const { transactionRef, reason } = await request.json().catch(() => ({} as any));
 
-    // Verify admin exists and has proper permissions (SUPPORT or higher)
-    const admin = await prisma.adminUser.findUnique({
-      where: { id: adminId },
-    });
-
-    if (!admin) {
-      return NextResponse.json({ error: "Admin user not found" }, { status: 404 });
-    }
-
-    if (!["SUPER_ADMIN", "FINANCE", "SUPPORT"].includes(admin.role)) {
-      return NextResponse.json({ error: "Insufficient permissions to release funds" }, { status: 403 });
+    if (!transactionRef) {
+      return NextResponse.json({ error: "Transaction reference is required" }, { status: 400 });
     }
 
     const transaction = await prisma.escrowTransaction.findUnique({
@@ -40,13 +34,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Initiate Flutterwave transfer to seller
-    const payoutRef = `TS-ADMIN-REL-${adminId}-${Date.now()}`;
+    const payoutRef = `TS-ADMIN-REL-${admin.id}-${Date.now()}`;
+    const payoutAmount = computePayoutAmount(transaction);
 
     const transferResult = await initiateFlutterwaveTransfer({
       accountBank: transaction.seller.bankCode,
       accountNumber: transaction.seller.accountNumber,
-      amount: transaction.totalEscrow,
-      narration: `Admin Release for Tx ${transaction.transactionRef} by ${admin.name || adminId}`,
+      amount: payoutAmount,
+      narration: `Admin Release for Tx ${transaction.transactionRef} by ${admin.name || admin.id}`,
       reference: payoutRef,
       beneficiaryName: transaction.seller.name || "TrustShip Seller",
     });
@@ -63,7 +58,7 @@ export async function POST(request: NextRequest) {
         await sendWhatsAppMessage(
           transaction.sellerPhone,
           `🎉 *Admin Released Funds (${transactionRef})*\n\n` +
-            `Funds of *₦${transaction.totalEscrow.toLocaleString()}* have been released and transferred to your bank account (${transaction.seller.bankName})` +
+            `Funds of *₦${payoutAmount.toLocaleString()}* have been released and transferred to your bank account (${transaction.seller.bankName})` +
             `\n\n• Reason: ${reason || "Admin processed release"}`
         );
       } catch (wsErr) {
@@ -78,7 +73,7 @@ export async function POST(request: NextRequest) {
           adminId: admin.id,
           action: "ADMIN_RELEASE_FUNDS",
           targetId: transaction.id,
-          details: `Released ₦${transaction.totalEscrow} to seller ${transaction.seller.id} for transaction ${transaction.transactionRef}. Reason: ${reason || "Not specified"}`,
+          details: `Released ₦${payoutAmount} to seller ${transaction.seller.id} for transaction ${transaction.transactionRef}. Reason: ${reason || "Not specified"}`,
           ipAddress: "admin-panel", // Would be request IP in real implementation
         },
       });
@@ -89,6 +84,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "Funds released via admin action",
+      payoutAmount,
       payoutReference: payoutRef,
       transaction: updated,
     });

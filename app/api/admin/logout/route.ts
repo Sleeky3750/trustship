@@ -8,8 +8,8 @@ export async function POST(request: NextRequest) {
       message: "Admin logged out successfully",
     });
 
-    // Remove the admin session cookie
-    response.cookies.delete('trustship_admin_session');
+    // Remove the admin session cookie set by /api/admin/login
+    response.cookies.delete('admin_token');
 
     return response;
   } catch (error: any) {
