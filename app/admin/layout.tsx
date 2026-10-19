@@ -11,11 +11,19 @@ const ROLE_LABELS: Record<string, string> = {
   SUPPORT: 'Support',
 };
 
-function formatRole(role: string): string {
-  if (!role) return '';
+// Normalizes any role casing (e.g. "super_admin" / "Super_Admin" / "SUPER_ADMIN").
+function normalizeRole(role?: string | null): string {
+  return (role || '').trim().toUpperCase();
+}
+
+// Always returns a display label — falls back to "Admin" when the role is
+// missing (session still loading) or blank, so the badge never renders empty.
+function formatRole(role?: string | null): string {
+  const normalized = normalizeRole(role);
+  if (!normalized) return 'Admin';
   return (
-    ROLE_LABELS[role] ??
-    role
+    ROLE_LABELS[normalized] ??
+    normalized
       .toLowerCase()
       .split('_')
       .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
@@ -61,7 +69,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   };
 
-  const isSuperAdmin = adminRole === 'SUPER_ADMIN';
+  // Case-insensitive super-admin check (handles "super_admin", "Super_Admin", etc.).
+  const isSuperAdmin = normalizeRole(adminRole) === 'SUPER_ADMIN';
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const closeSidebar = () => setSidebarOpen(false);
@@ -89,12 +98,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <p className="text-[11px] text-slate-400">Escrow Compliance Portal</p>
           </div>
         </div>
-        {adminRole && (
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/30">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-            {formatRole(adminRole)}
-          </span>
-        )}
+        {/* Role badge — always visible; falls back to "Admin" while loading. */}
+        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/30">
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${
+              adminRole ? 'bg-blue-400' : 'bg-blue-400/50 animate-pulse'
+            }`}
+          />
+          {formatRole(adminRole)}
+        </span>
       </div>
 
       {/* Admin Sidebar */}
@@ -106,12 +118,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="mb-8 hidden md:block">
           <h1 className="text-xl font-bold tracking-tight text-blue-400">TrustShip Admin</h1>
           <p className="text-xs text-slate-400 mt-1">Escrow Compliance Portal</p>
-          {adminRole && (
-            <span className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/30">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-              {formatRole(adminRole)}
-            </span>
-          )}
+          {/* Role badge — always visible; falls back to "Admin" while loading. */}
+          <span className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/30">
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                adminRole ? 'bg-blue-400' : 'bg-blue-400/50 animate-pulse'
+              }`}
+            />
+            {formatRole(adminRole)}
+          </span>
         </div>
 
         <nav className="flex flex-col space-y-1.5 flex-1">
