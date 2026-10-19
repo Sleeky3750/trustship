@@ -511,13 +511,13 @@ export default function App() {
             </RevealOnScroll>
 
             <RevealOnScroll delay={200} className="lg:col-span-6 flex justify-center">
-              <div className="relative w-full max-w-md h-[340px] flex items-center justify-center">
-                <div className="absolute top-0 left-0 bg-white text-slate-900 p-4 rounded-2xl shadow-2xl border border-slate-200 transform -rotate-6 w-52 z-10">
+              <div className="relative w-full max-w-md flex flex-col items-center gap-4 md:h-[340px] md:block md:gap-0">
+                <div className="w-full max-w-[13rem] md:w-52 md:max-w-none md:absolute md:top-0 md:left-0 bg-white text-slate-900 p-4 rounded-2xl shadow-2xl border border-slate-200 md:transform md:-rotate-6 z-10">
                   <FlutterwaveLogo className="w-5 h-5" showWordmark={true} />
                   <p className="text-[11px] font-bold text-slate-700 mt-2">Secure Payments You Can Trust 🔒</p>
                 </div>
 
-                <div className="absolute top-4 right-0 bg-white text-slate-900 p-4 rounded-2xl shadow-2xl border border-slate-200 transform rotate-6 w-52 z-10">
+                <div className="w-full max-w-[13rem] md:w-52 md:max-w-none md:absolute md:top-4 md:right-0 bg-white text-slate-900 p-4 rounded-2xl shadow-2xl border border-slate-200 md:transform md:rotate-6 z-10">
                   <div className="flex items-center gap-2">
                     <WhatsAppIcon className="w-5 h-5" />
                     <span className="font-extrabold text-xs text-slate-800">WhatsApp API</span>
@@ -525,7 +525,7 @@ export default function App() {
                   <p className="text-[11px] font-bold text-slate-700 mt-2">Real Conversations. Real Safety.</p>
                 </div>
 
-                <div className="relative z-20 bg-[#06180F] border-2 border-[#00FF9D] p-8 rounded-3xl text-center space-y-3 shadow-2xl shadow-[#00FF9D]/20 w-64">
+                <div className="relative z-20 mx-auto bg-[#06180F] border-2 border-[#00FF9D] p-8 rounded-3xl text-center space-y-3 shadow-2xl shadow-[#00FF9D]/20 w-64">
                   <TrustShipLogo className="w-14 h-14 mx-auto" showText={false} />
                   <p className="text-xl font-black text-white">TrustShip</p>
                   <p className="text-xs text-[#00FF9D] font-bold uppercase tracking-wider">

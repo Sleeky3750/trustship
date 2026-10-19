@@ -7,6 +7,8 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [recentLogs, setRecentLogs] = useState<any[]>([]);
+  const [logsLoading, setLogsLoading] = useState(true);
 
   const fetchEscrows = async () => {
     setLoading(true);
@@ -23,7 +25,23 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     fetchEscrows();
+    fetchRecentLogs();
   }, []);
+
+  const fetchRecentLogs = async () => {
+    setLogsLoading(true);
+    try {
+      const res = await fetch("/api/admin/audit-logs?limit=5");
+      const data = await res.json();
+      if (data.success && data.auditLogs) {
+        setRecentLogs(data.auditLogs);
+      }
+    } catch (err) {
+      console.error("Failed to fetch recent audit logs", err);
+    } finally {
+      setLogsLoading(false);
+    }
+  };
 
   const handleAction = async (ref: string, action: string) => {
     setActionLoading(ref + action);
@@ -298,6 +316,79 @@ export default function AdminDashboardPage() {
           </div>
         </section>
       </main>
+
+      {/* Recent Admin Activity */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+        <div className="bg-[#070C1E] border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
+            <div>
+              <h2 className="text-sm font-bold text-white">Recent Activity</h2>
+              <p className="text-xs text-slate-400">Last 5 admin actions from audit logs</p>
+            </div>
+            <a
+              href="/admin/audit-logs"
+              className="text-xs text-blue-400 hover:text-blue-300 font-semibold"
+            >
+              View all →
+            </a>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-800 bg-[#030611]/50 text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                  <th className="py-2.5 px-4">Timestamp (UTC)</th>
+                  <th className="py-2.5 px-4">Admin</th>
+                  <th className="py-2.5 px-4">Action Type</th>
+                  <th className="py-2.5 px-4">Target / Ref</th>
+                  <th className="py-2.5 px-4">IP / Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60 text-xs">
+                {logsLoading ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-6 text-slate-500">
+                      Loading recent activity...
+                    </td>
+                  </tr>
+                ) : recentLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-6 text-slate-500">
+                      No recent admin actions found.
+                    </td>
+                  </tr>
+                ) : (
+                  recentLogs.map((log: any) => (
+                    <tr key={log.id} className="hover:bg-[#030611]/40 transition">
+                      <td className="py-2.5 px-4 text-slate-400 font-mono text-[11px] whitespace-nowrap">
+                        {new Date(log.createdAt).toISOString()}
+                      </td>
+                      <td className="py-2.5 px-4">
+                        <div className="text-slate-200 text-[11px]">
+                          {log.admin?.email || log.adminId}
+                        </div>
+                        <div className="text-slate-500 text-[10px]">
+                          {log.admin?.role || "ADMIN"}
+                        </div>
+                      </td>
+                      <td className="py-2.5 px-4">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/20 font-mono">
+                          {log.action}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-4 text-slate-300 text-[11px] font-mono truncate max-w-[180px]">
+                        {log.targetId || "-"}
+                      </td>
+                      <td className="py-2.5 px-4 text-slate-400 text-[11px] font-mono truncate max-w-[160px]">
+                        {log.ipAddress || "-"}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
 
       {/* SUPPORT FOOTER */}
       <footer className="border-t border-slate-800/80 bg-[#070C1E]/50 py-6 text-center text-xs text-slate-500 mt-auto">

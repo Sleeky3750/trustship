@@ -8,6 +8,8 @@ interface AuditLog {
   details: string;
   ipAddress: string;
   createdAt: string;
+  adminId: string;
+  targetId: string;
   admin: {
     email: string;
     role: string;
@@ -84,11 +86,11 @@ export default function AdminAuditLogsPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                <th className="py-3.5 px-6">Timestamp</th>
-                <th className="py-3.5 px-6">Admin User</th>
-                <th className="py-3.5 px-6">Action</th>
-                <th className="py-3.5 px-6">IP Address</th>
-                <th className="py-3.5 px-6">Details</th>
+                <th className="py-3.5 px-6">Timestamp (UTC)</th>
+                <th className="py-3.5 px-6">Admin Email / ID</th>
+                <th className="py-3.5 px-6">Action Type</th>
+                <th className="py-3.5 px-6">Target / Reference ID</th>
+                <th className="py-3.5 px-6">IP Address / Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm">
@@ -108,12 +110,13 @@ export default function AdminAuditLogsPage() {
                 filteredLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-gray-50 transition">
                     <td className="py-4 px-6 text-gray-500 text-xs whitespace-nowrap font-mono">
-                      {new Date(log.createdAt).toLocaleString()}
+                      {new Date(log.createdAt).toISOString()}
                     </td>
                     <td className="py-4 px-6">
-                      <div className="font-medium text-gray-900">{log.admin.email}</div>
-                      <span className="inline-block mt-0.5 px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700">
-                        {log.admin.role}
+                      <div className="font-medium text-gray-900">{log.admin?.email || log.adminId}</div>
+                      <div className="text-[11px] text-gray-500 mt-0.5 font-mono">{log.adminId}</div>
+                      <span className="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700">
+                        {log.admin?.role || 'ADMIN'}
                       </span>
                     </td>
                     <td className="py-4 px-6">
@@ -121,11 +124,11 @@ export default function AdminAuditLogsPage() {
                         {log.action}
                       </span>
                     </td>
-                    <td className="py-4 px-6 font-mono text-xs text-gray-600">
-                      {log.ipAddress}
+                    <td className="py-4 px-6 font-mono text-xs text-gray-600 truncate max-w-xs" title={log.targetId || log.details || ''}>
+                      {log.targetId || '-'}
                     </td>
-                    <td className="py-4 px-6 text-gray-600 text-xs max-w-xs truncate" title={log.details}>
-                      {log.details}
+                    <td className="py-4 px-6 font-mono text-xs text-gray-600 truncate max-w-xs" title={log.ipAddress || log.details || ''}>
+                      {log.ipAddress || '-'}
                     </td>
                   </tr>
                 ))
