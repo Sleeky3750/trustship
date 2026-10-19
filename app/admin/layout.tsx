@@ -4,6 +4,25 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+// Raw AdminRole enum values -> friendly labels for the sidebar badge.
+const ROLE_LABELS: Record<string, string> = {
+  SUPER_ADMIN: 'Super Admin',
+  FINANCE: 'Finance',
+  SUPPORT: 'Support',
+};
+
+function formatRole(role: string): string {
+  if (!role) return '';
+  return (
+    ROLE_LABELS[role] ??
+    role
+      .toLowerCase()
+      .split('_')
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ')
+  );
+}
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -47,13 +66,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="flex h-screen bg-[#03070A] text-slate-100 font-sans">
       {/* Admin Sidebar */}
-      <aside className="w-64 bg-slate-900 text-slate-100 flex flex-col p-6 shadow-xl">
+      <aside className="w-64 bg-[#03070A] text-slate-100 flex flex-col p-6 border-r border-slate-800/70">
         <div className="mb-8">
           <h1 className="text-xl font-bold tracking-tight text-blue-400">TrustShip Admin</h1>
           <p className="text-xs text-slate-400 mt-1">Escrow Compliance Portal</p>
           {adminRole && (
-            <span className="inline-block mt-2 px-2.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-blue-300 border border-slate-700">
-              Role: {adminRole}
+            <span className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/30">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+              {formatRole(adminRole)}
             </span>
           )}
         </div>
