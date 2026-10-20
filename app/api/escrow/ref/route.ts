@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Prevent refund on already released/refunded transactions
-    if (transaction.status === TransactionStatus.RELEASED || transaction.status === TransactionStatus.REFUNDED) {
+    if (transaction.status === TransactionStatus.COMPLETED || transaction.status === TransactionStatus.REFUNDED) {
       return NextResponse.json({ error: "Cannot refund a released or already refunded transaction" }, { status: 400 });
     }
 

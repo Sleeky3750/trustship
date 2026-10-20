@@ -23,8 +23,8 @@ enum TransactionStatus {
   ESCROW_LOCKED
   DISPATCHED
   DELIVERED
-  RELEASED
-  DISPUTED
+  COMPLETED  @map("RELEASED")
+  DISPUTE_OPEN @map("DISPUTED")
   REFUNDED
   CANCELLED
 }
@@ -55,6 +55,15 @@ model User {
   accountNumber String
   bankName      String
   role          Role     @default(BUYER)
+
+  // Trust & verification: payout account name resolved via Flutterwave's
+  // Bank Lookup API at onboarding/escrow creation, plus when it was verified.
+  bankAccountName String?
+  bankVerifiedAt  DateTime?
+
+  // Referral growth hook — short code behind the /r/<code> share link.
+  referralCode String? @unique
+
   createdAt     DateTime @default(now())
 
   transactionsEscrowed  EscrowTransaction[] @relation("BuyerTransactions")
@@ -68,12 +77,12 @@ model EscrowTransaction {
   countryCode     String   @default("NG")
   paymentProvider String   @default("FLUTTERWAVE")
   
-  flwTransactionId String?
+  flwTransactionId String? // Flutterwave transaction id (flwRef) captured at settlement
 
-  // Paystack settlement reference (WhatsApp-first flow). Set when the seller
-  // accepts and the Paystack transaction is initialized; the Paystack webhook
-  // resolves charge events against transactionRef/paystackRef.
-  paystackRef String?
+  // Zero-loss gateway pass-through: Flutterwave processing fees (collection
+  // fee at checkout + payout transfer fee) charged on top of the item +
+  // platform fee so the seller still receives 100% of their item value.
+  gatewayFee Float @default(0)
 
 
   itemTitle     String?
@@ -108,8 +117,33 @@ model EscrowTransaction {
   sellerId String
   seller   User   @relation("SellerTransactions", fields: [sellerId], references: [id])
 
+  // Photo/video proof uploaded over WhatsApp after a DISPUTE <ref> command.
+  disputeEvidence DisputeEvidence[] @relation("DisputeEvidence")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Dispute evidence: media proof (photo/video/document) sent over WhatsApp by
+// either party after a dispute is opened. Metadata + the Meta media id are
+// persisted for the admin dashboard review queue.
+// ---------------------------------------------------------------------------
+
+model DisputeEvidence {
+  id              String            @id @default(cuid())
+  transactionId   String
+  transaction     EscrowTransaction @relation("DisputeEvidence", fields: [transactionId], references: [id])
+  transactionRef  String
+  uploaderPhone   String
+  kind            String // IMAGE | VIDEO | DOCUMENT
+  whatsappMediaId String
+  mimeType        String?
+  fileSizeBytes   Int?
+  caption         String?
+  createdAt       DateTime          @default(now())
+
+  @@index([transactionId])
 }
 
 // ---------------------------------------------------------------------------
@@ -135,6 +169,12 @@ model WebhookLog {
   id        String   @id @default(cuid())
   provider  String
   payload   Json
+
+  // Idempotency key for financial webhook replays: a unique eventId means a
+  // replayed event is rejected at insert time (P2002) before any state
+  // change, so providers can retry safely forever.
+  eventId   String?  @unique
+
   createdAt DateTime @default(now())
 }
 

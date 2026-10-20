@@ -60,6 +60,37 @@ export async function sendWhatsAppMessage(to: string, message: string): Promise<
   });
 }
 
+/**
+ * Send an approved Meta template message (e.g. the pre-approved
+ * `seller_escrow_invitation` template). Template body parameters are passed
+ * positionally. Templates must be created/approved in Meta Business Hub —
+ * callers fall back to interactive/text messages when the send fails.
+ */
+export async function sendWhatsAppTemplateMessage(
+  to: string,
+  templateName: string,
+  parameters: string[],
+  languageCode = "en"
+): Promise<MetaSendResult> {
+  const formattedPhone = to.replace(/\D/g, "");
+
+  return postToMeta({
+    messaging_product: "whatsapp",
+    to: formattedPhone,
+    type: "template",
+    template: {
+      name: templateName,
+      language: { code: languageCode },
+      components: [
+        {
+          type: "body",
+          parameters: parameters.map((text) => ({ type: "text", text: String(text) })),
+        },
+      ],
+    },
+  });
+}
+
 export interface InteractiveReplyButton {
   /** Developer-defined payload id echoed back on tap (e.g. "ACCEPT:TS-ESCROW-..."). */
   id: string;

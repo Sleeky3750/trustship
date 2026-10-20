@@ -63,7 +63,7 @@ export async function POST(request: NextRequest, context: ActionContext) {
       }
 
       case "release": {
-        if (transaction.status === "RELEASED") {
+        if (transaction.status === "COMPLETED") {
           return NextResponse.json({ message: "Funds already released" }, { status: 200 });
         }
 
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest, context: ActionContext) {
 
         const released = await prisma.escrowTransaction.update({
           where: { id: transaction.id },
-          data: { status: "RELEASED" },
+          data: { status: "COMPLETED" },
         });
 
         await recordAdminAction(request, {
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest, context: ActionContext) {
           targetId: transaction.id,
           message: `Released ₦${payoutAmount} to seller for transaction ${transaction.transactionRef}`,
           changes: {
-            status: { from: transaction.status, to: "RELEASED" },
+            status: { from: transaction.status, to: "COMPLETED" },
             payoutAmount,
             payoutReference: payoutRef,
           },
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest, context: ActionContext) {
 
         updated = await prisma.escrowTransaction.update({
           where: { id: transaction.id },
-          data: { status: "DISPUTED", disputeFault },
+          data: { status: "DISPUTE_OPEN", disputeFault },
         });
 
         await recordAdminAction(request, {
@@ -154,7 +154,7 @@ export async function POST(request: NextRequest, context: ActionContext) {
           targetId: transaction.id,
           message: `Opened dispute on transaction ${transaction.transactionRef} (fault: ${disputeFault})`,
           changes: {
-            status: { from: transaction.status, to: "DISPUTED" },
+            status: { from: transaction.status, to: "DISPUTE_OPEN" },
             disputeFault,
           },
         });

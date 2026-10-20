@@ -63,11 +63,11 @@ export async function GET(request: NextRequest) {
           beneficiaryName: transaction.seller.name || "TrustShip Seller",
         });
 
-        // Update transaction status to RELEASED
+        // Update transaction status to COMPLETED
         const updated = await prisma.escrowTransaction.update({
           where: { id: transaction.id },
           data: {
-            status: TransactionStatus.RELEASED,
+            status: TransactionStatus.COMPLETED,
             dispatchStatus: "DELIVERED",
           },
         });

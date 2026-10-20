@@ -55,7 +55,7 @@ function buildDetails(entry: AdminAuditEntry): string | null {
  *     action: "ESCROW_RELEASED",
  *     targetId: transaction.id,
  *     message: `Released escrow ${transaction.transactionRef}`,
- *     changes: { status: { from: "IN_ESCROW", to: "RELEASED" } },
+ *     changes: { status: { from: "IN_ESCROW", to: "COMPLETED" } },
  *   });
  */
 export async function recordAdminAction(

@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     // Admin permissions (FINANCE / SUPER_ADMIN) are enforced by requireAdmin above.
 
     // Prevent double release
-    if (transaction.status === TransactionStatus.RELEASED) {
+    if (transaction.status === TransactionStatus.COMPLETED) {
       return NextResponse.json({ message: "Funds already released for this transaction" }, { status: 200 });
     }
 
@@ -52,10 +52,10 @@ export async function POST(request: NextRequest) {
       beneficiaryName: transaction.seller.name || "TrustShip Seller",
     });
 
-    // Update transaction status to RELEASED
+    // Update transaction status to COMPLETED
     const updated = await prisma.escrowTransaction.update({
       where: { id: transaction.id },
-      data: { status: TransactionStatus.RELEASED },
+      data: { status: TransactionStatus.COMPLETED },
     });
 
     // Audit with real client IP + User-Agent captured from the request.
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       targetId: transaction.id,
       message: `Released ₦${payoutAmount} to seller for transaction ${transaction.transactionRef}`,
       changes: {
-        status: { from: transaction.status, to: TransactionStatus.RELEASED },
+        status: { from: transaction.status, to: TransactionStatus.COMPLETED },
         payoutAmount,
         payoutReference: payoutRef,
       },

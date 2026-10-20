@@ -10,7 +10,7 @@ interface TransactionDetail {
   waybillAmount: number;
   totalEscrow: number;
   waybillPayer: string;
-  status: "PENDING_SELLER_ACCEPTANCE" | "PENDING_PAYMENT" | "PENDING_AGREEMENT" | "PENDING_DEPOSIT" | "ESCROW_LOCKED" | "DISPATCHED" | "DELIVERED" | "RELEASED" | "DISPUTED" | "REFUNDED" | "CANCELLED";
+  status: "PENDING_SELLER_ACCEPTANCE" | "PENDING_PAYMENT" | "PENDING_AGREEMENT" | "PENDING_DEPOSIT" | "ESCROW_LOCKED" | "DISPATCHED" | "DELIVERED" | "COMPLETED" | "DISPUTE_OPEN" | "REFUNDED" | "CANCELLED";
   dispatchStatus: string;
   buyerPhone: string;
   sellerPhone: string;
@@ -93,7 +93,7 @@ export default function EscrowTrackingPage() {
       case "ESCROW_LOCKED": return 2;
       case "DISPATCHED": return 3;
       case "DELIVERED": return 4;
-      case "RELEASED": return 5;
+      case "COMPLETED": return 5;
       default: return 0;
     }
   };
@@ -131,8 +131,8 @@ export default function EscrowTrackingPage() {
             <h1 className="text-2xl font-bold text-slate-900">{transaction.transactionRef}</h1>
           </div>
           <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
-            transaction.status === "RELEASED" ? "bg-emerald-100 text-emerald-800" :
-            transaction.status === "DISPUTED" ? "bg-red-100 text-red-800" :
+            transaction.status === "COMPLETED" ? "bg-emerald-100 text-emerald-800" :
+            transaction.status === "DISPUTE_OPEN" ? "bg-red-100 text-red-800" :
             transaction.status === "ESCROW_LOCKED" ? "bg-blue-100 text-blue-800" :
             "bg-amber-100 text-amber-800"
           }`}>
@@ -141,7 +141,7 @@ export default function EscrowTrackingPage() {
         </div>
 
         {/* Visual Lifecycle Stepper */}
-        {transaction.status !== "DISPUTED" && transaction.status !== "REFUNDED" && (
+        {transaction.status !== "DISPUTE_OPEN" && transaction.status !== "REFUNDED" && (
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
             <h3 className="text-xs font-bold text-slate-400 uppercase mb-4">Transaction Progress</h3>
             <div className="grid grid-cols-5 gap-2 text-center text-xs">
@@ -196,7 +196,7 @@ export default function EscrowTrackingPage() {
               ? "Your item has been marked delivered! Reply directly on WhatsApp with your 4-digit PIN to instantly release funds to the seller."
               : transaction.status === "ESCROW_LOCKED"
               ? "Funds are safely locked in escrow. The seller will dispatch the item shorty."
-              : transaction.status === "RELEASED"
+              : transaction.status === "COMPLETED"
               ? "Transaction complete! Funds have been disbursed to the seller."
               : "Awaiting initial payment deposit from the buyer."}
           </p>

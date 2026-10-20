@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
+import { armDisputeEvidenceSessions } from "@/lib/whatsapp/botEngine";
 import { DisputeFault, TransactionStatus } from "@prisma/client";
 
 export async function POST(request: NextRequest) {
@@ -27,21 +28,33 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Valid dispute fault (SELLER_FAULT or BUYER_FAULT) is required" }, { status: 400 });
     }
 
-    // Update transaction with dispute status and fault
+    // Update transaction with dispute status and fault — funds frozen.
     const updated = await prisma.escrowTransaction.update({
       where: { id: transaction.id },
       data: {
-        status: TransactionStatus.DISPUTED,
+        status: TransactionStatus.DISPUTE_OPEN,
         disputeFault: disputeFault as DisputeFault,
       },
     });
 
+    // Put both parties into the WhatsApp evidence flow (photo/video proof
+    // lands in the admin dispute review queue).
+    if (transaction.buyerPhone && transaction.sellerPhone) {
+      await armDisputeEvidenceSessions(
+        transaction.buyerPhone,
+        transaction.sellerPhone,
+        transaction.transactionRef
+      );
+    }
+
     // Send WhatsApp notification to both parties about the dispute
     const disputeInfo = `⚠️ *Dispute Raised (${transaction.transactionRef})*\n\n` +
-      `A dispute has been raised for this escrow transaction.\n` +
+      `A dispute has been raised and funds are frozen for this escrow transaction.\n` +
       `• Dispute Fault: ${disputeFault}\n` +
       `• Reported by: ${reportedBy || "Buyer"}\n` +
-      `• Reason: ${reason || "Not specified"}`;
+      `• Reason: ${reason || "Not specified"}\n\n` +
+      `📎 Please send your *photo or video proof* over WhatsApp — our admin team ` +
+      `will review both sides before releasing or refunding the funds.`;
 
     if (transaction.buyerPhone) {
       await sendWhatsAppMessage(transaction.buyerPhone, disputeInfo);

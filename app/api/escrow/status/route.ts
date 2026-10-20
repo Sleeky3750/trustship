@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
         waybillAmount: transaction.waybillAmount,
         waybillPayer: transaction.waybillPayer,
         platformFee: transaction.platformFee,
+        gatewayFee: transaction.gatewayFee,
         // releasePin is intentionally NOT returned here: this endpoint is
         // publicly reachable and the PIN is what authorises fund release.
         createdAt: transaction.createdAt,

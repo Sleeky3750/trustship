@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. Prevent duplicate release processing
-    if (transaction.status === TransactionStatus.RELEASED) {
+    if (transaction.status === TransactionStatus.COMPLETED) {
       return NextResponse.json(
         { message: "Funds have already been released for this transaction" },
         { status: 200 }
@@ -78,11 +78,11 @@ export async function POST(request: NextRequest) {
       beneficiaryName: transaction.seller.name || "TrustShip Seller",
     });
 
-    // 6. Update database status to RELEASED
+    // 6. Update database status to COMPLETED
     const updatedTransaction = await prisma.escrowTransaction.update({
       where: { id: transaction.id },
       data: {
-        status: TransactionStatus.RELEASED,
+        status: TransactionStatus.COMPLETED,
         dispatchStatus: "DELIVERED",
       },
     });
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
       targetId: transaction.id,
       message: `Released ₦${payoutAmount} to seller for transaction ${transaction.transactionRef} (PIN verified)`,
       changes: {
-        status: { from: transaction.status, to: TransactionStatus.RELEASED },
+        status: { from: transaction.status, to: TransactionStatus.COMPLETED },
         payoutAmount,
         payoutReference: payoutRef,
       },

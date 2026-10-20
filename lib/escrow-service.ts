@@ -7,7 +7,8 @@
 import { prisma } from "@/lib/prisma";
 import { initializeFlutterwavePayment } from "@/lib/flutterwave";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
-import { computePlatformFee } from "@/lib/payout";
+import { computePlatformFee, computeGatewayFee } from "@/lib/payout";
+import { resolveBankAccount } from "@/lib/bank-verification";
 
 export type WaybillPayer = "BUYER" | "SELLER";
 
@@ -33,6 +34,8 @@ export interface CreateEscrowResult {
   paymentUrl: string;
   totalEscrow: number;
   platformFee: number;
+  /** Flutterwave pass-through processing fees (collection + transfer). */
+  gatewayFee: number;
   releasePin: string;
 }
 
@@ -110,6 +113,31 @@ function validateCreationInput(input: CreateEscrowInput): {
 }
 
 /**
+ * Shared zero-loss fee math for both creation paths (web + WhatsApp drafts):
+ * flat platform tier + exact Flutterwave pass-through, so the stored fees
+ * always match the total shown to the buyer.
+ */
+function computeFeeSchedule(
+  itemAmount: number,
+  waybillAmount: number,
+  waybillPayer: WaybillPayer
+): { platformFee: number; gatewayFee: number; totalEscrow: number } {
+  const platformFee = computePlatformFee(itemAmount);
+  // What the seller will be paid: item value + waybill when the buyer pays it.
+  const payoutAmount = itemAmount + (waybillPayer === "BUYER" ? waybillAmount : 0);
+  const gateway = computeGatewayFee(itemAmount, platformFee, payoutAmount);
+  const totalEscrow =
+    Math.round(
+      (itemAmount +
+        platformFee +
+        gateway.total +
+        (waybillPayer === "BUYER" ? waybillAmount : 0)) *
+        100
+    ) / 100;
+  return { platformFee, gatewayFee: gateway.total, totalEscrow };
+}
+
+/**
  * Create an escrow transaction, initialise its Flutterwave checkout link and
  * (optionally) notify both parties. Throws {@link EscrowCreationError} for
  * invalid input and rethrows provider/network failures.
@@ -124,11 +152,12 @@ export async function createEscrow(
     validateCreationInput(input);
   const displayItemTitle = cleanItemTitle ?? "Item";
 
-  // Platform fee is always server-computed; never trust a caller-supplied fee.
-  const platformFee = computePlatformFee(numItemAmount);
-  // The buyer pays the waybill only when they are the designated payer.
-  const totalEscrow =
-    numItemAmount + platformFee + (waybillPayer === "BUYER" ? numWaybillAmount : 0);
+  // Fees are always server-computed; never trust a caller-supplied fee.
+  const { platformFee, gatewayFee, totalEscrow } = computeFeeSchedule(
+    numItemAmount,
+    numWaybillAmount,
+    waybillPayer
+  );
 
   const transactionRef = `TS-ESCROW-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
   const releasePin = Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit release PIN
@@ -137,6 +166,13 @@ export async function createEscrow(
   const buyer = await ensureUser(buyerPhone, "BUYER", input.buyerName || "TrustShip Buyer");
 
   // ---- Seller ----
+  // Trust & verification: resolve provided payout details to an account name
+  // via Flutterwave's Bank Lookup (best effort — never blocks creation).
+  const verifiedAccount =
+    input.sellerBankCode && input.sellerAccountNumber
+      ? await resolveBankAccount(input.sellerBankCode, input.sellerAccountNumber)
+      : null;
+
   let seller = await prisma.user.findUnique({ where: { phone: sellerPhone } });
   if (!seller) {
     seller = await prisma.user.create({
@@ -147,6 +183,9 @@ export async function createEscrow(
         bankCode: input.sellerBankCode || "",
         accountNumber: input.sellerAccountNumber || "",
         bankName: input.sellerBankName || "",
+        ...(verifiedAccount
+          ? { bankAccountName: verifiedAccount.accountName, bankVerifiedAt: new Date() }
+          : {}),
       },
     });
   } else if (input.sellerBankCode && input.sellerAccountNumber) {
@@ -156,6 +195,9 @@ export async function createEscrow(
         bankCode: input.sellerBankCode,
         accountNumber: input.sellerAccountNumber,
         bankName: input.sellerBankName || seller.bankName,
+        ...(verifiedAccount
+          ? { bankAccountName: verifiedAccount.accountName, bankVerifiedAt: new Date() }
+          : {}),
       },
     });
   }
@@ -169,6 +211,7 @@ export async function createEscrow(
       waybillAmount: numWaybillAmount,
       totalEscrow,
       platformFee,
+      gatewayFee,
       waybillPayer,
       dispatchStatus: "PENDING",
       status: "PENDING_DEPOSIT",
@@ -227,6 +270,7 @@ export async function createEscrow(
     paymentUrl,
     totalEscrow,
     platformFee,
+    gatewayFee,
     releasePin,
   };
 }
@@ -240,7 +284,10 @@ export interface CreateEscrowDraftResult {
   transactionRef: string;
   transactionId: string;
   totalEscrow: number;
+  itemAmount: number;
   platformFee: number;
+  /** Flutterwave pass-through processing fees (collection + transfer). */
+  gatewayFee: number;
   releasePin: string;
   buyerPhone: string;
   sellerPhone: string;
@@ -251,10 +298,9 @@ export interface CreateEscrowDraftResult {
  * Save a draft escrow in `PENDING_SELLER_ACCEPTANCE` for the WhatsApp flow.
  *
  * No payment link is created here — once the seller replies ACCEPT, the bot
- * engine flips the row to PENDING_PAYMENT and initializes the Paystack
- * checkout (paymentProvider PAYSTACK). Uses the exact same validation, fee
- * math and user resolution as {@link createEscrow} so the two entry points
- * can never drift.
+ * engine flips the row to PENDING_PAYMENT and initializes the Flutterwave
+ * checkout link. Uses the exact same validation, zero-loss fee math and user
+ * resolution as {@link createEscrow} so the two entry points can never drift.
  */
 export async function createEscrowDraft(
   input: CreateEscrowInput
@@ -262,9 +308,11 @@ export async function createEscrowDraft(
   const { buyerPhone, sellerPhone, numItemAmount, numWaybillAmount, waybillPayer, cleanItemTitle } =
     validateCreationInput(input);
 
-  const platformFee = computePlatformFee(numItemAmount);
-  const totalEscrow =
-    numItemAmount + platformFee + (waybillPayer === "BUYER" ? numWaybillAmount : 0);
+  const { platformFee, gatewayFee, totalEscrow } = computeFeeSchedule(
+    numItemAmount,
+    numWaybillAmount,
+    waybillPayer
+  );
 
   const transactionRef = `TS-ESCROW-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
   const releasePin = Math.floor(1000 + Math.random() * 9000).toString();
@@ -280,6 +328,7 @@ export async function createEscrowDraft(
       waybillAmount: numWaybillAmount,
       totalEscrow,
       platformFee,
+      gatewayFee,
       waybillPayer,
       dispatchStatus: "PENDING",
       status: "PENDING_SELLER_ACCEPTANCE",
@@ -288,7 +337,7 @@ export async function createEscrowDraft(
       sellerPhone,
       buyerId: buyer.id,
       sellerId: seller.id,
-      paymentProvider: "PAYSTACK",
+      paymentProvider: "FLUTTERWAVE",
     },
   });
 
@@ -297,7 +346,9 @@ export async function createEscrowDraft(
     transactionRef,
     transactionId: transaction.id,
     totalEscrow,
+    itemAmount: numItemAmount,
     platformFee,
+    gatewayFee,
     releasePin,
     buyerPhone,
     sellerPhone,

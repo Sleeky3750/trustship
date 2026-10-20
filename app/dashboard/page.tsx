@@ -32,8 +32,8 @@ function DashboardContent() {
       PENDING_DEPOSIT: "bg-yellow-100 text-yellow-800",
       ESCROW_LOCKED: "bg-blue-100 text-blue-800",
       DELIVERED: "bg-purple-100 text-purple-800",
-      RELEASED: "bg-green-100 text-green-800",
-      DISPUTED: "bg-red-100 text-red-800",
+      COMPLETED: "bg-green-100 text-green-800",
+      DISPUTE_OPEN: "bg-red-100 text-red-800",
       REFUNDED: "bg-gray-100 text-gray-800",
     };
     return colors[status] || "bg-slate-100 text-slate-800";
@@ -65,7 +65,7 @@ function DashboardContent() {
           
           <div className="p-6 text-center text-slate-500">
             <p className="mb-2">Your active escrow state tracker and history will display here.</p>
-            <p className="text-xs">Connected to Prisma multi-state engine & Paystack financial rails.</p>
+            <p className="text-xs">Connected to Prisma multi-state engine & Flutterwave financial rails.</p>
           </div>
         </div>
       </div>

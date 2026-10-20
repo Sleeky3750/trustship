@@ -1,6 +1,7 @@
 // lib/whatsapp/botEngine.ts
 //
 // WhatsApp-first conversational escrow bot — the complete state machine.
+// Payments and payouts run exclusively on Flutterwave.
 //
 // Buyer flow:
 //   trigger (hi / start / escrow / /start / /escrow)
@@ -10,31 +11,43 @@
 //     -> draft saved as PENDING_SELLER_ACCEPTANCE, seller invited on WhatsApp
 //
 // Seller flow:
-//   ACCEPT <ref>   -> PENDING_PAYMENT + Paystack /transaction/initialize
-//                     + payment link sent to the buyer
+//   ACCEPT <ref>   -> PENDING_PAYMENT + Flutterwave checkout link sent to
+//                     the buyer (the approved `seller_escrow_invitation`
+//                     template is attempted first, then interactive buttons,
+//                     then text)
 //   DECLINE <ref>  -> CANCELLED + both parties notified
-//   (Interactive quick-reply buttons carry the same commands as payloads.)
 //
-// Paystack settlement (app/api/paystack/webhook):
-//   charge.success -> ESCROW_LOCKED + dual WhatsApp notifications.
+// Settlement (app/api/flutterwave/webhook):
+//   charge.completed -> ESCROW_LOCKED + PIN privately to the buyer + dual
+//   notifications.
+//
+// Disputes:
+//   DISPUTE <ref> (either party) -> DISPUTE_OPEN, funds frozen, both parties
+//   prompted for photo/video proof over WhatsApp (AWAITING_DISPUTE_EVIDENCE).
+//
+// Completion:
+//   4-digit PIN release -> seller paid via Flutterwave Transfers, status
+//   COMPLETED, buyer receives their custom referral link prompt.
 //
 // Sessions persist in Prisma (`WhatsAppSession`, one row per phone number)
-// and expire after 30 minutes of inactivity. The PIN-release handler,
-// reference lookup and one-shot "Title, Amount, SellerPhone" shortcut from
-// the original flow are preserved here.
+// and expire after 30 minutes of inactivity. Reference lookup and one-shot
+// "Title, Amount, SellerPhone" shortcuts are preserved here.
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import {
   sendWhatsAppMessage,
   sendWhatsAppInteractiveReplyButtons,
+  sendWhatsAppTemplateMessage,
 } from "@/lib/whatsapp";
 import {
   createEscrowDraft,
   EscrowCreationError,
 } from "@/lib/escrow-service";
-import { initializePaystackTransaction } from "@/lib/paystack";
 import { computePayoutAmount } from "@/lib/payout";
-import { initiateFlutterwaveTransfer } from "@/lib/flutterwave";
+import {
+  initiateFlutterwaveTransfer,
+  initializeFlutterwavePayment,
+} from "@/lib/flutterwave";
 
 // ---------------------------------------------------------------------------
 // Session persistence (Prisma-backed)
@@ -47,12 +60,15 @@ type BotState =
   | "IDLE"
   | "AWAITING_TITLE"
   | "AWAITING_AMOUNT"
-  | "AWAITING_SELLER_PHONE";
+  | "AWAITING_SELLER_PHONE"
+  | "AWAITING_DISPUTE_EVIDENCE";
 
 // A `type` (not `interface`) so Prisma's InputJsonObject accepts it directly.
 type SessionData = {
   itemTitle?: string;
   itemAmount?: number;
+  /** Set while AWAITING_DISPUTE_EVIDENCE — the disputed escrow's reference. */
+  transactionRef?: string;
 };
 
 interface ActiveSession {
@@ -137,6 +153,14 @@ function parseSellerDecision(
     action: match[1].toUpperCase() as "ACCEPT" | "DECLINE",
     ref: match[2],
   };
+}
+
+const DISPUTE_COMMAND = "DISPUTE";
+
+/** "DISPUTE TS-..." / "dispute:TS-..." → the reference to freeze. */
+function parseDisputeCommand(raw: string): string | null {
+  const match = new RegExp(`^${DISPUTE_COMMAND}[\\s:]+(\\S+)$`, "i").exec(raw);
+  return match ? match[1] : null;
 }
 
 /** Parse "250000", "₦250,000" or "NGN 250000" into a positive number. */
@@ -230,19 +254,21 @@ async function createDraftAndInviteSeller(
     // Only clear the session once the draft exists.
     await resetSession(buyerPhone);
 
-    // 1) Buyer confirmation — invite dispatched.
+    // 1) Buyer confirmation with the transparent zero-loss checkout breakdown.
     await sendWhatsAppMessage(
       buyerPhone,
       `✅ *Escrow draft created!*\n\n` +
-        `📦 Item: ${draft.itemTitle}\n` +
-        `💰 Amount: ₦${draft.totalEscrow.toLocaleString()}\n` +
+        `📦 Item: ${draft.itemTitle} — ₦${draft.itemAmount.toLocaleString()}\n` +
+        `🛡️ TrustShip fee: ₦${draft.platformFee.toLocaleString()}\n` +
+        `⚙️ Processing fee (Flutterwave pass-through): ₦${draft.gatewayFee.toLocaleString()}\n` +
+        `💰 *Total to fund: ₦${draft.totalEscrow.toLocaleString()}*\n` +
         `🔑 Reference: ${draft.transactionRef}\n\n` +
         `An invitation has been sent to the seller (${draft.sellerPhone}). ` +
         `Once they accept, you'll receive a payment link to fund the escrow.`
     );
 
-    // 2) Seller invitation (interactive quick-replies, text fallback).
-    await inviteSeller(draft.transactionRef, draft.itemTitle, draft.totalEscrow, draft.sellerPhone, draft.buyerPhone);
+    // 2) Seller invitation (template → interactive → text fallback).
+    await inviteSeller(draft);
   } catch (error: unknown) {
     const detail =
       error instanceof EscrowCreationError
@@ -258,21 +284,67 @@ async function createDraftAndInviteSeller(
   }
 }
 
-/** Send the seller the ACCEPT/DECLINE invitation (buttons with text fallback). */
-async function inviteSeller(
-  transactionRef: string,
-  itemTitle: string,
-  totalEscrow: number,
-  sellerPhone: string,
-  buyerPhone: string
-): Promise<void> {
+/**
+ * Trust & verification badge line built from completed database history, e.g.
+ * `⭐ Verified Seller • 14 Successful Trades` / `🏦 Verified Payout Account`.
+ * Empty string when the seller has no completed trades and no verified bank.
+ */
+async function buildSellerBadge(sellerPhone: string): Promise<string> {
+  const [successfulTrades, seller] = await Promise.all([
+    prisma.escrowTransaction.count({
+      where: { sellerPhone, status: "COMPLETED" },
+    }),
+    prisma.user.findUnique({ where: { phone: sellerPhone } }),
+  ]);
+
+  const parts: string[] = [];
+  if (successfulTrades > 0) {
+    parts.push(
+      `⭐ Verified Seller • ${successfulTrades} Successful Trade${successfulTrades === 1 ? "" : "s"}`
+    );
+  }
+  if (seller?.bankVerifiedAt && seller?.bankAccountName) {
+    parts.push(`🏦 Verified Payout Account (${seller.bankAccountName})`);
+  }
+  return parts.length ? `\n${parts.join("\n")}` : "";
+}
+
+/**
+ * Send the seller the escrow invitation. Tries the approved Meta template
+ * (`seller_escrow_invitation`, created in Business Hub with body params:
+ * reference, item, amount, buyer) first; falls back to interactive
+ * quick-reply buttons, then plain text, so the flow works regardless of
+ * template approval state.
+ */
+async function inviteSeller(draft: {
+  transactionRef: string;
+  itemTitle: string;
+  totalEscrow: number;
+  sellerPhone: string;
+  buyerPhone: string;
+}): Promise<void> {
+  const { transactionRef, itemTitle, totalEscrow, sellerPhone, buyerPhone } = draft;
+
+  const template = await sendWhatsAppTemplateMessage(
+    sellerPhone,
+    "seller_escrow_invitation",
+    [
+      transactionRef,
+      itemTitle,
+      `₦${totalEscrow.toLocaleString()}`,
+      buyerPhone,
+    ]
+  );
+  if (template.success) return;
+
   const body =
     `🛡️ *TrustShip Escrow Invitation*\n\n` +
     `${buyerPhone} wants to trade with you:\n\n` +
     `• Item: ${itemTitle}\n` +
     `• Amount: ₦${totalEscrow.toLocaleString()}\n` +
-    `• Reference: ${transactionRef}\n\n` +
-    `Reply *ACCEPT ${transactionRef}* to accept or ` +
+    `• Reference: ${transactionRef}\n` +
+    (await buildSellerBadge(sellerPhone)) +
+    `\n\nReply *ACCEPT ${transactionRef}* to accept or ` +
     `*DECLINE ${transactionRef}* to decline.`;
 
   const interactive = await sendWhatsAppInteractiveReplyButtons(sellerPhone, body, [
@@ -313,9 +385,10 @@ async function cancelDraft(transaction: {
 
 /**
  * Handle "ACCEPT <ref>" / "DECLINE <ref>" from the invited seller.
- * ACCEPT flips the draft to PENDING_PAYMENT and initializes the Paystack
- * checkout (reverting to PENDING_SELLER_ACCEPTANCE if initialization fails,
- * so the seller can retry). DECLINE cancels the draft.
+ * ACCEPT flips the draft to PENDING_PAYMENT, initializes the Flutterwave
+ * checkout link and sends it to the buyer (reverting to
+ * PENDING_SELLER_ACCEPTANCE if initialization fails, so the seller can
+ * retry). DECLINE cancels the draft.
  */
 async function handleSellerDecision(
   from: string,
@@ -374,28 +447,33 @@ async function handleSellerDecision(
   // 1) Flip to PENDING_PAYMENT (per flow contract) …
   await prisma.escrowTransaction.update({
     where: { id: transaction.id },
-    data: { status: "PENDING_PAYMENT", paystackRef: transaction.transactionRef },
+    data: { status: "PENDING_PAYMENT" },
   });
 
-  // 2) … then initialize Paystack and send the buyer the payment link.
+  // 2) … then initialize Flutterwave checkout and send the buyer the link.
   try {
-    const init = await initializePaystackTransaction({
-      reference: transaction.transactionRef,
+    const init = await initializeFlutterwavePayment({
+      txRef: transaction.transactionRef,
       amount: transaction.totalEscrow,
       email: `${transaction.buyerPhone.replace(/\D/g, "")}@trustship.app`,
-      firstName: "TrustShip Buyer",
-      phone: transaction.buyerPhone,
-      callbackUrl: process.env.APP_URL
-        ? `${process.env.APP_URL}/escrow/${transaction.transactionRef}`
-        : undefined,
+      name: "TrustShip Buyer",
+      title: `TrustShip Escrow: ${transaction.itemTitle ?? transaction.transactionRef}`,
+      description: `Secure escrow payment for ${transaction.itemTitle ?? "your item"} (Ref: ${transaction.transactionRef})`,
     });
+
+    const paymentUrl =
+      init?.data?.data?.link ?? init?.data?.link ?? null;
+    if (!paymentUrl) {
+      const detail = JSON.stringify(init?.data ?? {}).slice(0, 300);
+      throw new Error(`Flutterwave returned no payment link: ${detail}`);
+    }
 
     await sendWhatsAppMessage(
       transaction.buyerPhone,
       `💳 *Seller Accepted!*\n\n` +
         `The seller accepted escrow *${transaction.transactionRef}* ` +
         `(${transaction.itemTitle ?? "item"} — ₦${transaction.totalEscrow.toLocaleString()}).\n\n` +
-        `Fund the escrow securely here:\n${init.authorizationUrl}`
+        `Fund the escrow securely here:\n${paymentUrl}`
     );
     await sendWhatsAppMessage(
       transaction.sellerPhone,
@@ -404,14 +482,14 @@ async function handleSellerDecision(
     );
   } catch (error: unknown) {
     console.error(
-      `Paystack initialization failed for escrow ${transaction.transactionRef}:`,
+      `Flutterwave initialization failed for escrow ${transaction.transactionRef}:`,
       error
     );
 
     // Revert so the seller can simply reply ACCEPT again to retry.
     await prisma.escrowTransaction.update({
       where: { id: transaction.id },
-      data: { status: "PENDING_SELLER_ACCEPTANCE", paystackRef: null },
+      data: { status: "PENDING_SELLER_ACCEPTANCE" },
     });
     await sendWhatsAppMessage(
       transaction.sellerPhone,
@@ -448,7 +526,7 @@ async function handlePinRelease(from: string, pin: string): Promise<void> {
 
   await prisma.escrowTransaction.update({
     where: { id: transaction.id },
-    data: { status: "RELEASED" },
+    data: { status: "COMPLETED" },
   });
 
   // Initiate Payout Transfer via Flutterwave
@@ -467,16 +545,63 @@ async function handlePinRelease(from: string, pin: string): Promise<void> {
     console.error("WhatsApp triggered transfer payout error:", transferErr);
   }
 
+  // Referral growth hook: every buyer gets a durable custom referral code
+  // once their first trade completes.
+  const referralLine = await buildReferralPrompt(transaction.buyerId);
+
   await sendWhatsAppMessage(
     from,
-    `✅ PIN Verified! Payment of ₦${payoutAmount.toLocaleString()} has been released to the seller for escrow *${transaction.transactionRef}*. Thank you for using TrustShip!`
+    `✅ PIN Verified! Payment of ₦${payoutAmount.toLocaleString()} has been released to the seller for escrow *${transaction.transactionRef}*. Thank you for using TrustShip!` +
+      referralLine
   );
 
   if (transaction.sellerPhone) {
     await sendWhatsAppMessage(
       transaction.sellerPhone,
-      `🎉 Escrow Released! The buyer verified delivery for trade *${transaction.transactionRef}*. ₦${payoutAmount.toLocaleString()} has been sent to your bank.`
+      `🎉 Trade Complete! The buyer verified delivery for trade *${transaction.transactionRef}*. ₦${payoutAmount.toLocaleString()} has been sent to your bank.`
     );
+  }
+}
+
+/**
+ * Referral hook: make sure the buyer has a unique short referral code and
+ * return a closing prompt with their shareable TrustShip link (empty string
+ * when no prompt should be shown).
+ */
+async function buildReferralPrompt(buyerId: string): Promise<string> {
+  try {
+    let user = await prisma.user.findUnique({ where: { id: buyerId } });
+    if (!user) return "";
+
+    if (!user.referralCode) {
+      // Regenerate on the (astronomically unlikely) collision.
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const code = Math.random().toString(36).slice(2, 10);
+        try {
+          user = await prisma.user.update({
+            where: { id: buyerId },
+            data: { referralCode: code },
+          });
+          break;
+        } catch {
+          continue;
+        }
+      }
+    }
+
+    if (!user.referralCode) return "";
+
+    const appUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.APP_URL ||
+      "https://trustship.ng";
+    return (
+      `\n\n🎉 *Trade complete!* Want your next deal to be this smooth? ` +
+      `Share your personal TrustShip link with a buyer or seller:\n${appUrl}/r/${user.referralCode}`
+    );
+  } catch (error: unknown) {
+    console.error("Referral code prompt failed:", error);
+    return "";
   }
 }
 
@@ -505,6 +630,192 @@ async function handleReferenceLookup(from: string, rawRef: string): Promise<void
     await sendWhatsAppMessage(
       from,
       `❌ No matching transaction found for reference *${ref}*.`
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Disputes: DISPUTE <ref> command + photo/video evidence over WhatsApp
+// ---------------------------------------------------------------------------
+
+/** Statuses a trade can still be disputed from (funds at stake / in motion). */
+const DISPUTABLE_STATUSES = new Set([
+  "ESCROW_LOCKED",
+  "DISPATCHED",
+  "DELIVERED",
+  "PENDING_DEPOSIT",
+  "PENDING_PAYMENT",
+  "PENDING_SELLER_ACCEPTANCE",
+]);
+
+const TERMINAL_STATUSES = new Set([
+  "COMPLETED",
+  "CANCELLED",
+  "REFUNDED",
+  "DISPUTE_OPEN",
+]);
+
+/**
+ * Move both parties' sessions into AWAITING_DISPUTE_EVIDENCE so the bot
+ * accepts their photo/video proof for this reference. Exported so the web
+ * dispute endpoint arms the same WhatsApp evidence flow.
+ */
+export async function armDisputeEvidenceSessions(
+  buyerPhone: string,
+  sellerPhone: string,
+  transactionRef: string
+): Promise<void> {
+  await Promise.all([
+    setSession(buyerPhone, "AWAITING_DISPUTE_EVIDENCE", { transactionRef }),
+    setSession(sellerPhone, "AWAITING_DISPUTE_EVIDENCE", { transactionRef }),
+  ]);
+}
+
+/**
+ * Handle `DISPUTE <ref>` from either party: freeze funds
+ * (status → DISPUTE_OPEN), put both parties into evidence-collection mode
+ * and notify both sides. Re-sending DISPUTE while open re-arms/re-prompts.
+ */
+async function handleDisputeCommand(from: string, rawRef: string): Promise<void> {
+  const transactionRef = rawRef.toUpperCase().replace(/[.,;!?]+$/, "");
+
+  // Single generic response so the endpoint can't be used as a ref oracle.
+  const transaction = await prisma.escrowTransaction.findUnique({
+    where: { transactionRef },
+  });
+  const isParty =
+    transaction && (transaction.buyerPhone === from || transaction.sellerPhone === from);
+  if (!transaction || !isParty) {
+    await sendWhatsAppMessage(
+      from,
+      `❌ No escrow requiring your response was found for reference *${transactionRef}*.`
+    );
+    return;
+  }
+
+  if (transaction.status === "DISPUTE_OPEN") {
+    await armDisputeEvidenceSessions(
+      transaction.buyerPhone,
+      transaction.sellerPhone,
+      transaction.transactionRef
+    );
+    await sendWhatsAppMessage(
+      from,
+      `⚠️ Escrow *${transactionRef}* is already in dispute — funds are frozen.\n\n` +
+        `Send your *photo or video proof* now and our team will review it.`
+    );
+    return;
+  }
+
+  if (TERMINAL_STATUSES.has(transaction.status) || !DISPUTABLE_STATUSES.has(transaction.status)) {
+    await sendWhatsAppMessage(
+      from,
+      `⚠️ Escrow *${transactionRef}* can no longer be disputed (current status: ${transaction.status}).`
+    );
+    return;
+  }
+
+  // 1) Freeze funds immediately.
+  await prisma.escrowTransaction.update({
+    where: { id: transaction.id },
+    data: { status: "DISPUTE_OPEN" },
+  });
+
+  // 2) Both parties can now send photo/video proof over WhatsApp.
+  await armDisputeEvidenceSessions(
+    transaction.buyerPhone,
+    transaction.sellerPhone,
+    transaction.transactionRef
+  );
+
+  const proofPrompt =
+    `\n\n📎 Please send your *photo or video proof* as a WhatsApp message ` +
+    `(photos/videos of the item, delivery, packaging, etc.). Our admin team ` +
+    `will review both sides and freeze funds until the case is resolved.`;
+
+  await sendWhatsAppMessage(
+    transaction.buyerPhone,
+    `🚨 *Dispute opened for escrow ${transactionRef}* — funds are frozen.` +
+      proofPrompt
+  );
+  if (transaction.sellerPhone && transaction.sellerPhone !== transaction.buyerPhone) {
+    await sendWhatsAppMessage(
+      transaction.sellerPhone,
+      `🚨 *Dispute opened for escrow ${transactionRef}* by the other party — funds are frozen.` +
+        proofPrompt
+    );
+  }
+}
+
+export interface IncomingWhatsAppMedia {
+  kind: "IMAGE" | "VIDEO" | "DOCUMENT";
+  /** Meta WhatsApp media id from the webhook payload. */
+  mediaId: string;
+  mimeType?: string | null;
+  fileSizeBytes?: number | null;
+  caption?: string | null;
+}
+
+/**
+ * Media entry point: records photo/video proof from a party whose session is
+ * in AWAITING_DISPUTE_EVIDENCE. Evidence rows land in the admin review
+ * queue (metadata + WhatsApp media id — no other processing happens here).
+ * Non-evidence media is acknowledged and ignored.
+ */
+export async function handleIncomingWhatsAppMedia(
+  from: string,
+  media: IncomingWhatsAppMedia
+): Promise<void> {
+  try {
+    const session = await getSession(from);
+    if (!session || session.state !== "AWAITING_DISPUTE_EVIDENCE" || !session.data.transactionRef) {
+      // Media outside the dispute flow — nothing to attach it to.
+      return;
+    }
+
+    const transactionRef = session.data.transactionRef;
+    const transaction = await prisma.escrowTransaction.findUnique({
+      where: { transactionRef },
+    });
+
+    if (
+      !transaction ||
+      (transaction.buyerPhone !== from && transaction.sellerPhone !== from) ||
+      transaction.status !== "DISPUTE_OPEN"
+    ) {
+      await resetSession(from);
+      await sendWhatsAppMessage(
+        from,
+        `⚠️ We couldn't attach that media to escrow *${transactionRef}*. ` +
+          `Send \`${DISPUTE_COMMAND} ${transactionRef}\` if you need to re-open the dispute.`
+      );
+      return;
+    }
+
+    await prisma.disputeEvidence.create({
+      data: {
+        transactionId: transaction.id,
+        transactionRef: transaction.transactionRef,
+        uploaderPhone: from,
+        kind: media.kind,
+        whatsappMediaId: media.mediaId,
+        mimeType: media.mimeType ?? null,
+        fileSizeBytes: media.fileSizeBytes ?? null,
+        caption: media.caption ?? null,
+      },
+    });
+
+    await sendWhatsAppMessage(
+      from,
+      `✅ *Proof received* for escrow *${transactionRef}* — it's been added to the ` +
+        `admin review queue. You may send more photos/videos; funds stay frozen ` +
+        `until our team resolves the dispute.`
+    );
+  } catch (error: unknown) {
+    console.error("WhatsApp dispute evidence handling failed:", error);
+    await sendWhatsAppMessage(
+      from,
+      `⚠️ We couldn't save that media. Please try sending it again.`
     );
   }
 }
@@ -579,6 +890,10 @@ async function advanceSession(
       return;
     }
 
+    case "AWAITING_DISPUTE_EVIDENCE":
+      // Unreachable: the main loop prompts for media before this is called.
+      return;
+
     default:
       return; // getSession() never returns IDLE sessions
   }
@@ -599,6 +914,14 @@ export async function handleIncomingWhatsAppMessage(
   const decision = parseSellerDecision(text);
   if (decision) {
     await handleSellerDecision(from, decision.action, decision.ref);
+    return;
+  }
+
+  // 1.5. DISPUTE <ref> — either party freezes the trade and arms the
+  //      evidence-collection flow for both sides.
+  const dispute = parseDisputeCommand(text);
+  if (dispute) {
+    await handleDisputeCommand(from, dispute);
     return;
   }
 
@@ -624,6 +947,23 @@ export async function handleIncomingWhatsAppMessage(
         await sendWhatsAppMessage(from, `⚠️ ${parsed.error}`);
       }
       return;
+    }
+
+    // While collecting dispute evidence, ordinary texts are re-prompted for
+    // photo/video media — a PIN or reference still falls through so status
+    // lookups keep working mid-dispute.
+    if (session.state === "AWAITING_DISPUTE_EVIDENCE") {
+      const looksLikePin = /^\d{4}$/.test(text);
+      const looksLikeRef = text.toUpperCase().startsWith("TS-");
+      if (!looksLikePin && !looksLikeRef) {
+        await sendWhatsAppMessage(
+          from,
+          `📎 Please send your *photo or video proof* for escrow ` +
+            `*${session.data.transactionRef ?? "the disputed trade"}* as a WhatsApp media message. ` +
+            `_(You can also send \`${DISPUTE_COMMAND} ${session.data.transactionRef ?? "<ref>"}\` again to re-open.)_`
+        );
+        return;
+      }
     }
 
     const stepOwnsNumericInput = session.state === "AWAITING_AMOUNT";

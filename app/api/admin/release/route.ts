@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Prevent double release
-    if (transaction.status === TransactionStatus.RELEASED) {
+    if (transaction.status === TransactionStatus.COMPLETED) {
       return NextResponse.json({ message: "Funds already released for this transaction" }, { status: 200 });
     }
 
@@ -47,10 +47,10 @@ export async function POST(request: NextRequest) {
       beneficiaryName: transaction.seller.name || "TrustShip Seller",
     });
 
-    // Update transaction status to RELEASED
+    // Update transaction status to COMPLETED
     const updated = await prisma.escrowTransaction.update({
       where: { id: transaction.id },
-      data: { status: TransactionStatus.RELEASED },
+      data: { status: TransactionStatus.COMPLETED },
     });
 
     // Notify Seller via WhatsApp
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       targetId: transaction.id,
       message: `Released ₦${payoutAmount} to seller ${transaction.seller.id} for transaction ${transaction.transactionRef}. Reason: ${reason || "Not specified"}`,
       changes: {
-        status: { from: transaction.status, to: TransactionStatus.RELEASED },
+        status: { from: transaction.status, to: TransactionStatus.COMPLETED },
         payoutAmount,
         payoutReference: payoutRef,
       },

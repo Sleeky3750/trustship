@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { prisma } from "@/lib/prisma";
-import { handleIncomingWhatsAppMessage } from "@/lib/whatsapp/botEngine";
+import {
+  handleIncomingWhatsAppMessage,
+  handleIncomingWhatsAppMedia,
+} from "@/lib/whatsapp/botEngine";
 
 // GET: Meta Verification Handshake
 export async function GET(request: NextRequest) {
@@ -102,6 +105,24 @@ export async function POST(request: NextRequest) {
                     message.interactive?.list_reply?.id;
                   if (buttonId) {
                     await handleIncomingWhatsAppMessage(from, buttonId);
+                  }
+                } else if (
+                  message.type === "image" ||
+                  message.type === "video" ||
+                  message.type === "document"
+                ) {
+                  // Photo/video dispute evidence — only recorded while the
+                  // sender's session is in AWAITING_DISPUTE_EVIDENCE.
+                  const media = message[message.type];
+                  if (media?.id) {
+                    await handleIncomingWhatsAppMedia(from, {
+                      kind: message.type.toUpperCase() as "IMAGE" | "VIDEO" | "DOCUMENT",
+                      mediaId: media.id,
+                      mimeType: media.mime_type ?? null,
+                      fileSizeBytes:
+                        typeof media.byte_size === "number" ? media.byte_size : null,
+                      caption: media.caption ?? null,
+                    });
                   }
                 }
               }

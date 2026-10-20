@@ -93,9 +93,9 @@ export default function AdminDashboardPage() {
 
   // --- DYNAMIC METRICS CALCULATION ---
   const totalEscrowValue = escrows.reduce((acc, tx) => acc + (tx.totalEscrow || tx.itemAmount || 0), 0);
-  const activeTransactionsCount = escrows.filter(tx => tx.status !== 'RELEASED').length;
-  const successfulReleasesCount = escrows.filter(tx => tx.status === 'RELEASED').length;
-  const activeDisputesCount = escrows.filter(tx => tx.status === 'DISPUTED').length;
+  const activeTransactionsCount = escrows.filter(tx => tx.status !== 'COMPLETED').length;
+  const successfulReleasesCount = escrows.filter(tx => tx.status === 'COMPLETED').length;
+  const activeDisputesCount = escrows.filter(tx => tx.status === 'DISPUTE_OPEN').length;
 
   const filteredEscrows = escrows.filter(
     (tx) =>
@@ -256,7 +256,7 @@ export default function AdminDashboardPage() {
                       </td>
                       <td className="py-3.5 px-4">
                         <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide ${
-                          tx.status === 'RELEASED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                          tx.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
                           tx.status === 'ESCROW_LOCKED' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
                           'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                         }`}>
@@ -288,7 +288,7 @@ export default function AdminDashboardPage() {
                             </button>
                           )}
 
-                          {tx.status !== 'ESCROW_LOCKED' && tx.status !== 'RELEASED' && (
+                          {tx.status !== 'ESCROW_LOCKED' && tx.status !== 'COMPLETED' && (
                             <button
                               onClick={() => handleAction(tx.transactionRef, 'fund')}
                               disabled={actionLoading === tx.transactionRef + 'fund'}
@@ -297,7 +297,7 @@ export default function AdminDashboardPage() {
                               Fund
                             </button>
                           )}
-                          {tx.status !== 'RELEASED' && (
+                          {tx.status !== 'COMPLETED' && (
                             <button
                               onClick={() => handleAction(tx.transactionRef, 'release')}
                               disabled={actionLoading === tx.transactionRef + 'release'}

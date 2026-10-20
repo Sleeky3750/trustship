@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       data: {
         waybillPayer: waybillPayer || transaction.waybillPayer,
         ...(nextDispatch ? { dispatchStatus: nextDispatch } : {}),
-        ...(nextDispatch === "DELIVERED" && transaction.status !== "RELEASED"
+        ...(nextDispatch === "DELIVERED" && transaction.status !== "COMPLETED"
           ? { status: "DELIVERED" }
           : {}),
       },

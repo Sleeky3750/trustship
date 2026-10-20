@@ -159,13 +159,13 @@ export default function AdminTransactionsPage() {
                       <td className="py-4 px-4 font-semibold text-gray-900">₦{(tx.totalAmount || tx.itemPrice || 0).toLocaleString()}</td>
                       <td className="py-4 px-4">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                          tx.status === 'RELEASED' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                          tx.status === 'COMPLETED' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                         }`}>
                           {tx.status}
                         </span>
                       </td>
                       <td className="py-4 px-4 text-right space-x-2">
-                        {isSuperAdmin && tx.status !== 'RELEASED' && (
+                        {isSuperAdmin && tx.status !== 'COMPLETED' && (
                           <button
                             onClick={() => handleReleaseFunds(tx.id, tx.transactionRef)}
                             className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-sm transition"
@@ -173,7 +173,7 @@ export default function AdminTransactionsPage() {
                             Release Funds
                           </button>
                         )}
-                        {!isSuperAdmin && tx.status !== 'RELEASED' && (
+                        {!isSuperAdmin && tx.status !== 'COMPLETED' && (
                           <span className="text-xs text-gray-400 italic">Requires SUPER_ADMIN</span>
                         )}
                       </td>
