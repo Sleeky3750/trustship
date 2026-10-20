@@ -312,9 +312,10 @@ async function buildSellerBadge(sellerPhone: string): Promise<string> {
 /**
  * Send the seller the escrow invitation. Tries the approved Meta template
  * (`seller_escrow_invitation`, created in Business Hub with body params:
- * reference, item, amount, buyer) first; falls back to interactive
+ * item, amount, buyer, reference) first; falls back to interactive
  * quick-reply buttons, then plain text, so the flow works regardless of
- * template approval state.
+ * template approval state. The parameter order MUST match the approved
+ * template exactly.
  */
 async function inviteSeller(draft: {
   transactionRef: string;
@@ -329,10 +330,10 @@ async function inviteSeller(draft: {
     sellerPhone,
     "seller_escrow_invitation",
     [
-      transactionRef,
       itemTitle,
       `₦${totalEscrow.toLocaleString()}`,
       buyerPhone,
+      transactionRef,
     ]
   );
   if (template.success) return;
@@ -342,6 +343,7 @@ async function inviteSeller(draft: {
     `${buyerPhone} wants to trade with you:\n\n` +
     `• Item: ${itemTitle}\n` +
     `• Amount: ₦${totalEscrow.toLocaleString()}\n` +
+    `• Buyer: ${buyerPhone}\n` +
     `• Reference: ${transactionRef}\n` +
     (await buildSellerBadge(sellerPhone)) +
     `\n\nReply *ACCEPT ${transactionRef}* to accept or ` +
