@@ -57,16 +57,38 @@ export class EscrowCreationError extends Error {
 }
 
 /**
- * Create an escrow transaction, initialise its Flutterwave checkout link and
- * (optionally) notify both parties. Throws {@link EscrowCreationError} for
- * invalid input and rethrows provider/network failures.
+ * Find a user by phone, creating a placeholder row when none exists. Shared
+ * by the immediate-creation and draft (seller-acceptance) paths so buyer and
+ * seller resolution can never drift between them.
  */
-export async function createEscrow(
-  input: CreateEscrowInput,
-  options: CreateEscrowOptions = {}
-): Promise<CreateEscrowResult> {
-  const notifyParticipants = options.notifyParticipants ?? true;
+async function ensureUser(
+  phone: string,
+  role: "BUYER" | "SELLER",
+  name: string
+) {
+  const existing = await prisma.user.findUnique({ where: { phone } });
+  if (existing) return existing;
+  return prisma.user.create({
+    data: {
+      phone,
+      name,
+      role,
+      bankCode: "",
+      accountNumber: "",
+      bankName: "",
+    },
+  });
+}
 
+/** Shared validation for both creation paths. Returns normalized numbers. */
+function validateCreationInput(input: CreateEscrowInput): {
+  buyerPhone: string;
+  sellerPhone: string;
+  numItemAmount: number;
+  numWaybillAmount: number;
+  waybillPayer: WaybillPayer;
+  cleanItemTitle: string | null;
+} {
   const buyerPhone = typeof input.buyerPhone === "string" ? input.buyerPhone.trim() : "";
   const sellerPhone = typeof input.sellerPhone === "string" ? input.sellerPhone.trim() : "";
   const numItemAmount = Number(input.itemAmount);
@@ -83,6 +105,23 @@ export async function createEscrow(
 
   const rawTitle = typeof input.itemTitle === "string" ? input.itemTitle.trim() : "";
   const cleanItemTitle = rawTitle.length > 0 ? rawTitle : null;
+
+  return { buyerPhone, sellerPhone, numItemAmount, numWaybillAmount, waybillPayer, cleanItemTitle };
+}
+
+/**
+ * Create an escrow transaction, initialise its Flutterwave checkout link and
+ * (optionally) notify both parties. Throws {@link EscrowCreationError} for
+ * invalid input and rethrows provider/network failures.
+ */
+export async function createEscrow(
+  input: CreateEscrowInput,
+  options: CreateEscrowOptions = {}
+): Promise<CreateEscrowResult> {
+  const notifyParticipants = options.notifyParticipants ?? true;
+
+  const { buyerPhone, sellerPhone, numItemAmount, numWaybillAmount, waybillPayer, cleanItemTitle } =
+    validateCreationInput(input);
   const displayItemTitle = cleanItemTitle ?? "Item";
 
   // Platform fee is always server-computed; never trust a caller-supplied fee.
@@ -95,19 +134,7 @@ export async function createEscrow(
   const releasePin = Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit release PIN
 
   // ---- Buyer ----
-  let buyer = await prisma.user.findUnique({ where: { phone: buyerPhone } });
-  if (!buyer) {
-    buyer = await prisma.user.create({
-      data: {
-        phone: buyerPhone,
-        name: input.buyerName || "TrustShip Buyer",
-        role: "BUYER",
-        bankCode: "",
-        accountNumber: "",
-        bankName: "",
-      },
-    });
-  }
+  const buyer = await ensureUser(buyerPhone, "BUYER", input.buyerName || "TrustShip Buyer");
 
   // ---- Seller ----
   let seller = await prisma.user.findUnique({ where: { phone: sellerPhone } });
@@ -201,5 +228,79 @@ export async function createEscrow(
     totalEscrow,
     platformFee,
     releasePin,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// WhatsApp-first flow: escrow drafts awaiting seller acceptance.
+// ---------------------------------------------------------------------------
+
+export interface CreateEscrowDraftResult {
+  success: true;
+  transactionRef: string;
+  transactionId: string;
+  totalEscrow: number;
+  platformFee: number;
+  releasePin: string;
+  buyerPhone: string;
+  sellerPhone: string;
+  itemTitle: string;
+}
+
+/**
+ * Save a draft escrow in `PENDING_SELLER_ACCEPTANCE` for the WhatsApp flow.
+ *
+ * No payment link is created here — once the seller replies ACCEPT, the bot
+ * engine flips the row to PENDING_PAYMENT and initializes the Paystack
+ * checkout (paymentProvider PAYSTACK). Uses the exact same validation, fee
+ * math and user resolution as {@link createEscrow} so the two entry points
+ * can never drift.
+ */
+export async function createEscrowDraft(
+  input: CreateEscrowInput
+): Promise<CreateEscrowDraftResult> {
+  const { buyerPhone, sellerPhone, numItemAmount, numWaybillAmount, waybillPayer, cleanItemTitle } =
+    validateCreationInput(input);
+
+  const platformFee = computePlatformFee(numItemAmount);
+  const totalEscrow =
+    numItemAmount + platformFee + (waybillPayer === "BUYER" ? numWaybillAmount : 0);
+
+  const transactionRef = `TS-ESCROW-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+  const releasePin = Math.floor(1000 + Math.random() * 9000).toString();
+
+  const buyer = await ensureUser(buyerPhone, "BUYER", input.buyerName || "TrustShip Buyer");
+  const seller = await ensureUser(sellerPhone, "SELLER", input.sellerName || "TrustShip Seller");
+
+  const transaction = await prisma.escrowTransaction.create({
+    data: {
+      transactionRef,
+      itemTitle: cleanItemTitle,
+      itemAmount: numItemAmount,
+      waybillAmount: numWaybillAmount,
+      totalEscrow,
+      platformFee,
+      waybillPayer,
+      dispatchStatus: "PENDING",
+      status: "PENDING_SELLER_ACCEPTANCE",
+      releasePin,
+      buyerPhone,
+      sellerPhone,
+      buyerId: buyer.id,
+      sellerId: seller.id,
+      paymentProvider: "PAYSTACK",
+    },
+  });
+
+  return {
+    success: true,
+    transactionRef,
+    transactionId: transaction.id,
+    totalEscrow,
+    platformFee,
+    releasePin,
+    buyerPhone,
+    sellerPhone,
+    itemTitle: cleanItemTitle ?? "Item",
   };
 }

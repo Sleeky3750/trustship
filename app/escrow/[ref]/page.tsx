@@ -10,7 +10,7 @@ interface TransactionDetail {
   waybillAmount: number;
   totalEscrow: number;
   waybillPayer: string;
-  status: "PENDING_DEPOSIT" | "ESCROW_LOCKED" | "DISPATCHED" | "DELIVERED" | "RELEASED" | "DISPUTED" | "REFUNDED";
+  status: "PENDING_SELLER_ACCEPTANCE" | "PENDING_PAYMENT" | "PENDING_AGREEMENT" | "PENDING_DEPOSIT" | "ESCROW_LOCKED" | "DISPATCHED" | "DELIVERED" | "RELEASED" | "DISPUTED" | "REFUNDED" | "CANCELLED";
   dispatchStatus: string;
   buyerPhone: string;
   sellerPhone: string;

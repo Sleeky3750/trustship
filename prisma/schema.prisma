@@ -16,6 +16,8 @@ enum Role {
 }
 
 enum TransactionStatus {
+  PENDING_SELLER_ACCEPTANCE
+  PENDING_PAYMENT
   PENDING_AGREEMENT
   PENDING_DEPOSIT
   ESCROW_LOCKED
@@ -24,6 +26,7 @@ enum TransactionStatus {
   RELEASED
   DISPUTED
   REFUNDED
+  CANCELLED
 }
 
 enum WaybillPayer {
@@ -67,6 +70,11 @@ model EscrowTransaction {
   
   flwTransactionId String?
 
+  // Paystack settlement reference (WhatsApp-first flow). Set when the seller
+  // accepts and the Paystack transaction is initialized; the Paystack webhook
+  // resolves charge events against transactionRef/paystackRef.
+  paystackRef String?
+
 
   itemTitle     String?
 
@@ -82,7 +90,7 @@ model EscrowTransaction {
   courierName  String?
   courierPhone String?
 
-  status     TransactionStatus
+  status     TransactionStatus @default(PENDING_SELLER_ACCEPTANCE)
   releasePin String            // 4 digits
 
   autoReleaseAt DateTime?
@@ -102,6 +110,25 @@ model EscrowTransaction {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// WhatsApp conversational bot sessions (bot engine state machine).
+//
+// One row per messaging phone number. `state` mirrors the bot's flow states
+// (IDLE, AWAITING_TITLE, AWAITING_AMOUNT, AWAITING_SELLER_PHONE) and
+// `tempData` carries the progressively collected deal fields. Replaces the
+// previous in-memory session map so sessions survive serverless restarts and
+// are shared across instances.
+// ---------------------------------------------------------------------------
+
+model WhatsAppSession {
+  id          String   @id @default(cuid())
+  phoneNumber String   @unique
+  state       String   @default("IDLE")
+  tempData    Json?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
 }
 
 model WebhookLog {
