@@ -2,15 +2,27 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { TransactionStatus } from "@prisma/client";
+import { verifyActionToken } from "@/lib/action-token";
 
 export async function POST(request: NextRequest) {
   try {
-    const { transactionRef } = await request.json();
+    const { transactionRef, actionToken } = await request.json();
 
     if (!transactionRef) {
       return NextResponse.json(
         { error: "Transaction reference is required" },
         { status: 400 }
+      );
+    }
+
+    // Public route: confirming delivery triggers the release-PIN message, so
+    // it requires a server-minted, signed action token bound to this exact
+    // transaction + transition. Checked BEFORE the lookup so the endpoint
+    // cannot be used as a transactionRef existence oracle either.
+    if (!verifyActionToken(actionToken, "confirm-delivery", transactionRef)) {
+      return NextResponse.json(
+        { error: "Missing or invalid action token" },
+        { status: 401 }
       );
     }
 
@@ -64,7 +76,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error("Confirm delivery error:", error);
     return NextResponse.json(
-      { error: error?.message || "Internal server error" },
+      { error: "An internal server error occurred" },
       { status: 500 }
     );
   }

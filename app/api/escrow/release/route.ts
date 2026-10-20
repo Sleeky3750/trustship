@@ -5,12 +5,14 @@ import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { TransactionStatus } from "@prisma/client";
 import { computePayoutAmount } from "@/lib/payout";
 import { requireAdmin } from "@/lib/admin-auth";
+import { recordAdminAction } from "@/lib/audit";
 
 export async function POST(request: NextRequest) {
   try {
     // Releasing escrow is a money-moving admin action.
     const auth = await requireAdmin(request);
     if (auth.error) return auth.error;
+    const admin = auth.admin;
 
     const { transactionRef, releasePin } = await request.json();
 
@@ -85,6 +87,19 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Audit the money-moving release with real client IP + User-Agent.
+    await recordAdminAction(request, {
+      adminId: admin.id,
+      action: "ESCROW_RELEASED",
+      targetId: transaction.id,
+      message: `Released ₦${payoutAmount} to seller for transaction ${transaction.transactionRef} (PIN verified)`,
+      changes: {
+        status: { from: transaction.status, to: TransactionStatus.RELEASED },
+        payoutAmount,
+        payoutReference: payoutRef,
+      },
+    });
+
     // 7. Notify Seller via WhatsApp
     if (transaction.sellerPhone) {
       try {
@@ -111,7 +126,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error("Fund release processing error:", error);
     return NextResponse.json(
-      { error: error?.message || "Internal server error" },
+      { error: "An internal server error occurred" },
       { status: 500 }
     );
   }

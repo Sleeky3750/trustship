@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error("Admin escrows error:", error);
     return NextResponse.json(
-      { success: false, error: error?.message || "Internal server error" },
+      { success: false, error: "An internal server error occurred" },
       { status: 500 }
     );
   }

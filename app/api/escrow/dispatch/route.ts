@@ -1,13 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
+import { verifyActionToken } from "@/lib/action-token";
 
 export async function POST(request: NextRequest) {
   try {
-    const { transactionRef, courierName, courierPhone } = await request.json();
+    const { transactionRef, courierName, courierPhone, actionToken } = await request.json();
 
     if (!transactionRef) {
       return NextResponse.json({ error: "Transaction reference is required" }, { status: 400 });
+    }
+
+    // Public route: require a server-minted, signed action token bound to this
+    // exact transaction + transition. Checked BEFORE the lookup so the endpoint
+    // cannot be used as a transactionRef existence oracle either.
+    if (!verifyActionToken(actionToken, "dispatch", transactionRef)) {
+      return NextResponse.json(
+        { error: "Missing or invalid action token" },
+        { status: 401 }
+      );
     }
 
     const transaction = await prisma.escrowTransaction.findUnique({

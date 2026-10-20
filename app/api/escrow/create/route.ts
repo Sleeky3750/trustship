@@ -12,13 +12,9 @@ export async function POST(request: Request) {
     }
 
     console.error("Escrow creation error:", error);
+    // Never echo raw error messages on 500s — the detail stays server-side.
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Internal server error during escrow creation",
-      },
+      { error: "An internal server error occurred" },
       { status: 500 }
     );
   }

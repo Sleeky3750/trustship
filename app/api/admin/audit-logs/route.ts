@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
         success: false,
         logs: [],
         auditLogs: [],
-        error: error?.message || "Internal server error",
+        error: "An internal server error occurred",
       },
       { status: 500 }
     );

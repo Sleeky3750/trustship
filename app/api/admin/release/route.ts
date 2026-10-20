@@ -5,6 +5,7 @@ import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { TransactionStatus } from "@prisma/client";
 import { requireAdmin } from "@/lib/admin-auth";
 import { computePayoutAmount } from "@/lib/payout";
+import { recordAdminAction } from "@/lib/audit";
 
 export async function POST(request: NextRequest) {
   try {
@@ -66,20 +67,18 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Log the admin action
-    try {
-      await prisma.adminAuditLog.create({
-        data: {
-          adminId: admin.id,
-          action: "ADMIN_RELEASE_FUNDS",
-          targetId: transaction.id,
-          details: `Released ₦${payoutAmount} to seller ${transaction.seller.id} for transaction ${transaction.transactionRef}. Reason: ${reason || "Not specified"}`,
-          ipAddress: "admin-panel", // Would be request IP in real implementation
-        },
-      });
-    } catch (auditErr) {
-      console.warn("Audit log failed:", auditErr);
-    }
+    // Audit with real client IP + User-Agent captured from the request.
+    await recordAdminAction(request, {
+      adminId: admin.id,
+      action: "ESCROW_RELEASED",
+      targetId: transaction.id,
+      message: `Released ₦${payoutAmount} to seller ${transaction.seller.id} for transaction ${transaction.transactionRef}. Reason: ${reason || "Not specified"}`,
+      changes: {
+        status: { from: transaction.status, to: TransactionStatus.RELEASED },
+        payoutAmount,
+        payoutReference: payoutRef,
+      },
+    });
 
     return NextResponse.json({
       success: true,
@@ -90,6 +89,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error("Admin release funds error:", error);
-    return NextResponse.json({ error: error?.message || "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "An internal server error occurred" }, { status: 500 });
   }
 }

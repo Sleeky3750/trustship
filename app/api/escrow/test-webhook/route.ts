@@ -1,15 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
+import { recordAdminAction } from "@/lib/audit";
 
 // Admin-only helper that simulates a successful Flutterwave charge so the
 // escrow flow can be exercised without real money. Accepts ?ref=<txRef> to
 // target one transaction, otherwise locks the most recently created escrow
 // that is still awaiting deposit.
-export async function GET(request: NextRequest) {
+//
+// POST (not GET): this endpoint mutates escrow state — a state-changing GET
+// could be triggered by a top-level navigation (SameSite=Lax sends cookies
+// on top-level GETs), so the handler only accepts POST.
+export async function POST(request: NextRequest) {
   try {
     const auth = await requireAdmin(request);
     if (auth.error) return auth.error;
+    const admin = auth.admin;
 
     const { searchParams } = new URL(request.url);
     const ref = searchParams.get("ref");
@@ -42,6 +48,18 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // Audit the simulated payment (state override) with real IP + User-Agent.
+    await recordAdminAction(request, {
+      adminId: admin.id,
+      action: "PAYMENT_SIMULATED",
+      targetId: transaction.id,
+      message: `Simulated Flutterwave payment for ${transaction.transactionRef} (test webhook)`,
+      changes: {
+        status: { from: "PENDING_DEPOSIT", to: "ESCROW_LOCKED" },
+        paymentProvider: "FLUTTERWAVE",
+      },
+    });
+
     return NextResponse.json({
       success: true,
       message: `Successfully simulated payment! Transaction ${updated.transactionRef} is now ESCROW_LOCKED.`,
@@ -55,6 +73,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     console.error("Test trigger error:", error);
-    return NextResponse.json({ error: error?.message || "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "An internal server error occurred" }, { status: 500 });
   }
 }

@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { initiateFlutterwaveTransfer } from "@/lib/flutterwave";
 import { computePayoutAmount } from "@/lib/payout";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
+import { recordAdminAction } from "@/lib/audit";
 
 type ActionContext = { params: Promise<{ ref: string; action: string }> };
 
@@ -12,6 +13,7 @@ export async function POST(request: NextRequest, context: ActionContext) {
     // Admin actions on escrows require a valid admin_token session.
     const auth = await requireAdmin(request);
     if (auth.error) return auth.error;
+    const admin = auth.admin;
 
     const { ref, action } = await context.params;
 
@@ -49,6 +51,14 @@ export async function POST(request: NextRequest, context: ActionContext) {
           data: { status: "ESCROW_LOCKED" },
         });
 
+        await recordAdminAction(request, {
+          adminId: admin.id,
+          action: "ESCROW_FUNDED",
+          targetId: transaction.id,
+          message: `Manually confirmed payment and locked escrow ${transaction.transactionRef}`,
+          changes: { status: { from: "PENDING_DEPOSIT", to: "ESCROW_LOCKED" } },
+        });
+
         return NextResponse.json({ success: true, transaction: updated });
       }
 
@@ -84,6 +94,18 @@ export async function POST(request: NextRequest, context: ActionContext) {
           data: { status: "RELEASED" },
         });
 
+        await recordAdminAction(request, {
+          adminId: admin.id,
+          action: "ESCROW_RELEASED",
+          targetId: transaction.id,
+          message: `Released ₦${payoutAmount} to seller for transaction ${transaction.transactionRef}`,
+          changes: {
+            status: { from: transaction.status, to: "RELEASED" },
+            payoutAmount,
+            payoutReference: payoutRef,
+          },
+        });
+
         if (transaction.sellerPhone) {
           try {
             await sendWhatsAppMessage(
@@ -106,6 +128,14 @@ export async function POST(request: NextRequest, context: ActionContext) {
           data: { status: "DELIVERED", dispatchStatus: "DELIVERED" },
         });
 
+        await recordAdminAction(request, {
+          adminId: admin.id,
+          action: "ESCROW_DELIVERED",
+          targetId: transaction.id,
+          message: `Marked transaction ${transaction.transactionRef} as delivered`,
+          changes: { status: { from: transaction.status, to: "DELIVERED" } },
+        });
+
         return NextResponse.json({ success: true, transaction: updated });
 
       case "dispute":
@@ -118,6 +148,17 @@ export async function POST(request: NextRequest, context: ActionContext) {
           data: { status: "DISPUTED", disputeFault },
         });
 
+        await recordAdminAction(request, {
+          adminId: admin.id,
+          action: "DISPUTE_OPENED",
+          targetId: transaction.id,
+          message: `Opened dispute on transaction ${transaction.transactionRef} (fault: ${disputeFault})`,
+          changes: {
+            status: { from: transaction.status, to: "DISPUTED" },
+            disputeFault,
+          },
+        });
+
         return NextResponse.json({ success: true, transaction: updated });
 
       default:
@@ -125,7 +166,7 @@ export async function POST(request: NextRequest, context: ActionContext) {
     }
   } catch (error: any) {
     console.error("Admin escrow action error:", error);
-    return NextResponse.json({ error: error?.message || "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "An internal server error occurred" }, { status: 500 });
   }
 }
 
@@ -165,6 +206,6 @@ export async function GET(request: NextRequest, context: ActionContext) {
     });
   } catch (error: any) {
     console.error("Admin escrow get error:", error);
-    return NextResponse.json({ error: error?.message || "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "An internal server error occurred" }, { status: 500 });
   }
 }

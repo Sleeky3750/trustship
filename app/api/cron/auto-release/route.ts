@@ -115,6 +115,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     console.error("Auto-release cron error:", error);
-    return NextResponse.json({ error: error?.message || "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "An internal server error occurred" }, { status: 500 });
   }
 }

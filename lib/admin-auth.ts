@@ -7,8 +7,35 @@ import { prisma } from "@/lib/prisma";
 
 // Single source of truth for the admin JWT secret.
 // Imported by /api/admin/login (sign), /api/admin/me (verify) and requireAdmin().
-export const JWT_SECRET =
-  process.env.JWT_SECRET || "default-jwt-secret-change-in-production";
+const JWT_SECRET_FALLBACK = "default-jwt-secret-change-in-production";
+
+/**
+ * Resolves the JWT secret with fail-closed behaviour in production:
+ * a missing `JWT_SECRET` (or one still set to the insecure development
+ * default) throws immediately instead of silently signing tokens with a
+ * publicly known key. Development keeps the legacy fallback so local
+ * workspaces without a `.env` continue to run, with a loud warning.
+ */
+function resolveJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (secret && secret !== JWT_SECRET_FALLBACK) return secret;
+
+  if (process.env.NODE_ENV === "production") {
+    console.error(
+      "FATAL: JWT_SECRET is missing or set to the insecure default — refusing to start in production."
+    );
+    throw new Error(
+      "JWT_SECRET must be configured to a non-default value in production."
+    );
+  }
+
+  console.warn(
+    "[admin-auth] JWT_SECRET is not configured — using the insecure development-only fallback."
+  );
+  return JWT_SECRET_FALLBACK;
+}
+
+export const JWT_SECRET = resolveJwtSecret();
 
 export type AdminSession = {
   id: string;

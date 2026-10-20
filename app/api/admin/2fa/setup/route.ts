@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { generateSecret, generateURI } from "otplib";
 import QRCode from "qrcode";
+import { recordAdminAction } from "@/lib/audit";
 
 async function handleSetup(request: NextRequest) {
   try {
@@ -30,6 +31,14 @@ async function handleSetup(request: NextRequest) {
         where: { id: admin.id },
         data: { twoFactorSecret: secret },
       });
+
+      // Configuration change: a fresh TOTP secret was generated for this admin.
+      await recordAdminAction(request, {
+        adminId: admin.id,
+        action: "2FA_SETUP",
+        message: "Generated a new TOTP secret for 2FA enrolment",
+        changes: { twoFactorSecret: { from: null, to: "generated" } },
+      });
     }
 
     // Generate the QR code data URI for the authenticator app
@@ -56,7 +65,7 @@ async function handleSetup(request: NextRequest) {
   } catch (error: any) {
     console.error("Admin 2FA setup error:", error);
     return NextResponse.json(
-      { success: false, error: error?.message || "Internal server error" },
+      { success: false, error: "An internal server error occurred" },
       { status: 500 }
     );
   }

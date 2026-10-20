@@ -4,9 +4,29 @@ import { JWT_SECRET } from "@/lib/admin-auth";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { verify } from "otplib";
+import { recordAdminAction } from "@/lib/audit";
+import { getClientIp } from "@/lib/request-ip";
+import { checkRateLimit, recordFailure, clearFailures } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
+    // Brute-force protection: block an IP for 15 minutes after 5 failed
+    // attempts within the window (checked before any credential work).
+    const clientIp = getClientIp(request);
+    const rateStatus = checkRateLimit(clientIp);
+    if (rateStatus.blocked) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Too many failed login attempts. Please try again later.",
+        },
+        {
+          status: 429,
+          headers: { "Retry-After": String(rateStatus.retryAfterSeconds) },
+        }
+      );
+    }
+
     const body = await request.json();
     const { email, password } = body;
 
@@ -23,6 +43,9 @@ export async function POST(request: NextRequest) {
     });
 
     if (!admin) {
+      // Count toward the IP's failure window even though the email is
+      // unknown (no audit row is possible — adminId is a required FK).
+      recordFailure(clientIp);
       return NextResponse.json(
         { success: false, error: "Invalid email or password" },
         { status: 401 }
@@ -38,6 +61,15 @@ export async function POST(request: NextRequest) {
     }
 
     if (!isPasswordValid) {
+      recordFailure(clientIp);
+      // Forensics: failed attempt for a *known* admin account. (Unknown
+      // emails cannot be logged — adminId is a required FK.)
+      await recordAdminAction(request, {
+        adminId: admin.id,
+        action: "ADMIN_LOGIN_FAILED",
+        message: "Rejected login attempt: incorrect password",
+        changes: { attemptedEmail: admin.email },
+      });
       return NextResponse.json(
         { success: false, error: "Invalid email or password" },
         { status: 401 }
@@ -76,6 +108,13 @@ export async function POST(request: NextRequest) {
           epochTolerance: 30, // accept ±1 time step to tolerate clock drift
         });
         if (!result.valid) {
+          recordFailure(clientIp);
+          await recordAdminAction(request, {
+            adminId: admin.id,
+            action: "ADMIN_LOGIN_FAILED",
+            message: "Rejected login attempt: invalid 2FA code",
+            changes: { attemptedEmail: admin.email, stage: "2fa" },
+          });
           return NextResponse.json(
             { success: false, error: "Invalid 2FA code" },
             { status: 401 }
@@ -87,6 +126,13 @@ export async function POST(request: NextRequest) {
           "Admin login TOTP verification error:",
           err?.message || err
         );
+        recordFailure(clientIp);
+        await recordAdminAction(request, {
+          adminId: admin.id,
+          action: "ADMIN_LOGIN_FAILED",
+          message: "Rejected login attempt: malformed 2FA code",
+          changes: { attemptedEmail: admin.email, stage: "2fa" },
+        });
         return NextResponse.json(
           { success: false, error: "Invalid 2FA code" },
           { status: 401 }
@@ -103,6 +149,9 @@ export async function POST(request: NextRequest) {
 
     // 4. Mint JWT token for authenticated admin (password + TOTP both passed)
     const token = jwt.sign({ adminId: admin.id }, JWT_SECRET, { expiresIn: "1d" });
+
+    // Authenticated — clear this IP's failure window.
+    clearFailures(clientIp);
 
     // 5. Set JWT token in httpOnly cookie and return success
     const response = NextResponse.json(
@@ -127,12 +176,25 @@ export async function POST(request: NextRequest) {
       maxAge: 60 * 60 * 24, // 1 day
     });
 
+    // Complete audit record for the login: admin id, action, client IP and
+    // User-Agent, 2FA usage and timestamp — written before responding.
+    await recordAdminAction(request, {
+      adminId: admin.id,
+      action: "ADMIN_LOGIN",
+      message: `Admin ${admin.email} logged in${admin.isTwoFactorEnabled ? " with 2FA" : ""}`,
+      changes: {
+        email: admin.email,
+        role: admin.role,
+        twoFactorUsed: Boolean(admin.isTwoFactorEnabled && admin.twoFactorSecret),
+      },
+    });
+
     return response;
   } catch (error: any) {
     console.error("Admin login error:", error);
     // CRITICAL: Always return JSON, never let Next.js return HTML error pages
     return NextResponse.json(
-      { success: false, error: error?.message || "Internal server error" },
+      { success: false, error: "An internal server error occurred" },
       { status: 500 }
     );
   }

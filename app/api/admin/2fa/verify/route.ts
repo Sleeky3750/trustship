@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { verify } from "otplib";
+import { recordAdminAction } from "@/lib/audit";
 
 export async function POST(request: NextRequest) {
   try {
@@ -58,6 +59,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (!isValid) {
+      await recordAdminAction(request, {
+        adminId,
+        action: "2FA_VERIFICATION_FAILED",
+        message: "Rejected an invalid 2FA code during 2FA enablement",
+      });
       return NextResponse.json(
         { success: false, error: "Invalid 2FA code" },
         { status: 401 }
@@ -70,6 +76,13 @@ export async function POST(request: NextRequest) {
       data: { isTwoFactorEnabled: true },
     });
 
+    await recordAdminAction(request, {
+      adminId,
+      action: "2FA_VERIFIED",
+      message: "2FA enabled and verified for this admin account",
+      changes: { isTwoFactorEnabled: { from: false, to: true } },
+    });
+
     return NextResponse.json({
       success: true,
       message: "2FA verification successful",
@@ -78,7 +91,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error("Admin 2FA verify error:", error);
     return NextResponse.json(
-      { success: false, error: error?.message || "Internal server error" },
+      { success: false, error: "An internal server error occurred" },
       { status: 500 }
     );
   }

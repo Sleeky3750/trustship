@@ -3,13 +3,17 @@ import { prisma } from "@/lib/prisma";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { DisputeFault, TransactionStatus } from "@prisma/client";
 import { requireAdmin } from "@/lib/admin-auth";
+import { recordAdminAction } from "@/lib/audit";
 
 export async function POST(request: NextRequest) {
   try {
     const auth = await requireAdmin(request);
     if (auth.error) return auth.error;
+    const admin = auth.admin;
 
-    const { transactionRef, disputeFault, resolution, resolvedBy } = await request.json();
+    // Identity comes from the session — never from the request body.
+    const { transactionRef, disputeFault, resolution } = await request.json();
+    const resolvedBy = admin.name || admin.email;
 
     if (!transactionRef) {
       return NextResponse.json({ error: "Transaction reference is required" }, { status: 400 });
@@ -51,6 +55,19 @@ export async function POST(request: NextRequest) {
     if (transaction.sellerPhone) {
       await sendWhatsAppMessage(transaction.sellerPhone, resolutionMessage);
     }
+
+    // Audit the dispute resolution (real client IP + User-Agent).
+    await recordAdminAction(request, {
+      adminId: admin.id,
+      action: "DISPUTE_RESOLVED",
+      targetId: transaction.id,
+      message: `Resolved dispute on ${transaction.transactionRef} (fault: ${disputeFault}). Resolution: ${resolution || "Not specified"}`,
+      changes: {
+        status: { from: transaction.status, to: TransactionStatus.REFUNDED },
+        disputeFault,
+        resolution: resolution || null,
+      },
+    });
 
     return NextResponse.json({
       success: true,

@@ -5,6 +5,7 @@ import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { TransactionStatus } from "@prisma/client";
 import { requireAdmin } from "@/lib/admin-auth";
 import { computePayoutAmount } from "@/lib/payout";
+import { recordAdminAction } from "@/lib/audit";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,6 +15,7 @@ export async function POST(request: NextRequest) {
       roles: ["SUPER_ADMIN", "FINANCE"],
     });
     if (auth.error) return auth.error;
+    const admin = auth.admin;
 
     const { transactionId } = await request.json();
 
@@ -56,6 +58,19 @@ export async function POST(request: NextRequest) {
       data: { status: TransactionStatus.RELEASED },
     });
 
+    // Audit with real client IP + User-Agent captured from the request.
+    await recordAdminAction(request, {
+      adminId: admin.id,
+      action: "ESCROW_RELEASED",
+      targetId: transaction.id,
+      message: `Released ₦${payoutAmount} to seller for transaction ${transaction.transactionRef}`,
+      changes: {
+        status: { from: transaction.status, to: TransactionStatus.RELEASED },
+        payoutAmount,
+        payoutReference: payoutRef,
+      },
+    });
+
     // Notify Seller via WhatsApp
     if (transaction.sellerPhone) {
       try {
@@ -72,6 +87,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, payoutAmount, transaction: updated });
   } catch (error: any) {
     console.error("Admin transaction release error:", error);
-    return NextResponse.json({ error: error?.message || "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "An internal server error occurred" }, { status: 500 });
   }
 }

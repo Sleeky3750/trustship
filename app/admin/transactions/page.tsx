@@ -79,7 +79,8 @@ export default function AdminTransactionsPage() {
     return `https://wa.me/${cleanPhone}?text=${message}`;
   };
 
-  const isSuperAdmin = adminRole === 'SUPER_ADMIN';
+  // Case-insensitive — the API/DB role casing must never gate UI buttons.
+  const isSuperAdmin = adminRole.trim().toUpperCase() === 'SUPER_ADMIN';
 
   return (
     <div className="space-y-6">

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { TransactionStatus } from "@prisma/client";
 import { requireAdmin } from "@/lib/admin-auth";
+import { recordAdminAction } from "@/lib/audit";
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,20 +53,17 @@ export async function POST(request: NextRequest) {
       await sendWhatsAppMessage(transaction.sellerPhone, refundMessage);
     }
 
-    // Log the admin action for forensics
-    try {
-      await prisma.adminAuditLog.create({
-        data: {
-          adminId: admin.id,
-          action: "REFUND_BUYER",
-          targetId: transaction.id,
-          details: `Refunded escrow ${transaction.transactionRef} (₦${transaction.totalEscrow}) to buyer. Reason: ${refundReason || "Not specified"}`,
-          ipAddress: "admin-panel",
-        },
-      });
-    } catch (auditErr) {
-      console.warn("Audit log failed:", auditErr);
-    }
+    // Audit the refund for forensics (real client IP + User-Agent).
+    await recordAdminAction(request, {
+      adminId: admin.id,
+      action: "REFUND_BUYER",
+      targetId: transaction.id,
+      message: `Refunded escrow ${transaction.transactionRef} (₦${transaction.totalEscrow}) to buyer. Reason: ${refundReason || "Not specified"}`,
+      changes: {
+        status: { from: transaction.status, to: TransactionStatus.REFUNDED },
+        refundReason: refundReason || null,
+      },
+    });
 
     return NextResponse.json({
       success: true,

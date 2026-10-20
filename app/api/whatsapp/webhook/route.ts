@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { initiateFlutterwaveTransfer } from "@/lib/flutterwave";
@@ -26,10 +27,56 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ error: "Verification failed" }, { status: 403 });
 }
 
+/**
+ * Verify Meta's `x-hub-signature-256` header — `sha256=<hex>` where the digest
+ * is HMAC-SHA256 of the RAW request body keyed with WHATSAPP_APP_SECRET.
+ * Comparison is constant-time: byte length first, then `timingSafeEqual`.
+ */
+function isValidWhatsAppSignature(
+  rawBody: Buffer,
+  headerValue: string | null,
+  appSecret: string
+): boolean {
+  if (!headerValue || !headerValue.startsWith("sha256=")) return false;
+
+  const expected = "sha256=" + createHmac("sha256", appSecret).update(rawBody).digest("hex");
+  const a = Buffer.from(expected, "utf8");
+  const b = Buffer.from(headerValue, "utf8");
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
+}
+
 // POST: Incoming WhatsApp Message Processing
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    // Read the raw body exactly once — the HMAC must be computed over the
+    // bytes Meta actually sent, before any JSON parsing/normalisation.
+    const rawBody = Buffer.from(await request.arrayBuffer());
+
+    // Reject forged events BEFORE any processing (state changes, PIN release,
+    // session handling) to prevent forged message injection.
+    const appSecret = process.env.WHATSAPP_APP_SECRET;
+    if (!appSecret) {
+      if (process.env.NODE_ENV === "production") {
+        console.error(
+          "WhatsApp webhook: WHATSAPP_APP_SECRET not configured — rejecting payload (fail closed)."
+        );
+        return NextResponse.json(
+          { error: "Webhook signature verification unavailable" },
+          { status: 401 }
+        );
+      }
+      console.warn(
+        "WhatsApp webhook: WHATSAPP_APP_SECRET not configured — skipping signature verification (development only)."
+      );
+    } else if (!isValidWhatsAppSignature(rawBody, request.headers.get("x-hub-signature-256"), appSecret)) {
+      console.error(
+        "WhatsApp webhook: missing or invalid x-hub-signature-256 — rejected."
+      );
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+    }
+
+    const body = JSON.parse(rawBody.toString("utf8"));
 
     // Log payload
     await prisma.webhookLog.create({
