@@ -511,13 +511,16 @@ export default function App() {
             </RevealOnScroll>
 
             <RevealOnScroll delay={200} className="lg:col-span-6 flex justify-center">
-              <div className="relative w-full max-w-md flex flex-col items-center gap-4 md:h-[340px] md:block md:gap-0">
-                <div className="w-full max-w-[13rem] md:w-52 md:max-w-none md:absolute md:top-0 md:left-0 bg-white text-slate-900 p-4 rounded-2xl shadow-2xl border border-slate-200 md:transform md:-rotate-6 z-10">
+              <div className="relative w-full max-w-lg min-h-[380px] flex flex-col items-center justify-center gap-4 py-6 md:py-0 md:gap-0">
+
+                {/* Left Badge - Flutterwave */}
+                <div className="w-full max-w-[15rem] md:w-56 md:max-w-none md:absolute md:top-2 md:-left-8 bg-white text-slate-900 p-4 rounded-2xl shadow-xl border border-slate-200 md:transform md:-rotate-12 z-10 transition-transform hover:scale-105">
                   <FlutterwaveLogo className="w-5 h-5" showWordmark={true} />
                   <p className="text-[11px] font-bold text-slate-700 mt-2">Secure Payments You Can Trust 🔒</p>
                 </div>
 
-                <div className="w-full max-w-[13rem] md:w-52 md:max-w-none md:absolute md:top-4 md:right-0 bg-white text-slate-900 p-4 rounded-2xl shadow-2xl border border-slate-200 md:transform md:rotate-6 z-10">
+                {/* Right Badge - WhatsApp API */}
+                <div className="w-full max-w-[15rem] md:w-56 md:max-w-none md:absolute md:top-8 md:-right-8 bg-white text-slate-900 p-4 rounded-2xl shadow-xl border border-slate-200 md:transform md:rotate-12 z-10 transition-transform hover:scale-105">
                   <div className="flex items-center gap-2">
                     <WhatsAppIcon className="w-5 h-5" />
                     <span className="font-extrabold text-xs text-slate-800">WhatsApp API</span>
@@ -525,13 +528,15 @@ export default function App() {
                   <p className="text-[11px] font-bold text-slate-700 mt-2">Real Conversations. Real Safety.</p>
                 </div>
 
-                <div className="relative z-20 mx-auto bg-[#06180F] border-2 border-[#00FF9D] p-8 rounded-3xl text-center space-y-3 shadow-2xl shadow-[#00FF9D]/20 w-64">
-                  <TrustShipLogo className="w-14 h-14 mx-auto" showText={false} />
-                  <p className="text-xl font-black text-white">TrustShip</p>
-                  <p className="text-xs text-[#00FF9D] font-bold uppercase tracking-wider">
+                {/* Center Badge - TrustShip */}
+                <div className="relative z-20 md:mt-24 bg-[#06180F] border-2 border-[#00FF9D] p-6 md:p-7 rounded-3xl text-center space-y-2.5 shadow-2xl shadow-[#00FF9D]/25 w-64 transform transition-transform hover:scale-105">
+                  <TrustShipLogo className="w-12 h-12 mx-auto" showText={false} />
+                  <p className="text-xl font-black text-white tracking-tight">TrustShip</p>
+                  <p className="text-[10px] text-[#00FF9D] font-bold uppercase tracking-widest">
                     Escrow for a Safer Tomorrow
                   </p>
                 </div>
+
               </div>
             </RevealOnScroll>
 
