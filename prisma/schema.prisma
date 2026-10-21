@@ -39,10 +39,58 @@ enum DisputeFault {
   BUYER_FAULT
 }
 
+// Admin roles. Prisma-level names are the product spec's (SUPPORT_MODERATOR /
+// FINANCE_ADMIN); `@map` keeps persisting the pre-existing DB literals
+// (SUPPORT / FINANCE) so this rename performs **zero destructive DDL** on the
+// Neon database — no enum type is recreated and no admin loses their role.
 enum AdminRole {
   SUPER_ADMIN
-  FINANCE
-  SUPPORT
+  SUPPORT_MODERATOR @map("SUPPORT")
+  FINANCE_ADMIN     @map("FINANCE")
+}
+
+// ---------------------------------------------------------------------------
+// Roadmap: logistics integration. A waybill is booked with one of the
+// supported couriers (MOCK is the local/offline provider used while GIGL and
+// SPEEDAF credentials are pending).
+// ---------------------------------------------------------------------------
+enum LogisticsProvider {
+  GIGL
+  SPEEDAF
+  DHL
+  CUSTOM
+  MOCK
+}
+
+// ---------------------------------------------------------------------------
+// Roadmap: multi-stage dispute resolution. The stage is orthogonal to the
+// transaction status (DISPUTE_OPEN) — it tracks *where* in the moderation
+// pipeline a single dispute currently sits.
+// ---------------------------------------------------------------------------
+enum DisputeStage {
+  AWAITING_EVIDENCE
+  IN_MEDIATION
+  ARBITRATION_PENDING
+  RESOLVED
+}
+
+// ---------------------------------------------------------------------------
+// Roadmap: automated payout queue lifecycle.
+// ---------------------------------------------------------------------------
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+}
+
+// ---------------------------------------------------------------------------
+// Roadmap: fraud risk bands produced by lib/risk/evaluator.ts.
+// ---------------------------------------------------------------------------
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
 }
 
 // Models
@@ -55,6 +103,14 @@ model User {
   accountNumber String
   bankName      String
   role          Role     @default(BUYER)
+
+  // -------------------------------------------------------------------------
+  // Administrative access. `password` holds a bcrypt hash (never plaintext)
+  // and is only meaningful when role is ADMIN. Both fields are additive so
+  // the existing buyer/seller rows are unaffected.
+  // -------------------------------------------------------------------------
+  adminRole AdminRole @default(SUPPORT_MODERATOR)
+  password  String?
 
   // Trust & verification: payout account name resolved via Flutterwave's
   // Bank Lookup API at onboarding/escrow creation, plus when it was verified.
@@ -99,6 +155,27 @@ model EscrowTransaction {
   courierName  String?
   courierPhone String?
 
+  // -------------------------------------------------------------------------
+  // Roadmap: logistics integration. A shipment booked through
+  // lib/logistics/* writes the carrier, the carrier's tracking number and a
+  // hosted waybill/label URL here; `deliveryStatus` mirrors the carrier's
+  // milestone string (PICKED_UP / IN_TRANSIT / OUT_FOR_DELIVERY / DELIVERED).
+  // All nullable + additive so existing escrows are untouched.
+  // -------------------------------------------------------------------------
+  trackingNumber    String?
+  logisticsProvider LogisticsProvider?
+  waybillUrl        String?
+  deliveryStatus    String?
+
+  // Roadmap: multi-stage dispute moderation pipeline (null until a dispute is
+  // opened). DisputeStage.ARBITRATION_PENDING escalates to admin arbitration.
+  disputeStage DisputeStage?
+
+  // Roadmap: cached fraud risk band. Recomputed by lib/risk/evaluator.ts on
+  // lifecycle events; nullable so cold rows resolve risk on demand.
+  riskLevel  RiskLevel?
+  riskScore  Int?
+
   status     TransactionStatus @default(PENDING_SELLER_ACCEPTANCE)
   releasePin String            // 4 digits
 
@@ -120,8 +197,64 @@ model EscrowTransaction {
   // Photo/video proof uploaded over WhatsApp after a DISPUTE <ref> command.
   disputeEvidence DisputeEvidence[] @relation("DisputeEvidence")
 
+  // Roadmap: payout queue entries (one escrow can be retried multiple times,
+  // so this is a list rather than a single optional relation).
+  payouts PayoutQueue[] @relation("EscrowPayouts")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Roadmap: automated payout management.
+//
+// One row per payout attempt for an escrow release. Keeping attempts as rows
+// (rather than mutating a single record) makes the queue auditable: a retry
+// increments `retryCount` on a fresh attempt and the failure history survives.
+// ---------------------------------------------------------------------------
+
+model PayoutQueue {
+  id            String            @id @default(cuid())
+  transactionId String
+  transaction   EscrowTransaction @relation("EscrowPayouts", fields: [transactionId], references: [id], onDelete: Cascade)
+  transactionRef String
+
+  // Stored as Float to match the existing money columns (EscrowTransaction
+  // uses Float throughout); the API layer rounds to kobo before calling out.
+  amount        Float
+  accountNumber String
+  bankCode      String
+
+  status       PayoutStatus @default(PENDING)
+  retryCount   Int          @default(0)
+  errorMessage String?
+
+  // Idempotency: the provider transfer reference minted once per attempt, so a
+  // replayed worker run cannot double-pay.
+  providerRef String? @unique
+
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([transactionId])
+  @@index([status])
+}
+
+// ---------------------------------------------------------------------------
+// Roadmap: multi-currency. A tiny rate table for display-time conversion and
+// checkout previews. Rates are stored as `1 fromCurrency = rate toCurrency`.
+// ---------------------------------------------------------------------------
+
+model CurrencyRate {
+  id           String   @id @default(cuid())
+  fromCurrency String
+  toCurrency   String
+  rate         Float
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
+
+  @@unique([fromCurrency, toCurrency])
 }
 
 // ---------------------------------------------------------------------------
@@ -181,9 +314,9 @@ model WebhookLog {
 model AdminUser {
   id                 String          @id @default(cuid())
   email              String          @unique
-  password           String          // Hashed password
+  password           String          // Hashed password (bcrypt)
   name               String?
-  role               AdminRole       @default(SUPPORT)
+  role               AdminRole       @default(SUPPORT_MODERATOR)
   twoFactorSecret    String?         // TOTP secret for authenticator apps
   isTwoFactorEnabled Boolean         @default(false)
   createdAt          DateTime        @default(now())

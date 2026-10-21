@@ -10,9 +10,11 @@ import { recordAdminAction } from "@/lib/audit";
 export async function POST(request: NextRequest) {
   try {
     // Admin identity comes from the admin_token session, never the body.
-    // Fund releases are limited to FINANCE and SUPER_ADMIN (per product intent).
+    // Fund releases are limited to FINANCE_ADMIN and SUPER_ADMIN (per product
+    // intent). Prisma maps FINANCE_ADMIN to the legacy DB literal "FINANCE",
+    // so existing finance accounts keep working unchanged.
     const auth = await requireAdmin(request, {
-      roles: ["SUPER_ADMIN", "FINANCE"],
+      roles: ["SUPER_ADMIN", "FINANCE_ADMIN"],
     });
     if (auth.error) return auth.error;
     const admin = auth.admin;

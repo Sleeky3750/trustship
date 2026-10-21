@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "@/lib/admin-auth";
+import { JWT_SECRET, ADMIN_SESSION_COOKIE, adminSessionCookieOptions } from "@/lib/admin-auth";
+
+/** Expire the session cookie with the attributes it was issued with. */
+function expireSessionCookie(response: NextResponse): void {
+  response.cookies.set(ADMIN_SESSION_COOKIE, "", {
+    ...adminSessionCookieOptions(),
+    maxAge: 0,
+    expires: new Date(0),
+  });
+  response.cookies.delete(ADMIN_SESSION_COOKIE);
+}
 
 export async function GET(request: NextRequest) {
-  const token = request.cookies.get("admin_token")?.value;
+  const token = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
 
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -24,7 +34,7 @@ export async function GET(request: NextRequest) {
       { error: "Invalid or expired token" },
       { status: 401 }
     );
-    response.cookies.delete("admin_token");
+    expireSessionCookie(response);
     return response;
   }
 
@@ -47,7 +57,7 @@ export async function GET(request: NextRequest) {
         { error: "Admin not found" },
         { status: 404 }
       );
-      response.cookies.delete("admin_token");
+      expireSessionCookie(response);
       return response;
     }
 

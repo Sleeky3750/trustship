@@ -2,13 +2,17 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 // Raw AdminRole enum values -> friendly labels for the sidebar badge.
+// Prisma persists SUPPORT/FINANCE (@map) while the spec names are
+// SUPPORT_MODERATOR/FINANCE_ADMIN — label both spellings.
 const ROLE_LABELS: Record<string, string> = {
   SUPER_ADMIN: 'Super Admin',
-  FINANCE: 'Finance',
+  SUPPORT_MODERATOR: 'Support',
   SUPPORT: 'Support',
+  FINANCE_ADMIN: 'Finance',
+  FINANCE: 'Finance',
 };
 
 // Normalizes any role casing (e.g. "super_admin" / "Super_Admin" / "SUPER_ADMIN").
@@ -37,6 +41,12 @@ function formatRole(role?: string | null): string {
 // Chrome (badges, role metadata, nav links) renders ONLY when 'authenticated'.
 type SessionState = 'loading' | 'authenticated' | 'unauthenticated';
 
+// Auto-logout after this much inactivity. The server cookie lives 8 hours, so
+// closing the tab for an afternoon must not leave a usable session behind: the
+// client ends the session itself once this window lapses.
+const IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+const ACTIVITY_EVENTS = ['mousedown', 'keydown', 'touchstart', 'scroll'] as const;
+
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -44,12 +54,28 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   const [sessionState, setSessionState] = useState<SessionState>('loading');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  /**
+   * Ends the session unconditionally and returns the browser to the login
+   * screen. Used by both the explicit "Log Out" button and the idle timeout.
+   * `replace` (not `push`) keeps the logged-out page out of history.
+   */
+  const endSession = useCallback(async () => {
+    try {
+      await fetch('/api/admin/logout', { method: 'POST', credentials: 'same-origin' });
+    } catch (err) {
+      console.error('Logout request failed', err);
+    } finally {
+      router.replace('/admin/login');
+      router.refresh();
+    }
+  }, [router]);
+
   useEffect(() => {
     let cancelled = false;
 
     async function checkSession() {
       try {
-        const res = await fetch('/api/admin/me');
+        const res = await fetch('/api/admin/me', { credentials: 'same-origin' });
         if (res.status === 401 || res.status === 404) {
           // Session missing or invalid (expired / removed admin) → back to login.
           // No-op when the login screen itself is the current page.
@@ -76,17 +102,48 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       }
     }
 
+    // Re-check the session on every navigation (including returning to the
+    // dashboard) so a stale tab cannot rely on client state alone. An already
+    // verified session stays rendered while the re-check is in flight — only
+    // the very first load shows the neutral skeleton, so navigations inside the
+    // admin area don't flash the bare layout.
     checkSession();
     return () => {
       cancelled = true;
     };
-  }, [router]);
+    // `sessionState` is intentionally omitted from the deps: including it would
+    // re-run the effect on every state transition (infinite verify loop).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router, pathname]);
+
+  // Idle auto-logout: any tracked activity resets the timer; once it lapses the
+  // session is ended explicitly rather than left to expire server-side.
+  useEffect(() => {
+    if (sessionState !== 'authenticated') return;
+
+    let timer: ReturnType<typeof setTimeout>;
+
+    const reset = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        void endSession();
+      }, IDLE_TIMEOUT_MS);
+    };
+
+    ACTIVITY_EVENTS.forEach((event) =>
+      window.addEventListener(event, reset, { passive: true })
+    );
+    reset();
+
+    return () => {
+      clearTimeout(timer);
+      ACTIVITY_EVENTS.forEach((event) => window.removeEventListener(event, reset));
+    };
+  }, [sessionState, endSession]);
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/admin/logout', { method: 'POST' });
-      router.push('/admin/login');
-      router.refresh();
+      await endSession();
     } catch (err) {
       console.error('Logout failed', err);
     }
@@ -110,7 +167,13 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 
   // Case-insensitive super-admin check (handles "super_admin", "Super_Admin", etc.).
   const isSuperAdmin = normalizeRole(adminRole) === 'SUPER_ADMIN';
-
+  // Payouts are limited to finance roles — mirrors the role allow-list on
+  // /api/admin/payouts and its retry endpoint.
+  const normalizedRole = normalizeRole(adminRole);
+  const canManageFinance =
+    normalizedRole === 'SUPER_ADMIN' ||
+    normalizedRole === 'FINANCE_ADMIN' ||
+    normalizedRole === 'FINANCE';
   const closeSidebar = () => setSidebarOpen(false);
 
   return (
@@ -189,6 +252,51 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
                 💼 Escrow Transactions
               </Link>
 
+              <Link
+                href="/admin/logistics"
+                onClick={closeSidebar}
+                className={`px-4 py-2.5 rounded-xl transition text-sm font-medium ${
+                  pathname === '/admin/logistics' ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                }`}
+              >
+                🚚 Logistics &amp; Tracking
+              </Link>
+
+              <Link
+                href="/admin/disputes"
+                onClick={closeSidebar}
+                className={`px-4 py-2.5 rounded-xl transition text-sm font-medium ${
+                  pathname.startsWith('/admin/disputes') ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                }`}
+              >
+                ⚖️ Disputes
+              </Link>
+
+              {/* Payouts are finance-only (the API enforces the same roles). */}
+              {canManageFinance && (
+                <Link
+                  href="/admin/payouts"
+                  onClick={closeSidebar}
+                  className={`px-4 py-2.5 rounded-xl transition text-sm font-medium ${
+                    pathname === '/admin/payouts' ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  }`}
+                >
+                  💸 Payouts
+                </Link>
+              )}
+
+              {isSuperAdmin && (
+                <Link
+                  href="/admin/risk"
+                  onClick={closeSidebar}
+                  className={`px-4 py-2.5 rounded-xl transition text-sm font-medium ${
+                    pathname === '/admin/risk' ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  }`}
+                >
+                  🛡️ Fraud Risk
+                </Link>
+              )}
+
               {isSuperAdmin && (
                 <Link
                   href="/admin/audit-logs"
@@ -198,6 +306,18 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
                   }`}
                 >
                   📜 Audit Logs
+                </Link>
+              )}
+
+              {isSuperAdmin && (
+                <Link
+                  href="/admin/settings/admins"
+                  onClick={closeSidebar}
+                  className={`px-4 py-2.5 rounded-xl transition text-sm font-medium ${
+                    pathname === '/admin/settings/admins' ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  }`}
+                >
+                  👥 Manage Admins
                 </Link>
               )}
 

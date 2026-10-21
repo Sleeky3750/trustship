@@ -1,26 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requireAdmin, SUPER_ADMIN_ONLY } from "@/lib/admin-auth";
 
 export async function GET(request: NextRequest) {
   try {
-    // Session validation first (401 on missing/invalid token or removed admin).
-    const auth = await requireAdmin(request);
+    // Session validation AND role authorization in one step: an invalid token
+    // yields 401, a valid non-super-admin session yields 403 before any query.
+    const auth = await requireAdmin(request, { roles: SUPER_ADMIN_ONLY });
     if (auth.error) return auth.error;
-
-    // Audit trails are restricted to SUPER_ADMIN (mirrors the sidebar gating).
-    // Case-insensitive to tolerate non-canonical role casing in the DB.
-    if ((auth.admin.role || "").toUpperCase() !== "SUPER_ADMIN") {
-      return NextResponse.json(
-        {
-          success: false,
-          logs: [],
-          auditLogs: [],
-          error: "Unauthorized: Super Admin access required",
-        },
-        { status: 403 }
-      );
-    }
 
     const { searchParams } = new URL(request.url);
     const adminId = searchParams.get("adminId");

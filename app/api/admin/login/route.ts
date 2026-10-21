@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { JWT_SECRET } from "@/lib/admin-auth";
+import { JWT_SECRET, ADMIN_SESSION_COOKIE, ADMIN_SESSION_MAX_AGE_SECONDS, adminSessionCookieOptions } from "@/lib/admin-auth";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { verify } from "otplib";
@@ -147,8 +147,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 4. Mint JWT token for authenticated admin (password + TOTP both passed)
-    const token = jwt.sign({ adminId: admin.id }, JWT_SECRET, { expiresIn: "1d" });
+    // 4. Mint JWT token for authenticated admin (password + TOTP both passed).
+    //    Lifetime matches the cookie's maxAge so an idle browser cannot keep a
+    //    still-valid JWT around after the cookie expires.
+    const token = jwt.sign({ adminId: admin.id }, JWT_SECRET, {
+      expiresIn: ADMIN_SESSION_MAX_AGE_SECONDS,
+    });
 
     // Authenticated — clear this IP's failure window.
     clearFailures(clientIp);
@@ -168,13 +172,11 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
 
-    response.cookies.set("admin_token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24, // 1 day
-    });
+    response.cookies.set(
+      ADMIN_SESSION_COOKIE,
+      token,
+      adminSessionCookieOptions()
+    );
 
     // Complete audit record for the login: admin id, action, client IP and
     // User-Agent, 2FA usage and timestamp — written before responding.

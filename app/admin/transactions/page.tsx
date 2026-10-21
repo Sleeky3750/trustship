@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import RiskBadge from '@/components/risk/RiskBadge';
 
 interface Transaction {
   id: string;
@@ -10,6 +11,8 @@ interface Transaction {
   totalAmount?: number;
   itemPrice?: number;
   status: string;
+  riskLevel?: string | null;
+  riskScore?: number | null;
   createdAt: string;
 }
 
@@ -113,13 +116,14 @@ export default function AdminTransactionsPage() {
                   <th className="py-3 px-4">WhatsApp Parties</th>
                   <th className="py-3 px-4">Amount</th>
                   <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4">Risk</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {transactions.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-12 text-center text-gray-400">
+                    <td colSpan={6} className="py-12 text-center text-gray-400">
                       No escrow transactions found in database.
                     </td>
                   </tr>
@@ -163,6 +167,10 @@ export default function AdminTransactionsPage() {
                         }`}>
                           {tx.status}
                         </span>
+                      </td>
+                      <td className="py-4 px-4">
+                        {/* Fraud risk band cached by lib/risk/evaluator.ts. */}
+                        <RiskBadge level={tx.riskLevel ?? 'LOW'} score={tx.riskScore} />
                       </td>
                       <td className="py-4 px-4 text-right space-x-2">
                         {isSuperAdmin && tx.status !== 'COMPLETED' && (

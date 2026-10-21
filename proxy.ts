@@ -3,6 +3,11 @@ import type { NextRequest } from 'next/server';
 
 const JWT_SECRET_FALLBACK = 'default-jwt-secret-change-in-production';
 
+// Must match ADMIN_SESSION_COOKIE in lib/admin-auth.ts. Kept as a local literal
+// because the proxy bundle must stay free of the Prisma/bcrypt imports that
+// lib/admin-auth.ts pulls in.
+const ADMIN_SESSION_COOKIE = 'admin_token';
+
 /**
  * Fail-closed secret resolution for the proxy: in production a missing
  * `JWT_SECRET` (or one still set to the insecure default) throws on first
@@ -179,7 +184,7 @@ export async function proxy(request: NextRequest) {
       pathname === '/api/admin/me';
 
     if (!isAuthFlowEndpoint) {
-      const token = request.cookies.get('admin_token')?.value;
+      const token = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
       if (!token || !(await isAdminTokenValid(token))) {
         return NextResponse.json(
           { success: false, error: 'Unauthorized' },
@@ -195,7 +200,7 @@ export async function proxy(request: NextRequest) {
   // 2. Admin pages: session redirects + per-request nonce CSP.
   // ---------------------------------------------------------------------------
   if (pathname === '/admin' || pathname.startsWith('/admin/')) {
-    const adminToken = request.cookies.get('admin_token')?.value;
+    const adminToken = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
     const isAuthenticated = !!adminToken && (await isAdminTokenValid(adminToken));
     const isLoginPath = pathname === '/admin/login';
 

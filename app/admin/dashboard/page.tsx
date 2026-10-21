@@ -9,6 +9,10 @@ export default function AdminDashboardPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [recentLogs, setRecentLogs] = useState<any[]>([]);
   const [logsLoading, setLogsLoading] = useState(true);
+  // Audit trails are SUPER_ADMIN-only (server-enforced on /api/admin/audit-logs).
+  // Until the session resolves we must assume "not allowed" so no audit data is
+  // ever fetched speculatively by a lower-privileged admin.
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   const fetchEscrows = async () => {
     setLoading(true);
@@ -24,8 +28,35 @@ export default function AdminDashboardPage() {
   };
 
   useEffect(() => {
-    fetchEscrows();
-    fetchRecentLogs();
+    // Resolve the role first, then only the super-admin fetches audit logs.
+    let cancelled = false;
+
+    async function init() {
+      try {
+        const meRes = await fetch("/api/admin/me");
+        const meData = await meRes.json();
+        const role = (meData?.admin?.role || "").trim().toUpperCase();
+        const superAdmin = role === "SUPER_ADMIN";
+        if (!cancelled) setIsSuperAdmin(superAdmin);
+        await fetchEscrows();
+        if (superAdmin) {
+          await fetchRecentLogs();
+        } else {
+          setLogsLoading(false);
+        }
+      } catch (err) {
+        console.error("Failed to initialise admin dashboard", err);
+        if (!cancelled) {
+          setLogsLoading(false);
+          setLoading(false);
+        }
+      }
+    }
+
+    init();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const fetchRecentLogs = async () => {
@@ -317,83 +348,87 @@ export default function AdminDashboardPage() {
         </section>
       </main>
 
-      {/* Recent Admin Activity */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
-        <div className="bg-[#070C1E] border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
-            <div>
-              <h2 className="text-sm font-bold text-white">Recent Activity</h2>
-              <p className="text-xs text-slate-400">Last 5 admin actions from audit logs</p>
+      {/* Recent Admin Activity — SUPER_ADMIN only. Rendered solely when the
+          verified session role is SUPER_ADMIN so a lower-privileged admin never
+          sees an audit surface (the API would 403 them anyway). */}
+      {isSuperAdmin && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+          <div className="bg-[#070C1E] border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
+              <div>
+                <h2 className="text-sm font-bold text-white">Recent Activity</h2>
+                <p className="text-xs text-slate-400">Last 5 admin actions from audit logs</p>
+              </div>
+              <a
+                href="/admin/audit-logs"
+                className="text-xs text-blue-400 hover:text-blue-300 font-semibold"
+              >
+                View all →
+              </a>
             </div>
-            <a
-              href="/admin/audit-logs"
-              className="text-xs text-blue-400 hover:text-blue-300 font-semibold"
-            >
-              View all →
-            </a>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-800 bg-[#030611]/50 text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
-                  <th className="py-2.5 px-4">Timestamp (UTC)</th>
-                  <th className="py-2.5 px-4">Admin</th>
-                  <th className="py-2.5 px-4">Action Type</th>
-                  <th className="py-2.5 px-4">Target / Ref</th>
-                  <th className="py-2.5 px-4">IP / Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60 text-xs">
-                {logsLoading ? (
-                  <tr>
-                    <td colSpan={5} className="text-center py-6 text-slate-500">
-                      Loading recent activity...
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-800 bg-[#030611]/50 text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
+                    <th className="py-2.5 px-4">Timestamp (UTC)</th>
+                    <th className="py-2.5 px-4">Admin</th>
+                    <th className="py-2.5 px-4">Action Type</th>
+                    <th className="py-2.5 px-4">Target / Ref</th>
+                    <th className="py-2.5 px-4">IP / Status</th>
                   </tr>
-                ) : recentLogs.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="text-center py-6 text-slate-500">
-                      No recent admin actions found.
-                    </td>
-                  </tr>
-                ) : (
-                  recentLogs.map((log: any) => (
-                    <tr key={log.id} className="hover:bg-[#030611]/40 transition">
-                      <td className="py-2.5 px-4 text-slate-400 font-mono text-[11px] whitespace-nowrap">
-                        {(() => {
-                          const d = new Date(log.createdAt);
-                          return isNaN(d.getTime())
-                            ? String(log.createdAt || '-')
-                            : d.toISOString();
-                        })()}
-                      </td>
-                      <td className="py-2.5 px-4">
-                        <div className="text-slate-200 text-[11px]">
-                          {log.admin?.email || log.adminId}
-                        </div>
-                        <div className="text-slate-500 text-[10px]">
-                          {log.admin?.role || "ADMIN"}
-                        </div>
-                      </td>
-                      <td className="py-2.5 px-4">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/20 font-mono">
-                          {log.action}
-                        </span>
-                      </td>
-                      <td className="py-2.5 px-4 text-slate-300 text-[11px] font-mono truncate max-w-[180px]">
-                        {log.targetId || "-"}
-                      </td>
-                      <td className="py-2.5 px-4 text-slate-400 text-[11px] font-mono truncate max-w-[160px]">
-                        {log.ipAddress || "-"}
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 text-xs">
+                  {logsLoading ? (
+                    <tr>
+                      <td colSpan={5} className="text-center py-6 text-slate-500">
+                        Loading recent activity...
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : recentLogs.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="text-center py-6 text-slate-500">
+                        No recent admin actions found.
+                      </td>
+                    </tr>
+                  ) : (
+                    recentLogs.map((log: any) => (
+                      <tr key={log.id} className="hover:bg-[#030611]/40 transition">
+                        <td className="py-2.5 px-4 text-slate-400 font-mono text-[11px] whitespace-nowrap">
+                          {(() => {
+                            const d = new Date(log.createdAt);
+                            return isNaN(d.getTime())
+                              ? String(log.createdAt || '-')
+                              : d.toISOString();
+                          })()}
+                        </td>
+                        <td className="py-2.5 px-4">
+                          <div className="text-slate-200 text-[11px]">
+                            {log.admin?.email || log.adminId}
+                          </div>
+                          <div className="text-slate-500 text-[10px]">
+                            {log.admin?.role || "ADMIN"}
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-4">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/20 font-mono">
+                            {log.action}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-4 text-slate-300 text-[11px] font-mono truncate max-w-[180px]">
+                          {log.targetId || "-"}
+                        </td>
+                        <td className="py-2.5 px-4 text-slate-400 text-[11px] font-mono truncate max-w-[160px]">
+                          {log.ipAddress || "-"}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* SUPPORT FOOTER */}
       <footer className="border-t border-slate-800/80 bg-[#070C1E]/50 py-6 text-center text-xs text-slate-500 mt-auto">
