@@ -146,20 +146,28 @@ export default function LogisticsView() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold text-slate-100">Logistics &amp; Tracking</h1>
           <p className="text-sm text-slate-400 mt-1">
-            Book waybills and follow every shipment to delivery.
+            Monitor automated carrier shipments, track deliveries, and issue
+            manual waybill overrides when needed.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => openWaybillModal()}
-          className="rounded-xl bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 text-sm font-semibold shadow-sm transition"
-        >
-          + Generate Waybill
-        </button>
+        <div className="flex flex-col items-start gap-1.5 sm:items-end sm:flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => openWaybillModal()}
+            title="Sellers generate waybills automatically upon dispatch. Use this option only for manual support overrides."
+            className="rounded-xl bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 text-sm font-semibold shadow-sm transition whitespace-nowrap"
+          >
+            + Manual Waybill Override
+          </button>
+          <p className="text-[11px] leading-tight text-slate-500 sm:text-right sm:max-w-[18rem]">
+            Sellers generate waybills automatically upon dispatch. Use this
+            option only for manual support overrides.
+          </p>
+        </div>
       </div>
 
       {/* Stat cards */}
@@ -305,7 +313,7 @@ export default function LogisticsView() {
         {/* Timeline panel */}
         <div className="space-y-4">
           {timelineLoading ? (
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 text-sm text-slate-500">
+            <div className="bg-[#070C1E] rounded-xl border border-slate-800 shadow-sm p-6 text-sm text-slate-500">
               Loading timeline…
             </div>
           ) : timeline ? (
@@ -318,8 +326,8 @@ export default function LogisticsView() {
               estimatedDelivery={timeline.estimatedDelivery}
             />
           ) : (
-            <div className="bg-white rounded-xl border border-dashed border-slate-300 shadow-sm p-8 text-center">
-              <p className="text-sm font-semibold text-slate-700">Shipment timeline</p>
+            <div className="bg-[#070C1E] rounded-xl border border-dashed border-slate-700 shadow-sm p-8 text-center">
+              <p className="text-sm font-semibold text-slate-200">Shipment timeline</p>
               <p className="text-xs text-slate-500 mt-1">
                 Select a tracking number to view its milestone timeline.
               </p>
