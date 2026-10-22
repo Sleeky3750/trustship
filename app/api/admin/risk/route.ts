@@ -7,13 +7,13 @@
 //   POST { transactionRef } -> recompute and cache the risk band
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requirePermission } from "@/lib/admin-auth";
 import { recordAdminAction } from "@/lib/audit";
 import { evaluateAndCacheRisk, evaluateRisk } from "@/lib/risk/evaluator";
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = await requireAdmin(request);
+    const auth = await requirePermission(request, "risk:read");
     if (auth.error) return auth.error;
 
     const { searchParams } = new URL(request.url);
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = await requireAdmin(request);
+    const auth = await requirePermission(request, "risk:read");
     if (auth.error) return auth.error;
     const admin = auth.admin;
 

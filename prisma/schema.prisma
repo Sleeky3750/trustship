@@ -93,6 +93,38 @@ enum RiskLevel {
   HIGH
 }
 
+// ---------------------------------------------------------------------------
+// Refund lifecycle. A refund moves money OUT of escrow back to the buyer, so
+// it is an explicit multi-step workflow rather than a single status flip:
+// a request is recorded, reviewed and approved before any provider call, and
+// is only COMPLETED once the payment provider confirms it. This replaces the
+// legacy behaviour where `escrow/ref` flipped the escrow to REFUNDED and told
+// the customer the money was on its way without ever calling Flutterwave.
+// ---------------------------------------------------------------------------
+enum RefundStatus {
+  REQUESTED
+  UNDER_REVIEW
+  APPROVED
+  PROCESSING
+  COMPLETED
+  FAILED
+  REJECTED
+}
+
+// ---------------------------------------------------------------------------
+// Multi-stage dispute case. The stage pipeline lives in
+// lib/disputes/transitions.ts and is orthogonal to TransactionStatus.
+// ---------------------------------------------------------------------------
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  AWAITING_BUYER
+  AWAITING_SELLER
+  ESCALATED
+  RESOLVED
+  CLOSED
+}
+
 // Models
 
 model User {
@@ -201,8 +233,159 @@ model EscrowTransaction {
   // so this is a list rather than a single optional relation).
   payouts PayoutQueue[] @relation("EscrowPayouts")
 
+  // Refund workflow records for this escrow (multiple rejected/retried
+  // attempts are kept for auditability).
+  refunds Refund[] @relation("EscrowRefunds")
+
+  // Append-only lifecycle event log powering the admin transaction timeline.
+  events TransactionEvent[] @relation("EscrowEvents")
+
+  // Dispute cases raised against this escrow.
+  disputes Dispute[] @relation("EscrowDisputes")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Refund workflow.
+//
+// One row per refund *request*. Money only moves when the row reaches
+// PROCESSING and the provider confirms it (COMPLETED). All monetary columns use
+// integer minor units (kobo) for new models so there is no float drift — the
+// legacy EscrowTransaction Float columns are left untouched (converting them
+// would be a destructive migration).
+// ---------------------------------------------------------------------------
+
+model Refund {
+  id            String            @id @default(cuid())
+  transactionId String
+  transaction   EscrowTransaction @relation("EscrowRefunds", fields: [transactionId], references: [id], onDelete: Cascade)
+  transactionRef String
+
+  /// Refund amount in integer minor units (kobo for NGN).
+  amountMinor   Int
+  currency      String   @default("NGN")
+
+  reason        String?
+  status        RefundStatus @default(REQUESTED)
+
+  /// Administrator (AdminUser id) who created the request.
+  requestedById String?
+  /// Administrator who approved/rejected it.
+  reviewedById  String?
+
+  /// Provider-side refund reference, minted once per execution attempt.
+  processorRef  String? @unique
+  failureReason String?
+
+  reviewedAt    DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([transactionId])
+  @@index([status])
+}
+
+// ---------------------------------------------------------------------------
+// Append-only escrow lifecycle event log. Every real state change appends a
+// row; the admin timeline renders ONLY these rows (never synthesised events),
+// satisfying "only display events that actually occurred".
+// ---------------------------------------------------------------------------
+
+model TransactionEvent {
+  id            String            @id @default(cuid())
+  transactionId String
+  transaction   EscrowTransaction @relation("EscrowEvents", fields: [transactionId], references: [id], onDelete: Cascade)
+  transactionRef String
+
+  /// Machine event type, e.g. ESCROW_CREATED / PAYMENT_VERIFIED / DISPUTE_OPENED.
+  type          String
+  /// Human-readable summary shown in the timeline.
+  message       String?
+  /// Structured metadata (statuses, amounts, references) — no secrets.
+  metadata      Json?
+
+  /// Who/what produced the event: ADMIN | SYSTEM | WEBHOOK | BUYER | SELLER.
+  actorKind     String  @default("SYSTEM")
+  actorId       String?
+
+  createdAt     DateTime @default(now())
+
+  @@index([transactionId])
+  @@index([type])
+}
+
+// ---------------------------------------------------------------------------
+// Dispute case. Carries the moderation metadata (assignee, category, status
+// history summary) that the thin `disputeFault` column on the escrow cannot.
+// ---------------------------------------------------------------------------
+
+model Dispute {
+  id            String            @id @default(cuid())
+  transactionId String
+  transaction   EscrowTransaction @relation("EscrowDisputes", fields: [transactionId], references: [id], onDelete: Cascade)
+  transactionRef String
+
+  category      String?
+  description   String?
+  status        DisputeStatus @default(OPEN)
+  /// AdminUser id of the moderator assigned to the case.
+  assignedToId  String?
+  resolution    String?
+
+  openedByPhone String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([transactionId])
+  @@index([status])
+}
+
+// ---------------------------------------------------------------------------
+// Customer-support scripts. Internal, customer-facing message templates with
+// {{placeholder}} substitution. `isInternal` distinguishes agent-only notes
+// from copy-pasteable customer text so internal notes can never be sent.
+// ---------------------------------------------------------------------------
+
+model SupportScript {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  category    String   @default("General")
+  /// The customer-facing (or internal) body, containing {{placeholders}}.
+  body        String
+  /// Usage guidance shown to agents.
+  usageNotes  String?
+  isInternal  Boolean  @default(false)
+  isActive    Boolean  @default(true)
+
+  updatedById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  versions SupportScriptVersion[]
+
+  @@index([category])
+}
+
+// ---------------------------------------------------------------------------
+// Immutable-ish edit history for support scripts. One row appended per edit so
+// a script's wording is reconstructible after the fact.
+// ---------------------------------------------------------------------------
+
+model SupportScriptVersion {
+  id        String        @id @default(cuid())
+  scriptId  String
+  script    SupportScript @relation(fields: [scriptId], references: [id], onDelete: Cascade)
+
+  body      String
+  title     String
+  editedById String?
+  createdAt DateTime  @default(now())
+
+  @@index([scriptId])
 }
 
 // ---------------------------------------------------------------------------
@@ -308,7 +491,28 @@ model WebhookLog {
   // change, so providers can retry safely forever.
   eventId   String?  @unique
 
+  // -------------------------------------------------------------------------
+  // Processing metadata (added for the admin webhook-history view). These are
+  // additive + nullable so the existing rows and the idempotency insert path
+  // are unaffected.
+  // -------------------------------------------------------------------------
+  /// Provider event type, e.g. "charge.completed".
+  eventType      String?
+  /// Related escrow reference, when resolvable.
+  transactionRef String?
+  /// PROCESSING | PROCESSED | FAILED (best-effort; the row survives either way).
+  status         String   @default("PROCESSED")
+  /// How many delivery attempts have been observed for this eventId.
+  attemptCount   Int      @default(1)
+  /// Coarse error category when status is FAILED (never a raw stack trace).
+  errorCategory  String?
+  processedAt    DateTime?
+  updatedAt      DateTime @default(now()) @updatedAt
+
   createdAt DateTime @default(now())
+
+  @@index([provider])
+  @@index([transactionRef])
 }
 
 model AdminUser {
@@ -334,4 +538,18 @@ model AdminAuditLog {
   ipAddress String?   // Request IP address for forensics
   userAgent String?   // Request User-Agent for forensics
   createdAt DateTime  @default(now())
+
+  // -------------------------------------------------------------------------
+  // Forensic metadata (additive). Role is stored *as of the action* so a later
+  // role change cannot rewrite history; correlationId groups the actions of a
+  // single request/incident; outcome records success vs failure.
+  // -------------------------------------------------------------------------
+  actorRole     String?
+  correlationId String?
+  outcome       String  @default("SUCCESS")
+  reason        String?
+
+  @@index([adminId])
+  @@index([action])
+  @@index([correlationId])
 }

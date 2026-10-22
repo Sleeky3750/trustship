@@ -1,25 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requirePermission } from "@/lib/admin-auth";
 import { initiateFlutterwaveTransfer } from "@/lib/flutterwave";
 import { computePayoutAmount } from "@/lib/payout";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { recordAdminAction } from "@/lib/audit";
+import { claimRelease, releaseClaim, recordReleaseEvents } from "@/lib/escrow-lifecycle";
 
 type ActionContext = { params: Promise<{ ref: string; action: string }> };
 
+/** Which permission each action requires (least privilege per action). */
+const ACTION_PERMISSION = {
+  fund: "escrow:release",
+  release: "escrow:release",
+  deliver: "logistics:manage",
+  dispute: "disputes:manage",
+} as const;
+
 export async function POST(request: NextRequest, context: ActionContext) {
   try {
-    // Admin actions on escrows require a valid admin_token session.
-    const auth = await requireAdmin(request);
-    if (auth.error) return auth.error;
-    const admin = auth.admin;
-
     const { ref, action } = await context.params;
 
     if (!ref || !action) {
       return NextResponse.json({ error: "Transaction reference and action are required" }, { status: 400 });
     }
+
+    // Resolve the permission for this action up front so an unknown action is
+    // rejected before any transaction lookup (no ref-existence oracle).
+    const requiredPermission =
+      ACTION_PERMISSION[action as keyof typeof ACTION_PERMISSION];
+    if (!requiredPermission) {
+      return NextResponse.json({ error: "Invalid action specified" }, { status: 400 });
+    }
+
+    // Admin session + least-privilege permission for this specific action.
+    const auth = await requirePermission(request, requiredPermission);
+    if (auth.error) return auth.error;
+    const admin = auth.admin;
 
     const transaction = await prisma.escrowTransaction.findUnique({
       where: { transactionRef: ref },
@@ -63,10 +80,6 @@ export async function POST(request: NextRequest, context: ActionContext) {
       }
 
       case "release": {
-        if (transaction.status === "COMPLETED") {
-          return NextResponse.json({ message: "Funds already released" }, { status: 200 });
-        }
-
         // The release PIN is only required when the operator supplies one;
         // an authenticated admin release can proceed without it.
         if (releasePin && transaction.releasePin !== releasePin) {
@@ -77,21 +90,39 @@ export async function POST(request: NextRequest, context: ActionContext) {
           return NextResponse.json({ error: "Seller has no bank account on file" }, { status: 400 });
         }
 
+        // Atomic claim BEFORE the provider call: only a funded/delivered escrow
+        // is releasable, and a concurrent second request loses the claim.
+        const claim = await claimRelease(transaction.id);
+        if (!claim.ok) {
+          return NextResponse.json(
+            { error: claim.reason || "Release not permitted" },
+            { status: 409 }
+          );
+        }
+
         const payoutAmount = computePayoutAmount(transaction);
         const payoutRef = `TS-ADMIN-REL-${transaction.id}-${Date.now()}`;
 
-        await initiateFlutterwaveTransfer({
-          accountBank: transaction.seller.bankCode,
-          accountNumber: transaction.seller.accountNumber,
-          amount: payoutAmount,
-          narration: `Admin Release for Tx ${transaction.transactionRef}`,
-          reference: payoutRef,
-          beneficiaryName: transaction.seller.name || "TrustShip Seller",
-        });
+        try {
+          await initiateFlutterwaveTransfer({
+            accountBank: transaction.seller.bankCode,
+            accountNumber: transaction.seller.accountNumber,
+            amount: payoutAmount,
+            narration: `Admin Release for Tx ${transaction.transactionRef}`,
+            reference: payoutRef,
+            beneficiaryName: transaction.seller.name || "TrustShip Seller",
+          });
+        } catch (transferError) {
+          if (claim.previousStatus) {
+            await releaseClaim(transaction.id, claim.previousStatus).catch((rollbackErr) =>
+              console.error("Release claim rollback failed:", rollbackErr)
+            );
+          }
+          throw transferError;
+        }
 
-        const released = await prisma.escrowTransaction.update({
+        const released = await prisma.escrowTransaction.findUnique({
           where: { id: transaction.id },
-          data: { status: "COMPLETED" },
         });
 
         await recordAdminAction(request, {
@@ -100,7 +131,7 @@ export async function POST(request: NextRequest, context: ActionContext) {
           targetId: transaction.id,
           message: `Released ₦${payoutAmount} to seller for transaction ${transaction.transactionRef}`,
           changes: {
-            status: { from: transaction.status, to: "COMPLETED" },
+            status: { from: claim.previousStatus ?? transaction.status, to: "COMPLETED" },
             payoutAmount,
             payoutReference: payoutRef,
           },
@@ -117,6 +148,15 @@ export async function POST(request: NextRequest, context: ActionContext) {
             console.warn("Failed to send WhatsApp notification:", wsErr);
           }
         }
+
+        await recordReleaseEvents({
+          transactionId: transaction.id,
+          transactionRef: transaction.transactionRef,
+          actorId: admin.id,
+          payoutAmount,
+          payoutReference: payoutRef,
+          fromStatus: claim.previousStatus,
+        });
 
         return NextResponse.json({ success: true, payoutAmount, payoutReference: payoutRef, transaction: released });
       }
@@ -172,8 +212,9 @@ export async function POST(request: NextRequest, context: ActionContext) {
 
 export async function GET(request: NextRequest, context: ActionContext) {
   try {
-    // Detail view exposes the release PIN — admin session required.
-    const auth = await requireAdmin(request);
+    // Detail view exposes the release PIN — requires the PIN-read permission
+    // (finance/super admin), not merely a valid session.
+    const auth = await requirePermission(request, "transactions:read_pin");
     if (auth.error) return auth.error;
 
     const { ref } = await context.params;

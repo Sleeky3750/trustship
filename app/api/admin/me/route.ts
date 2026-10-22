@@ -46,7 +46,11 @@ export async function GET(request: NextRequest) {
         email: true,
         name: true,
         role: true,
-        twoFactorSecret: true,
+        // NOTE: `twoFactorSecret` is deliberately NOT selected here. It is
+        // returned only from the explicit /api/admin/2fa/setup endpoint, where
+        // the setup QR flow legitimately needs it. Serialising a standing TOTP
+        // secret on every session check widens the blast radius of any XSS or
+        // compromised admin browser for no benefit.
         isTwoFactorEnabled: true,
       },
     });
@@ -61,14 +65,6 @@ export async function GET(request: NextRequest) {
       return response;
     }
 
-    // Enrolled = flag set AND a TOTP secret exists — the same predicate the
-    // login route uses. Deriving this from secret presence alone reported
-    // "Enabled" after a mere Setup click (before verification), which hid the
-    // enrollment UI while login still did not require a code.
-    const computedIsTwoFactorEnabled = !!(
-      admin.isTwoFactorEnabled && admin.twoFactorSecret
-    );
-
     return NextResponse.json({
       success: true,
       admin: {
@@ -76,8 +72,7 @@ export async function GET(request: NextRequest) {
         email: admin.email,
         name: admin.name,
         role: admin.role,
-        isTwoFactorEnabled: computedIsTwoFactorEnabled,
-        twoFactorSecret: admin.twoFactorSecret,
+        isTwoFactorEnabled: admin.isTwoFactorEnabled,
       },
     });
   } catch (error) {

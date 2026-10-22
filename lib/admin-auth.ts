@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import type { AdminRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { roleHasPermission, type Permission } from "@/lib/rbac";
 
 // Single source of truth for the admin JWT secret.
 // Imported by /api/admin/login (sign), /api/admin/me (verify) and requireAdmin().
@@ -164,6 +165,30 @@ export async function requireAdmin(
   }
 
   return { admin, error: null };
+}
+
+/**
+ * Permission-based guard — the preferred entry point for new routes.
+ *
+ * Verifies the admin session exactly like `requireAdmin`, then checks the
+ * centralized `lib/rbac.ts` policy for the named permission. Returns 403 with
+ * no detail about *why* (never leaks role/config internals to a probing client).
+ *
+ *   const auth = await requirePermission(request, "refunds:execute");
+ *   if (auth.error) return auth.error;
+ */
+export async function requirePermission(
+  request: NextRequest,
+  permission: Permission
+): Promise<RequireAdminResult> {
+  const auth = await requireAdmin(request);
+  if (auth.error) return auth;
+
+  if (!roleHasPermission(auth.admin.role, permission)) {
+    return deny("Insufficient permissions", 403);
+  }
+
+  return auth;
 }
 
 /**

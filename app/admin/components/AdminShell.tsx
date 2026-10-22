@@ -243,10 +243,19 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
                 📊 Dashboard
               </Link>
               <Link
+                href="/admin/overview"
+                onClick={closeSidebar}
+                className={`px-4 py-2.5 rounded-xl transition text-sm font-medium ${
+                  pathname === '/admin/overview' ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                }`}
+              >
+                📈 Overview
+              </Link>
+              <Link
                 href="/admin/transactions"
                 onClick={closeSidebar}
                 className={`px-4 py-2.5 rounded-xl transition text-sm font-medium ${
-                  pathname === '/admin/transactions' ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  pathname.startsWith('/admin/transactions') ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                 }`}
               >
                 💼 Escrow Transactions
@@ -284,6 +293,26 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
                   💸 Payouts
                 </Link>
               )}
+
+              <Link
+                href="/admin/refunds"
+                onClick={closeSidebar}
+                className={`px-4 py-2.5 rounded-xl transition text-sm font-medium ${
+                  pathname.startsWith('/admin/refunds') ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                }`}
+              >
+                ↩️ Refunds
+              </Link>
+
+              <Link
+                href="/admin/support-scripts"
+                onClick={closeSidebar}
+                className={`px-4 py-2.5 rounded-xl transition text-sm font-medium ${
+                  pathname.startsWith('/admin/support-scripts') ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                }`}
+              >
+                💬 Support Scripts
+              </Link>
 
               {isSuperAdmin && (
                 <Link

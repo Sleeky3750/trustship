@@ -3,19 +3,17 @@ import { prisma } from "@/lib/prisma";
 import { initiateFlutterwaveTransfer } from "@/lib/flutterwave";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { TransactionStatus } from "@prisma/client";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requirePermission } from "@/lib/admin-auth";
 import { computePayoutAmount } from "@/lib/payout";
 import { recordAdminAction } from "@/lib/audit";
+import { claimRelease, releaseClaim, recordReleaseEvents } from "@/lib/escrow-lifecycle";
 
 export async function POST(request: NextRequest) {
   try {
     // Admin identity comes from the admin_token session, never the body.
-    // Fund releases are limited to FINANCE_ADMIN and SUPER_ADMIN (per product
-    // intent). Prisma maps FINANCE_ADMIN to the legacy DB literal "FINANCE",
-    // so existing finance accounts keep working unchanged.
-    const auth = await requireAdmin(request, {
-      roles: ["SUPER_ADMIN", "FINANCE_ADMIN"],
-    });
+    // Fund releases require the centralized `escrow:release` permission
+    // (SUPER_ADMIN + FINANCE_ADMIN), not an inline role list.
+    const auth = await requirePermission(request, "escrow:release");
     if (auth.error) return auth.error;
     const admin = auth.admin;
 
@@ -34,30 +32,45 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
     }
 
-    // Admin permissions (FINANCE / SUPER_ADMIN) are enforced by requireAdmin above.
+    if (!transaction.seller.bankCode || !transaction.seller.accountNumber) {
+      return NextResponse.json({ error: "Seller has no bank account on file" }, { status: 400 });
+    }
 
-    // Prevent double release
-    if (transaction.status === TransactionStatus.COMPLETED) {
-      return NextResponse.json({ message: "Funds already released for this transaction" }, { status: 200 });
+    // Atomic claim BEFORE the provider call: only a funded/delivered escrow is
+    // releasable, and a concurrent second request loses the claim.
+    const claim = await claimRelease(transaction.id);
+    if (!claim.ok) {
+      return NextResponse.json(
+        { error: claim.reason || "Release not permitted" },
+        { status: 409 }
+      );
     }
 
     // Initiate Flutterwave transfer to seller
     const payoutRef = `TS-ADMIN-REL-${transactionId}-${Date.now()}`;
     const payoutAmount = computePayoutAmount(transaction);
 
-    const transferResult = await initiateFlutterwaveTransfer({
-      accountBank: transaction.seller.bankCode,
-      accountNumber: transaction.seller.accountNumber,
-      amount: payoutAmount,
-      narration: `Admin Release for Tx ${transaction.transactionRef}`,
-      reference: payoutRef,
-      beneficiaryName: transaction.seller.name || "TrustShip Seller",
-    });
+    try {
+      await initiateFlutterwaveTransfer({
+        accountBank: transaction.seller.bankCode,
+        accountNumber: transaction.seller.accountNumber,
+        amount: payoutAmount,
+        narration: `Admin Release for Tx ${transaction.transactionRef}`,
+        reference: payoutRef,
+        beneficiaryName: transaction.seller.name || "TrustShip Seller",
+      });
+    } catch (transferError) {
+      if (claim.previousStatus) {
+        await releaseClaim(transaction.id, claim.previousStatus).catch((rollbackErr) =>
+          console.error("Release claim rollback failed:", rollbackErr)
+        );
+      }
+      throw transferError;
+    }
 
-    // Update transaction status to COMPLETED
-    const updated = await prisma.escrowTransaction.update({
+    // The claim already moved the row to COMPLETED; re-read for the response.
+    const updated = await prisma.escrowTransaction.findUnique({
       where: { id: transaction.id },
-      data: { status: TransactionStatus.COMPLETED },
     });
 
     // Audit with real client IP + User-Agent captured from the request.
@@ -67,7 +80,7 @@ export async function POST(request: NextRequest) {
       targetId: transaction.id,
       message: `Released ₦${payoutAmount} to seller for transaction ${transaction.transactionRef}`,
       changes: {
-        status: { from: transaction.status, to: TransactionStatus.COMPLETED },
+        status: { from: claim.previousStatus ?? transaction.status, to: TransactionStatus.COMPLETED },
         payoutAmount,
         payoutReference: payoutRef,
       },
@@ -85,6 +98,15 @@ export async function POST(request: NextRequest) {
         console.warn("Failed to send WhatsApp notification:", wsErr);
       }
     }
+
+    await recordReleaseEvents({
+      transactionId: transaction.id,
+      transactionRef: transaction.transactionRef,
+      actorId: admin.id,
+      payoutAmount,
+      payoutReference: payoutRef,
+      fromStatus: claim.previousStatus,
+    });
 
     return NextResponse.json({ success: true, payoutAmount, transaction: updated });
   } catch (error: any) {

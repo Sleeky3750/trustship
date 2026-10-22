@@ -2,6 +2,52 @@ import { NextRequest, NextResponse } from "next/server";
 import { timingSafeEqual } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
+import { verifyFlutterwaveTransaction } from "@/lib/flutterwave";
+import { recordEvent, EVENTS } from "@/lib/events";
+
+/** Statuses that may transition to ESCROW_LOCKED on a verified charge. */
+const LOCKABLE_STATUSES = ["PENDING_DEPOSIT", "PENDING_PAYMENT", "PENDING_AGREEMENT"];
+
+/**
+ * Independently cross-check a charge against Flutterwave's verification
+ * endpoint (defence-in-depth). Signature verification already proves the event
+ * is genuine; this catches any drift between the webhook body and the
+ * authoritative provider record (amount / currency / status / tx_ref).
+ *
+ * Fail-closed *only* on a definitive mismatch. A transport failure returns
+ * `{ ok: true, skipped: true }` so a provider outage cannot block legitimate
+ * settlements that already passed signature verification.
+ */
+async function crossCheckCharge(payload: any, expected: {
+  totalEscrow: number;
+}): Promise<{ ok: boolean; skipped?: boolean; reason?: string }> {
+  try {
+    const verified = await verifyFlutterwaveTransaction(payload?.data?.id);
+    if (!verified) return { ok: true, skipped: true };
+    if (!/success/i.test(verified.status)) {
+      return { ok: false, reason: `provider status is "${verified.status}"` };
+    }
+    if (verified.txRef && verified.txRef !== payload?.data?.tx_ref) {
+      return { ok: false, reason: "tx_ref mismatch" };
+    }
+    if (
+      Number.isFinite(verified.amount) &&
+      Math.abs(verified.amount - expected.totalEscrow) > 0.01
+    ) {
+      return {
+        ok: false,
+        reason: `amount mismatch (verified ${verified.amount}, expected ${expected.totalEscrow})`,
+      };
+    }
+    return { ok: true };
+  } catch (err) {
+    console.warn(
+      "Flutterwave webhook: independent verification unavailable — proceeding on signature-verified event.",
+      err
+    );
+    return { ok: true, skipped: true };
+  }
+}
 
 /**
  * Constant-time equality for a caller-provided value against the expected
@@ -71,6 +117,9 @@ export async function POST(request: NextRequest) {
           provider: "FLUTTERWAVE",
           payload: payload,
           eventId,
+          eventType: payload?.event ?? null,
+          transactionRef: payload?.data?.tx_ref ?? null,
+          status: "PROCESSING",
         },
       });
       logRowId = logRow.id;
@@ -78,6 +127,30 @@ export async function POST(request: NextRequest) {
       const code = (logErr as { code?: string })?.code;
       if (code === "P2002") {
         console.warn(`Flutterwave webhook: duplicate event ${eventId} ignored.`);
+        // Record the duplicate on the timeline (best effort) so operators can
+        // see that a replay was observed and deliberately not reprocessed.
+        const dupRef = payload?.data?.tx_ref;
+        if (dupRef) {
+          const dup = await prisma.escrowTransaction
+            .findUnique({ where: { transactionRef: dupRef }, select: { id: true } })
+            .catch(() => null);
+          if (dup) {
+            await recordEvent({
+              transactionId: dup.id,
+              transactionRef: dupRef,
+              type: EVENTS.WEBHOOK_DUPLICATE,
+              message: "Duplicate Flutterwave webhook ignored (idempotency marker matched)",
+              actorKind: "WEBHOOK",
+            });
+          }
+          // Bump the observed attempt count on the surviving row.
+          await prisma.webhookLog
+            .updateMany({
+              where: { eventId: eventId ?? undefined },
+              data: { attemptCount: { increment: 1 } },
+            })
+            .catch(() => {});
+        }
         return NextResponse.json(
           { received: true, message: "Duplicate event ignored" },
           { status: 200 }
@@ -99,6 +172,16 @@ export async function POST(request: NextRequest) {
         }
       }
       throw processingErr;
+    }
+
+    // Mark the durable log row processed (best effort — never fails the webhook).
+    if (logRowId) {
+      await prisma.webhookLog
+        .update({
+          where: { id: logRowId },
+          data: { status: "PROCESSED", processedAt: new Date() },
+        })
+        .catch(() => {});
     }
 
     return NextResponse.json({ status: "success" }, { status: 200 });
@@ -140,7 +223,6 @@ async function processEvent(payload: any): Promise<void> {
 
   // Only fundable states may transition to ESCROW_LOCKED — a late or
   // replayed event must never revive a cancelled/disputed/completed escrow.
-  const LOCKABLE_STATUSES = ["PENDING_DEPOSIT", "PENDING_PAYMENT", "PENDING_AGREEMENT"];
   if (!LOCKABLE_STATUSES.includes(transaction.status)) {
     console.warn(
       `Flutterwave Webhook: ignoring charge for ${txRef} — status ${transaction.status} is not lockable.`
@@ -158,6 +240,30 @@ async function processEvent(payload: any): Promise<void> {
     throw new HttpError(409, "Amount mismatch");
   }
 
+  // Currency integrity: the charge currency must match the escrow's currency.
+  const chargedCurrency = payload?.data?.currency;
+  if (
+    chargedCurrency &&
+    String(chargedCurrency).toUpperCase() !== transaction.currency.toUpperCase()
+  ) {
+    console.error(
+      `Flutterwave Webhook: currency mismatch for ${txRef} — charged ${chargedCurrency}, expected ${transaction.currency}`
+    );
+    throw new HttpError(409, "Currency mismatch");
+  }
+
+  // Independent provider verification (defence-in-depth). Skipped on transport
+  // failure so an outage cannot block a signature-verified settlement.
+  const cross = await crossCheckCharge(payload, {
+    totalEscrow: transaction.totalEscrow,
+  });
+  if (!cross.ok) {
+    console.error(
+      `Flutterwave Webhook: independent verification failed for ${txRef} — ${cross.reason}`
+    );
+    throw new HttpError(409, `Charge verification failed: ${cross.reason}`);
+  }
+
   await prisma.escrowTransaction.update({
     where: { transactionRef: txRef },
     data: {
@@ -168,6 +274,29 @@ async function processEvent(payload: any): Promise<void> {
   });
 
   console.log(`✅ Escrow payment confirmed and locked for txRef: ${txRef}`);
+
+  // Timeline: payment verified + escrow funded.
+  await recordEvent({
+    transactionId: transaction.id,
+    transactionRef: txRef,
+    type: EVENTS.PAYMENT_VERIFIED,
+    message: `Payment verified with Flutterwave (txn ${flwTransactionId}, ₦${chargedAmount.toLocaleString()})`,
+    actorKind: "WEBHOOK",
+    metadata: {
+      flwTransactionId,
+      chargedAmount,
+      currency: chargedCurrency ?? transaction.currency,
+      independentlyVerified: !cross.skipped,
+    },
+  });
+  await recordEvent({
+    transactionId: transaction.id,
+    transactionRef: txRef,
+    type: EVENTS.ESCROW_FUNDED,
+    message: "Escrow funded and funds locked",
+    actorKind: "SYSTEM",
+    metadata: { from: transaction.status, to: "ESCROW_LOCKED" },
+  });
 
   // Dual notification (spec): the buyer gets the private release PIN, the
   // seller is told to dispatch. Failures never fail the webhook.

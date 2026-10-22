@@ -6,7 +6,7 @@
 // retry mints a fresh provider reference (attempt N+1) so the failed attempt's
 // reference can never be reused — see lib/payouts/processor.ts.
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requirePermission } from "@/lib/admin-auth";
 import { recordAdminAction } from "@/lib/audit";
 import { retryPayout } from "@/lib/payouts/processor";
 
@@ -14,9 +14,7 @@ type Context = { params: Promise<{ id: string }> };
 
 export async function POST(request: NextRequest, context: Context) {
   try {
-    const auth = await requireAdmin(request, {
-      roles: ["SUPER_ADMIN", "FINANCE_ADMIN"],
-    });
+    const auth = await requirePermission(request, "payouts:manage");
     if (auth.error) return auth.error;
     const admin = auth.admin;
 

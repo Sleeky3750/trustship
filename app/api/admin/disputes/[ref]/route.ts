@@ -8,9 +8,11 @@
 // Stage transitions are admin-only here; the validation rules themselves live
 // in lib/disputes/transitions.ts so this route stays a thin transport layer.
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requirePermission } from "@/lib/admin-auth";
 import { recordAdminAction } from "@/lib/audit";
 import { advanceDisputeStage, loadDisputeCase } from "@/lib/disputes";
+import { prisma } from "@/lib/prisma";
+import { recordEvent, EVENTS } from "@/lib/events";
 import type { DisputeFault, DisputeStage } from "@prisma/client";
 
 type Context = { params: Promise<{ ref: string }> };
@@ -24,12 +26,11 @@ const VALID_STAGES: DisputeStage[] = [
 
 export async function GET(request: NextRequest, context: Context) {
   try {
-    const auth = await requireAdmin(request);
+    const auth = await requirePermission(request, "disputes:read");
     if (auth.error) return auth.error;
 
     const { ref } = await context.params;
     const dispute = await loadDisputeCase({ ref });
-
     if (!dispute) {
       return NextResponse.json(
         { success: false, error: "Transaction not found" },
@@ -49,7 +50,9 @@ export async function GET(request: NextRequest, context: Context) {
 
 export async function POST(request: NextRequest, context: Context) {
   try {
-    const auth = await requireAdmin(request);
+    // Moving a dispute stage can lead to a financial resolution, so this is a
+    // disputes:manage action (SUPER_ADMIN only in the current matrix).
+    const auth = await requirePermission(request, "disputes:manage");
     if (auth.error) return auth.error;
     const admin = auth.admin;
 
@@ -82,6 +85,45 @@ export async function POST(request: NextRequest, context: Context) {
         { success: false, error: outcome.error || "Transition not permitted" },
         { status: 409 }
       );
+    }
+
+    // Sync the Dispute case row (moderation metadata) so the dispute model
+    // reflects the stage pipeline: RESOLVED closes the case, everything else
+    // leaves it under review.
+    const tx = await prisma.escrowTransaction.findUnique({
+      where: { transactionRef: ref },
+      select: { id: true, transactionRef: true },
+    });
+    if (tx) {
+      const disputeCase = await prisma.dispute.findFirst({
+        where: { transactionId: tx.id, status: { not: "CLOSED" } },
+        orderBy: { createdAt: "desc" },
+      });
+      if (disputeCase) {
+        await prisma.dispute.update({
+          where: { id: disputeCase.id },
+          data: {
+            status:
+              outcome.nextStage === "RESOLVED" ? "RESOLVED" : "UNDER_REVIEW",
+            assignedToId: admin.id,
+            ...(outcome.nextStage === "RESOLVED" && typeof body?.reason === "string"
+              ? { resolution: body.reason }
+              : {}),
+          },
+        });
+      }
+
+      await recordEvent({
+        transactionId: tx.id,
+        transactionRef: tx.transactionRef,
+        type: EVENTS.DISPUTE_UPDATED,
+        message: `Dispute stage moved to ${outcome.nextStage}${
+          fault ? ` (fault: ${fault})` : ""
+        }`,
+        actorKind: "ADMIN",
+        actorId: admin.id,
+        metadata: { stage: outcome.nextStage, fault: fault ?? null },
+      });
     }
 
     await recordAdminAction(request, {

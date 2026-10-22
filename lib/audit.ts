@@ -31,6 +31,18 @@ export type AdminAuditEntry = {
   ipAddress?: string | null;
   /** Override User-Agent (only when no Request object is available). */
   userAgent?: string | null;
+  /**
+   * The actor's role *at the time of the action*. When omitted it is resolved
+   * from the AdminUser row so history reflects the role that performed the
+   * action rather than whatever role the account holds today.
+   */
+  actorRole?: string | null;
+  /** Groups the actions of a single request/incident for forensic replay. */
+  correlationId?: string | null;
+  /** SUCCESS | FAILED — lets a rejected sensitive action still be recorded. */
+  outcome?: "SUCCESS" | "FAILED";
+  /** Why the action was taken (especially for sensitive/denied operations). */
+  reason?: string | null;
 };
 
 function buildDetails(entry: AdminAuditEntry): string | null {
@@ -44,8 +56,24 @@ function buildDetails(entry: AdminAuditEntry): string | null {
 }
 
 /**
+ * Best-effort correlation id derived from the request when the caller did not
+ * supply one: the proxy sets `x-request-id` for admin traffic. Falls back to a
+ * time-based token so related actions still cluster.
+ */
+function resolveCorrelationId(
+  request: Request | NextRequest | null | undefined,
+  provided?: string | null
+): string | null {
+  if (provided) return provided;
+  const fromHeader = request?.headers?.get?.("x-request-id");
+  if (fromHeader) return fromHeader;
+  return null;
+}
+
+/**
  * Record an admin action with full forensic context
- * (adminId, action, targetEntityId, ipAddress, userAgent, changes, timestamp).
+ * (adminId, actorRole, action, targetEntityId, ipAddress, userAgent, changes,
+ * correlationId, outcome, timestamp).
  *
  * Pass the incoming `request` so the client IP and User-Agent are captured
  * across proxy layers. Never throws.
@@ -66,6 +94,22 @@ export async function recordAdminAction(
   const userAgent = entry.userAgent ?? (request ? getUserAgent(request) : "unknown");
   const details = buildDetails(entry);
 
+  // Resolve the actor role as-of-now when the caller did not pass it, so a
+  // later role change cannot silently rewrite what this action was authorised
+  // as. Failure here is non-fatal — the row still records the action.
+  let actorRole = entry.actorRole ?? null;
+  if (!actorRole) {
+    try {
+      const actor = await prisma.adminUser.findUnique({
+        where: { id: entry.adminId },
+        select: { role: true },
+      });
+      actorRole = actor?.role ?? null;
+    } catch {
+      /* leave null */
+    }
+  }
+
   const data = {
     adminId: entry.adminId,
     action: entry.action,
@@ -73,6 +117,10 @@ export async function recordAdminAction(
     details,
     ipAddress,
     userAgent,
+    actorRole,
+    correlationId: resolveCorrelationId(request, entry.correlationId),
+    outcome: entry.outcome ?? "SUCCESS",
+    reason: entry.reason ?? null,
   };
 
   // Single insert (atomic) + one retry for transient connection failures.

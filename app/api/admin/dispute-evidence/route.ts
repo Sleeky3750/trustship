@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requirePermission } from "@/lib/admin-auth";
+import { roleHasPermission } from "@/lib/rbac";
+import { maskPhone } from "@/lib/mask";
 
 // Dispute evidence review queue: photo/video proof sent over WhatsApp by
 // either party after `DISPUTE <ref>` (or the web dispute form). Returns the
 // evidence rows (metadata + WhatsApp media id) for one transaction.
 export async function GET(request: NextRequest) {
   try {
-    const auth = await requireAdmin(request);
+    const auth = await requirePermission(request, "disputes:read");
     if (auth.error) return auth.error;
+    const canReadPii = roleHasPermission(auth.admin.role, "transactions:read_pii");
 
     const { searchParams } = new URL(request.url);
     const ref = searchParams.get("ref");
@@ -41,7 +44,16 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: "asc" },
     });
 
-    return NextResponse.json({ success: true, transaction, evidence });
+    return NextResponse.json({
+      success: true,
+      piiMasked: !canReadPii,
+      transaction: {
+        ...transaction,
+        buyerPhone: canReadPii ? transaction.buyerPhone : maskPhone(transaction.buyerPhone),
+        sellerPhone: canReadPii ? transaction.sellerPhone : maskPhone(transaction.sellerPhone),
+      },
+      evidence,
+    });
   } catch (error: unknown) {
     console.error("Dispute evidence lookup failed:", error);
     return NextResponse.json(

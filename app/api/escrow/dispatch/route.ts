@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { verifyActionToken } from "@/lib/action-token";
+import { recordEvent, EVENTS } from "@/lib/events";
+
+/** Only a funded escrow can be dispatched. */
+const DISPATCHABLE_STATUSES = ["ESCROW_LOCKED", "DISPATCHED"];
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,15 +33,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
     }
 
+    // A valid token is necessary but not sufficient: only a funded escrow may
+    // be dispatched, so a token minted for a different lifecycle point cannot
+    // skip straight to DISPATCHED.
+    if (!DISPATCHABLE_STATUSES.includes(transaction.status)) {
+      return NextResponse.json(
+        { error: `Transaction is ${transaction.status}; it cannot be dispatched.` },
+        { status: 409 }
+      );
+    }
+
     // Update dispatch details and status
     const updated = await prisma.escrowTransaction.update({
       where: { id: transaction.id },
       data: {
         status: "DISPATCHED",
         dispatchStatus: "IN_TRANSIT",
-        courierName: courierName || null,
-        courierPhone: courierPhone || null,
+        ...(courierName ? { courierName } : {}),
+        ...(courierPhone ? { courierPhone } : {}),
       },
+    });
+
+    await recordEvent({
+      transactionId: transaction.id,
+      transactionRef,
+      type: EVENTS.DELIVERY_INITIATED,
+      message: `Item dispatched${courierName ? ` via ${courierName}` : ""}`,
+      actorKind: "SELLER",
+      metadata: { courierName: courierName ?? null, from: transaction.status, to: "DISPATCHED" },
     });
 
     // Notify buyer via WhatsApp

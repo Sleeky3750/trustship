@@ -8,7 +8,11 @@
     "start": "next start",
     "lint": "next lint",
     "db": "prisma generate && prisma migrate deploy",
-    "db:push": "prisma migrate resolve --applied && prisma migrate save --preview-feature",
+    "db:push": "prisma db push",
+    "db:diff": "prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --script",
+    "test:seed": "node scripts/audit/seed-rbac-fixtures.mjs",
+    "test:audit": "node scripts/audit/audit-e2e.mjs http://127.0.0.1:3200",
+    "test:cleanup": "node scripts/audit/cleanup-fixtures.mjs",
     "postinstall": "prisma generate"
   },
   "dependencies": {

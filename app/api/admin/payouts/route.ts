@@ -9,16 +9,15 @@
 // SUPER_ADMIN only: payouts move real money out of the platform.
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requirePermission } from "@/lib/admin-auth";
 import { recordAdminAction } from "@/lib/audit";
 import { enqueuePayout } from "@/lib/payouts/processor";
 import { computePayoutAmount } from "@/lib/payout";
-
-const FINANCE_ROLES = ["SUPER_ADMIN", "FINANCE_ADMIN"] as const;
+import { roleHasPermission } from "@/lib/rbac";
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = await requireAdmin(request);
+    const auth = await requirePermission(request, "payouts:read");
     if (auth.error) return auth.error;
 
     const { searchParams } = new URL(request.url);
@@ -62,7 +61,7 @@ export async function GET(request: NextRequest) {
         ...counts,
         total: Object.values(counts).reduce((a, b) => a + b, 0),
       },
-      canManage: FINANCE_ROLES.includes(auth.admin.role as (typeof FINANCE_ROLES)[number]),
+      canManage: roleHasPermission(auth.admin.role, "payouts:manage"),
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     });
   } catch (error) {
@@ -76,7 +75,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = await requireAdmin(request, { roles: [...FINANCE_ROLES] });
+    const auth = await requirePermission(request, "payouts:manage");
     if (auth.error) return auth.error;
     const admin = auth.admin;
 

@@ -13,6 +13,11 @@
 // - Bucket keys come from getClientIp(); behind Vercel/nginx the
 //   x-forwarded-for chain is edge-controlled and cannot be spoofed by
 //   the attacker.
+//
+// This module ALSO exposes a generic fixed-window limiter
+// (`checkWindowLimit` / `windowClientKey`) used by public mutation routes
+// (e.g. /api/escrow/create) that need a simple abuse brake rather than the
+// failure-counting login policy above.
 
 const MAX_FAILURES = 5;
 const WINDOW_MS = 15 * 60 * 1000; // 15-minute window
@@ -100,4 +105,77 @@ export function recordFailure(key: string): void {
 /** Clear failures for `key` (call on successful authentication). */
 export function clearFailures(key: string): void {
   buckets.delete(key);
+}
+
+// ---------------------------------------------------------------------------
+// Generic fixed-window limiter (separate bucket namespace from the login
+// failure tracker above, so the two policies never interfere).
+// ---------------------------------------------------------------------------
+
+interface WindowBucket {
+  count: number;
+  resetAt: number;
+}
+
+const windowBuckets = new Map<string, WindowBucket>();
+
+function pruneWindows(now: number): void {
+  windowBuckets.forEach((bucket, key) => {
+    if (bucket.resetAt <= now) windowBuckets.delete(key);
+  });
+}
+
+export interface WindowLimitResult {
+  allowed: boolean;
+  remaining: number;
+  /** Seconds until the window resets (0 when allowed). */
+  retryAfter: number;
+}
+
+/**
+ * Fixed-window limiter. Best-effort (per server instance) — a simple abuse
+ * brake for public mutation endpoints, not a distributed guarantee.
+ *
+ * @param key       Bucket identity, e.g. `escrow-create:<ip>`.
+ * @param limit     Max requests per window.
+ * @param windowMs  Window length in milliseconds.
+ */
+export function checkWindowLimit(
+  key: string,
+  limit: number,
+  windowMs: number
+): WindowLimitResult {
+  const now = Date.now();
+  pruneWindows(now);
+
+  const existing = windowBuckets.get(key);
+  if (!existing || existing.resetAt <= now) {
+    windowBuckets.set(key, { count: 1, resetAt: now + windowMs });
+    return { allowed: true, remaining: limit - 1, retryAfter: 0 };
+  }
+
+  if (existing.count >= limit) {
+    return {
+      allowed: false,
+      remaining: 0,
+      retryAfter: Math.ceil((existing.resetAt - now) / 1000),
+    };
+  }
+
+  existing.count += 1;
+  return { allowed: true, remaining: limit - existing.count, retryAfter: 0 };
+}
+
+/**
+ * Best-effort client identity for the generic limiter. Prefers proxy headers
+ * (Vercel sets `x-forwarded-for`), falling back to a constant so an
+ * unidentified client still shares a bucket rather than bypassing the limit.
+ */
+export function windowClientKey(request: Request, scope: string): string {
+  const fwd = request.headers.get("x-forwarded-for");
+  const ip =
+    (fwd ? fwd.split(",")[0].trim() : "") ||
+    request.headers.get("x-real-ip") ||
+    "unknown";
+  return `${scope}:${ip}`;
 }

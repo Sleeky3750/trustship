@@ -1,77 +1,85 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { sendWhatsAppMessage } from "@/lib/whatsapp";
-import { TransactionStatus } from "@prisma/client";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requirePermission } from "@/lib/admin-auth";
 import { recordAdminAction } from "@/lib/audit";
+import { requestRefund, RefundError, toMajor } from "@/lib/refunds/workflow";
+import { prisma } from "@/lib/prisma";
 
+/**
+ * POST /api/escrow/ref
+ *
+ * Creates a refund REQUEST. This is intentionally NOT the endpoint that moves
+ * money: it records a request that must be reviewed, approved and executed via
+ * the refund workflow (`/api/admin/refunds/*`). Anyone with the refunds:request
+ * permission may open a request; execution requires refunds:execute (finance).
+ *
+ * Previous behaviour — flipping the escrow to REFUNDED and messaging both
+ * parties that the money had been returned, without calling Flutterwave — has
+ * been removed. The escrow status is left untouched here.
+ */
 export async function POST(request: NextRequest) {
   try {
-    // Issuing a refund moves money out of escrow: admin session required.
-    const auth = await requireAdmin(request);
+    const auth = await requirePermission(request, "refunds:request");
     if (auth.error) return auth.error;
     const admin = auth.admin;
 
-    const { transactionRef, refundReason } = await request.json();
+    const { transactionRef, refundReason, amountMinor } = await request
+      .json()
+      .catch(() => ({} as any));
 
     if (!transactionRef) {
-      return NextResponse.json({ error: "Transaction reference is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Transaction reference is required" },
+        { status: 400 }
+      );
     }
 
+    const refund = await requestRefund({
+      transactionRef,
+      amountMinor:
+        amountMinor == null ? undefined : Number(amountMinor),
+      reason: refundReason ?? undefined,
+      requestedById: admin.id,
+    });
+
+    // Best-effort: if the same request already existed we return it unchanged.
     const transaction = await prisma.escrowTransaction.findUnique({
-      where: { transactionRef },
+      where: { id: refund.transactionId },
+      select: { id: true, transactionRef: true },
     });
 
-    if (!transaction) {
-      return NextResponse.json({ error: "Transaction not found" }, { status: 404 });
-    }
-
-    // Prevent refund on already released/refunded transactions
-    if (transaction.status === TransactionStatus.COMPLETED || transaction.status === TransactionStatus.REFUNDED) {
-      return NextResponse.json({ error: "Cannot refund a released or already refunded transaction" }, { status: 400 });
-    }
-
-    // Update transaction status to REFUNDED
-    const updated = await prisma.escrowTransaction.update({
-      where: { id: transaction.id },
-      data: {
-        status: TransactionStatus.REFUNDED,
-        disputeFault: null,
-      },
-    });
-
-    // Send WhatsApp notification to both parties about the refund
-    const refundMessage = `💰 *Refund Processed (${transactionRef})*\n\n` +
-      `A refund has been processed for this escrow transaction.\n` +
-      `• Reason: ${refundReason || "Not specified"}\n` +
-      `• Full amount will be returned to the buyer's original payment method.`;
-
-    if (transaction.buyerPhone) {
-      await sendWhatsAppMessage(transaction.buyerPhone, refundMessage);
-    }
-    if (transaction.sellerPhone) {
-      await sendWhatsAppMessage(transaction.sellerPhone, refundMessage);
-    }
-
-    // Audit the refund for forensics (real client IP + User-Agent).
     await recordAdminAction(request, {
       adminId: admin.id,
-      action: "REFUND_BUYER",
-      targetId: transaction.id,
-      message: `Refunded escrow ${transaction.transactionRef} (₦${transaction.totalEscrow}) to buyer. Reason: ${refundReason || "Not specified"}`,
+      action: "REFUND_REQUESTED",
+      targetId: transaction?.id ?? refund.transactionId,
+      message: `Refund requested for ${refund.transactionRef} (${toMajor(
+        refund.amountMinor
+      )} ${refund.currency}). Reason: ${refundReason || "Not specified"}`,
       changes: {
-        status: { from: transaction.status, to: TransactionStatus.REFUNDED },
-        refundReason: refundReason || null,
+        refundId: refund.id,
+        amountMinor: refund.amountMinor,
+        status: refund.status,
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      message: "Refund processed and both parties notified via WhatsApp",
-      transaction: updated,
-    });
-  } catch (error: any) {
-    console.error("Refund error:", error);
+    return NextResponse.json(
+      {
+        success: true,
+        message:
+          "Refund request recorded. It must be approved and executed by a finance administrator before any funds move.",
+        refund: {
+          id: refund.id,
+          status: refund.status,
+          amountMinor: refund.amountMinor,
+          currency: refund.currency,
+        },
+      },
+      { status: 201 }
+    );
+  } catch (error: unknown) {
+    if (error instanceof RefundError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    console.error("Refund request error:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -3,6 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { TransactionStatus } from "@prisma/client";
 import { verifyActionToken } from "@/lib/action-token";
+import { recordEvent, EVENTS } from "@/lib/events";
+
+/** Only a dispatched escrow can have its delivery confirmed. */
+const CONFIRMABLE_STATUSES: TransactionStatus[] = ["DISPATCHED", "ESCROW_LOCKED"];
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,6 +49,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Only a dispatched (or otherwise funded) escrow can be delivered. This
+    // stops a valid token for a not-yet-funded escrow from skipping the
+    // lifecycle and prematurely exposing the release prompt.
+    if (!CONFIRMABLE_STATUSES.includes(transaction.status)) {
+      return NextResponse.json(
+        { error: `Transaction is ${transaction.status}; it cannot be confirmed as delivered.` },
+        { status: 409 }
+      );
+    }
+
     // Mark shipment as DELIVERED with timestamp
     const now = new Date();
     const updatedTransaction = await prisma.escrowTransaction.update({
@@ -54,6 +68,15 @@ export async function POST(request: NextRequest) {
         dispatchStatus: "DELIVERED",
         updatedAt: now,
       },
+    });
+
+    await recordEvent({
+      transactionId: transaction.id,
+      transactionRef,
+      type: EVENTS.BUYER_CONFIRMED,
+      message: "Buyer confirmed delivery; inspection window opened",
+      actorKind: "BUYER",
+      metadata: { from: transaction.status, to: "DELIVERED" },
     });
 
     // WhatsApp Inspection Prompt: Alert buyer via WhatsApp to inspect the item and input/share the Release PIN

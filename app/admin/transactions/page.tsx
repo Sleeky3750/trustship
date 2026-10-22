@@ -6,14 +6,15 @@ import RiskBadge from '@/components/risk/RiskBadge';
 interface Transaction {
   id: string;
   transactionRef: string;
-  buyerPhone: string;
-  sellerPhone: string;
-  totalAmount?: number;
-  itemPrice?: number;
+  itemTitle?: string;
   status: string;
   riskLevel?: string | null;
   riskScore?: number | null;
   createdAt: string;
+  itemAmount: number;
+  totalEscrow: number;
+  buyer: { id: string; name: string; phone: string };
+  seller: { id: string; name: string; phone: string };
 }
 
 export default function AdminTransactionsPage() {
@@ -36,7 +37,6 @@ export default function AdminTransactionsPage() {
       setIsLoading(false);
     }
   };
-
   useEffect(() => {
     async function init() {
       try {
@@ -82,8 +82,11 @@ export default function AdminTransactionsPage() {
     return `https://wa.me/${cleanPhone}?text=${message}`;
   };
 
-  // Case-insensitive — the API/DB role casing must never gate UI buttons.
-  const isSuperAdmin = adminRole.trim().toUpperCase() === 'SUPER_ADMIN';
+  // UI hint only: the server re-checks `escrow:release` on the release route.
+  // FINANCE_ADMIN and SUPER_ADMIN hold it; SUPPORT_MODERATOR does not.
+  const normalizedRole = adminRole.trim().toUpperCase();
+  const canRelease =
+    normalizedRole === 'SUPER_ADMIN' || normalizedRole === 'FINANCE_ADMIN';
 
   return (
     <div className="space-y-6">
@@ -131,36 +134,42 @@ export default function AdminTransactionsPage() {
                   transactions.map((tx) => (
                     <tr key={tx.id} className="hover:bg-gray-50 transition">
                       <td className="py-4 px-4">
-                        <div className="font-mono font-semibold text-xs text-gray-900">{tx.transactionRef}</div>
+                        <a
+                          href={`/admin/transactions/${tx.id}`}
+                          className="font-mono font-semibold text-xs text-blue-700 hover:text-blue-900 hover:underline"
+                          title="Open full transaction detail (timeline, refunds, disputes)"
+                        >
+                          {tx.transactionRef}
+                        </a>
                         <div className="text-[11px] text-gray-500 mt-0.5">{new Date(tx.createdAt).toLocaleDateString()}</div>
                       </td>
                       <td className="py-4 px-4 text-xs space-y-1.5">
                         <div className="flex items-center gap-2">
                           <span className="text-gray-500 font-medium">Buyer:</span>
                           <a
-                            href={formatWhatsAppUrl(tx.buyerPhone, 'Buyer', tx.transactionRef)}
+                            href={formatWhatsAppUrl(tx.buyer.phone, 'Buyer', tx.transactionRef)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-2 py-0.5 rounded-md font-mono font-semibold transition border border-emerald-200"
                             title="Chat with Buyer on WhatsApp"
                           >
-                            💬 {tx.buyerPhone}
+                            💬 {tx.buyer.phone}
                           </a>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-gray-500 font-medium">Seller:</span>
                           <a
-                            href={formatWhatsAppUrl(tx.sellerPhone, 'Seller', tx.transactionRef)}
+                            href={formatWhatsAppUrl(tx.seller.phone, 'Seller', tx.transactionRef)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-2 py-0.5 rounded-md font-mono font-semibold transition border border-emerald-200"
                             title="Chat with Seller on WhatsApp"
                           >
-                            💬 {tx.sellerPhone}
+                            💬 {tx.seller.phone}
                           </a>
                         </div>
                       </td>
-                      <td className="py-4 px-4 font-semibold text-gray-900">₦{(tx.totalAmount || tx.itemPrice || 0).toLocaleString()}</td>
+                      <td className="py-4 px-4 font-semibold text-gray-900">₦{(tx.totalEscrow || tx.itemAmount || 0).toLocaleString()}</td>
                       <td className="py-4 px-4">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
                           tx.status === 'COMPLETED' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
@@ -173,7 +182,7 @@ export default function AdminTransactionsPage() {
                         <RiskBadge level={tx.riskLevel ?? 'LOW'} score={tx.riskScore} />
                       </td>
                       <td className="py-4 px-4 text-right space-x-2">
-                        {isSuperAdmin && tx.status !== 'COMPLETED' && (
+                        {canRelease && tx.status !== 'COMPLETED' && (
                           <button
                             onClick={() => handleReleaseFunds(tx.id, tx.transactionRef)}
                             className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-sm transition"
@@ -181,8 +190,8 @@ export default function AdminTransactionsPage() {
                             Release Funds
                           </button>
                         )}
-                        {!isSuperAdmin && tx.status !== 'COMPLETED' && (
-                          <span className="text-xs text-gray-400 italic">Requires SUPER_ADMIN</span>
+                        {!canRelease && tx.status !== 'COMPLETED' && (
+                          <span className="text-xs text-gray-400 italic">Requires finance role</span>
                         )}
                       </td>
                     </tr>

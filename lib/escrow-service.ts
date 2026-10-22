@@ -9,6 +9,7 @@ import { initializeFlutterwavePayment } from "@/lib/flutterwave";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { computePlatformFee, computeGatewayFee } from "@/lib/payout";
 import { resolveBankAccount } from "@/lib/bank-verification";
+import { recordEvent, EVENTS } from "@/lib/events";
 
 export type WaybillPayer = "BUYER" | "SELLER";
 
@@ -263,6 +264,32 @@ export async function createEscrow(
     await sendWhatsAppMessage(sellerPhone, whatsappMessage);
   }
 
+  // Timeline: creation + payment link issued (+ notification when sent).
+  await recordEvent({
+    transactionId: transaction.id,
+    transactionRef,
+    type: EVENTS.CREATED,
+    message: `Escrow created for "${displayItemTitle}" (₦${totalEscrow.toLocaleString()})`,
+    actorKind: "BUYER",
+    metadata: { itemAmount: numItemAmount, totalEscrow, platformFee, gatewayFee },
+  });
+  await recordEvent({
+    transactionId: transaction.id,
+    transactionRef,
+    type: EVENTS.PAYMENT_INITIATED,
+    message: "Flutterwave checkout link issued — awaiting buyer payment",
+    actorKind: "SYSTEM",
+  });
+  if (notifyParticipants) {
+    await recordEvent({
+      transactionId: transaction.id,
+      transactionRef,
+      type: EVENTS.SELLER_NOTIFIED,
+      message: "Both parties notified of the escrow over WhatsApp",
+      actorKind: "SYSTEM",
+    });
+  }
+
   return {
     success: true,
     transactionRef,
@@ -339,6 +366,16 @@ export async function createEscrowDraft(
       sellerId: seller.id,
       paymentProvider: "FLUTTERWAVE",
     },
+  });
+
+  // Timeline: draft created, awaiting seller acceptance.
+  await recordEvent({
+    transactionId: transaction.id,
+    transactionRef,
+    type: EVENTS.CREATED,
+    message: `Escrow draft created for "${cleanItemTitle ?? "Item"}" (₦${totalEscrow.toLocaleString()}) — awaiting seller acceptance`,
+    actorKind: "BUYER",
+    metadata: { itemAmount: numItemAmount, totalEscrow, platformFee, gatewayFee },
   });
 
   return {

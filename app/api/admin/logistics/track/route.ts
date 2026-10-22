@@ -8,12 +8,12 @@
 // timeline (e.g. inside the tracking card) without refetching the whole table.
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requirePermission } from "@/lib/admin-auth";
 import { getLogisticsProvider } from "@/lib/logistics";
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = await requireAdmin(request);
+    const auth = await requirePermission(request, "logistics:read");
     if (auth.error) return auth.error;
 
     const { searchParams } = new URL(request.url);

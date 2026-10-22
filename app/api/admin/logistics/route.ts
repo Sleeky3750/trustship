@@ -10,14 +10,14 @@
 // mandatory — the proxy and requireAdmin both enforce it.
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/admin-auth";
+import { requirePermission } from "@/lib/admin-auth";
 import { recordAdminAction } from "@/lib/audit";
-import { createWaybillForTransaction, getLogisticsProvider } from "@/lib/logistics";
+import { createWaybillForTransaction } from "@/lib/logistics";
 import type { LogisticsProvider } from "@prisma/client";
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = await requireAdmin(request);
+    const auth = await requirePermission(request, "logistics:read");
     if (auth.error) return auth.error;
 
     const { searchParams } = new URL(request.url);
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = await requireAdmin(request);
+    const auth = await requirePermission(request, "logistics:manage");
     if (auth.error) return auth.error;
     const admin = auth.admin;
 
