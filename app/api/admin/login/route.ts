@@ -52,6 +52,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // A deactivated (soft-deleted) admin must not be able to sign in. Return a
+    // generic error — never reveal that the account exists but is disabled.
+    if (!admin.isActive) {
+      recordFailure(clientIp);
+      return NextResponse.json(
+        { success: false, error: "Invalid email or password" },
+        { status: 401 }
+      );
+    }
+
     // 2. Verify password (supports both hashed and plain text for legacy setup migration)
     let isPasswordValid = false;
     if (admin.password.startsWith("$2a$") || admin.password.startsWith("$2b$")) {

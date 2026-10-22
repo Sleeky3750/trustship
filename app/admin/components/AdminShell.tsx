@@ -177,9 +177,10 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   const closeSidebar = () => setSidebarOpen(false);
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-[#03070A] text-slate-100 font-sans">
-      {/* Mobile Top Bar */}
-      <div className="md:hidden flex items-center justify-between border-b border-slate-800/70 bg-[#03070A] px-4 py-3 z-50">
+    <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-[#03070A] text-slate-100 font-sans">
+      {/* Mobile Top Bar — fixed-height flex child, so the sidebar + main area
+          below it keep their own independent scroll regions. */}
+      <div className="md:hidden flex flex-shrink-0 items-center justify-between border-b border-slate-800/70 bg-[#03070A] px-4 py-3 z-50">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setSidebarOpen((o) => !o)}
@@ -210,11 +211,14 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         )}
       </div>
 
-      {/* Admin Sidebar */}
+      {/* Admin Sidebar — its own scroll region. `h-full overflow-y-auto`
+          means the nav list scrolls inside the sidebar without pushing the
+          page; `flex-shrink-0` keeps its width fixed while the main content
+          takes the remaining space. */}
       <aside
         className={`${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } fixed inset-y-0 left-0 z-40 w-64 transform bg-[#03070A] text-slate-100 flex flex-col px-6 pb-6 pt-20 md:p-6 border-r border-slate-800/70 transition-transform duration-200 ease-in-out md:relative md:translate-x-0 md:flex md:flex-col md:h-full`}
+        } fixed inset-y-0 left-0 z-40 w-64 transform bg-[#03070A] text-slate-100 flex flex-col px-6 pb-6 pt-20 md:p-6 border-r border-slate-800/70 transition-transform duration-200 ease-in-out md:relative md:translate-x-0 md:flex md:flex-col h-full overflow-y-auto flex-shrink-0`}
       >
         <div className="mb-8 hidden md:block">
           <h1 className="text-xl font-bold tracking-tight text-blue-400">TrustShip Admin</h1>
@@ -398,8 +402,10 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         />
       )}
 
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto w-full p-4 md:p-10">
+      {/* Main Content Area — occupies the remaining width and scrolls
+          independently of the sidebar. `min-w-0` is required so a wide table
+          inside cannot force this flex child to overflow horizontally. */}
+      <main className="flex-1 min-w-0 h-full overflow-y-auto p-4 md:p-10">
         <div className="w-full max-w-7xl mx-auto">
           {children}
         </div>

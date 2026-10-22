@@ -523,6 +523,11 @@ model AdminUser {
   role               AdminRole       @default(SUPPORT_MODERATOR)
   twoFactorSecret    String?         // TOTP secret for authenticator apps
   isTwoFactorEnabled Boolean         @default(false)
+  // Soft-delete flag. Deactivated admins cannot sign in and are excluded from
+  // the active roster, but their row (and therefore their audit history via the
+  // AdminAuditLog FK) is preserved. Hard-deleting an admin would CASCADE and
+  // erase their entire audit trail, which is unacceptable for a forensic log.
+  isActive           Boolean         @default(true)
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @default(now()) @updatedAt // Added @default(now())
   auditLogs          AdminAuditLog[]

@@ -10,11 +10,17 @@ import { listAdminAccounts } from "@/lib/admin-management";
 import ManageAdminsView from "./ManageAdminsView";
 
 export default async function ManageAdminsPage() {
-  await requireSuperAdminPage();
+  const session = await requireSuperAdminPage();
 
   // listAdminAccounts re-authorizes from the session cookie (defence in depth).
   const result = await listAdminAccounts();
   const initialAdmins = result.success ? result.admins : [];
 
-  return <ManageAdminsView initialAdmins={initialAdmins} loadError={result.success ? undefined : result.error} />;
+  return (
+    <ManageAdminsView
+      initialAdmins={initialAdmins}
+      currentAdminId={session.id}
+      loadError={result.success ? undefined : result.error}
+    />
+  );
 }

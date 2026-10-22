@@ -154,17 +154,23 @@ export async function requireAdmin(
 
   const admin = await prisma.adminUser.findUnique({
     where: { id: adminId },
-    select: { id: true, email: true, name: true, role: true },
+    select: { id: true, email: true, name: true, role: true, isActive: true },
   });
   if (!admin) {
     return deny("Admin not found", 401);
+  }
+  // A deactivated admin's already-issued JWT must stop working immediately —
+  // do not rely on the token expiring. Treated as unauthorized, not forbidden,
+  // so the client is sent back to login rather than shown an error page.
+  if (!admin.isActive) {
+    return deny("Unauthorized", 401);
   }
 
   if (options.roles && !options.roles.includes(admin.role)) {
     return deny("Insufficient permissions", 403);
   }
 
-  return { admin, error: null };
+  return { admin: { id: admin.id, email: admin.email, name: admin.name, role: admin.role }, error: null };
 }
 
 /**
@@ -221,9 +227,11 @@ export async function readAdminSession(
   try {
     const admin = await prisma.adminUser.findUnique({
       where: { id: adminId },
-      select: { id: true, email: true, name: true, role: true },
+      select: { id: true, email: true, name: true, role: true, isActive: true },
     });
-    return admin ?? null;
+    // Deactivated admins are treated as having no session (see requireAdmin).
+    if (!admin || !admin.isActive) return null;
+    return { id: admin.id, email: admin.email, name: admin.name, role: admin.role };
   } catch (error) {
     console.error("[admin-auth] session lookup failed:", error);
     return null;
